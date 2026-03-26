@@ -1,22 +1,15 @@
-import { createClient } from '@libsql/client'
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import * as schema from "./schema";
 
-export const client = createClient({
-  url: 'file:local.db',
+const client = createClient({
+  url: "file:local.db",
   syncUrl: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN,
   syncInterval: 60,
-})
+});
 
-// TODO: Replace with Drizzle schema + migrations
-export async function initDb() {
-  await client.execute(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id          TEXT PRIMARY KEY,
-      title       TEXT NOT NULL,
-      status      TEXT NOT NULL DEFAULT 'todo',
-      sort_order  TEXT,
-      created_at  TEXT NOT NULL,
-      updated_at  TEXT NOT NULL
-    )
-  `)
-}
+// Enable foreign key enforcement (off by default in SQLite)
+await client.execute("PRAGMA foreign_keys = ON");
+
+export const db = drizzle({ client, schema, casing: "snake_case" });
