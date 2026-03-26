@@ -11,6 +11,7 @@ This project uses **`@tanstack/react-start`** (NOT `@tanstack/start` which is de
 Your task: $ARGUMENTS
 
 Before starting, read the reference doc:
+
 - `${CLAUDE_SKILL_DIR}/start-reference.md` — execution model, server functions, SPA mode, import protection, extension-specific patterns
 
 ## Project context
@@ -25,41 +26,42 @@ Before starting, read the reference doc:
 
 ```typescript
 // Server functions, createMiddleware
-import { createServerFn } from '@tanstack/react-start'
+import { createServerFn } from "@tanstack/react-start";
 
 // Client entry
-import { StartClient } from '@tanstack/react-start/client'
+import { StartClient } from "@tanstack/react-start/client";
 
 // Server entry
-import { createStartHandler, defaultStreamHandler } from '@tanstack/react-start/server'
+import { createStartHandler, defaultStreamHandler } from "@tanstack/react-start/server";
 
 // Vite plugin
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 // Router (HeadContent and Scripts live HERE, not in react-start)
-import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 ```
 
 ## Import protection & file naming (CRITICAL)
 
 All code is isomorphic by default — it ends up in BOTH bundles. Use these conventions to control what goes where:
 
-| Pattern | Effect |
-|---|---|
-| `*.server.*` (e.g. `db.server.ts`) | Blocked from client bundle |
+| Pattern                                   | Effect                     |
+| ----------------------------------------- | -------------------------- |
+| `*.server.*` (e.g. `db.server.ts`)        | Blocked from client bundle |
 | `*.client.*` (e.g. `analytics.client.ts`) | Blocked from server bundle |
-| Files under `server/` directory | Blocked from client bundle |
-| Files under `client/` directory | Blocked from server bundle |
-| Everything else | Isomorphic — both bundles |
+| Files under `server/` directory           | Blocked from client bundle |
+| Files under `client/` directory           | Blocked from server bundle |
+| Everything else                           | Isomorphic — both bundles  |
 
 **Directory protection requires vite config** — add `importProtection` to the `tanstackStart` plugin:
+
 ```typescript
 tanstackStart({
   importProtection: {
-    client: { files: ['**/*.server.*', '**/server/**'] },
-    server: { files: ['**/*.client.*', '**/client/**'] },
+    client: { files: ["**/*.server.*", "**/server/**"] },
+    server: { files: ["**/*.client.*", "**/client/**"] },
   },
-})
+});
 ```
 
 **Rule of thumb**: If a file imports `node:*` builtins, database clients, or reads `process.env` secrets, it MUST be named `*.server.*` or placed in a `server/` directory.

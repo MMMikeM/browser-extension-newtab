@@ -12,38 +12,42 @@ npm i -D drizzle-kit@beta
 ## Driver Setup (Turso/libSQL)
 
 ### Using connection config
+
 ```typescript
-import { drizzle } from 'drizzle-orm/libsql'
+import { drizzle } from "drizzle-orm/libsql";
 
 const db = drizzle({
   connection: {
     url: process.env.TURSO_DATABASE_URL!,
     authToken: process.env.TURSO_AUTH_TOKEN!,
   },
-})
+});
 ```
 
 ### Using existing client
+
 ```typescript
-import { createClient } from '@libsql/client'
-import { drizzle } from 'drizzle-orm/libsql'
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 
 const client = createClient({
   url: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN,
-})
-const db = drizzle({ client })
+});
+const db = drizzle({ client });
 ```
 
 ### With relations
+
 ```typescript
-import { relations } from './relations'
-const db = drizzle({ client, relations })
+import { relations } from "./relations";
+const db = drizzle({ client, relations });
 ```
 
 ### With casing
+
 ```typescript
-const db = drizzle({ client, casing: 'snake_case' })
+const db = drizzle({ client, casing: "snake_case" });
 ```
 
 Driver sub-imports: `/libsql`, `/libsql/node`, `/libsql/web`, `/libsql/http`, `/libsql/ws`, `/libsql/wasm`.
@@ -55,25 +59,28 @@ Driver sub-imports: `/libsql`, `/libsql/node`, `/libsql/web`, `/libsql/http`, `/
 All column types import from `drizzle-orm/sqlite-core`.
 
 ### Table definition
-```typescript
-import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
-export const users = sqliteTable('users', {
+```typescript
+import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+
+export const users = sqliteTable("users", {
   id: integer().primaryKey({ autoIncrement: true }),
   name: text().notNull(),
   email: text().notNull().unique(),
-  role: text().$type<'admin' | 'user'>().default('user'),
-  createdAt: text('created_at').notNull(),
-})
+  role: text().$type<"admin" | "user">().default("user"),
+  createdAt: text("created_at").notNull(),
+});
 ```
 
 ### Column types
+
 - `integer()` — INTEGER
 - `text()` — TEXT
 - `real()` — REAL
 - `blob()` — BLOB
 
 ### Column modifiers
+
 - `.primaryKey()` / `.primaryKey({ autoIncrement: true })`
 - `.notNull()`
 - `.unique()`
@@ -83,33 +90,35 @@ export const users = sqliteTable('users', {
 - `.references(() => otherTable.column)` — foreign key
 
 ### Column name mapping
+
 Pass the DB column name as the first argument if it differs from the JS property:
+
 ```typescript
-createdAt: text('created_at').notNull()
+createdAt: text("created_at").notNull();
 ```
+
 Or use `casing: 'snake_case'` on the `drizzle()` call to auto-map.
 
 ### Indexes and constraints
+
 ```typescript
 export const posts = sqliteTable(
-  'posts',
+  "posts",
   {
     id: integer().primaryKey({ autoIncrement: true }),
     slug: text().notNull(),
     title: text(),
-    authorId: integer('author_id').references(() => users.id),
+    authorId: integer("author_id").references(() => users.id),
   },
-  (table) => [
-    uniqueIndex('slug_idx').on(table.slug),
-    index('title_idx').on(table.title),
-  ]
-)
+  (table) => [uniqueIndex("slug_idx").on(table.slug), index("title_idx").on(table.title)],
+);
 ```
 
 ### Self-referencing foreign keys
+
 ```typescript
-import { type AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
-invitedBy: integer('invited_by').references((): AnySQLiteColumn => users.id)
+import { type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
+invitedBy: integer("invited_by").references((): AnySQLiteColumn => users.id);
 ```
 
 ---
@@ -117,9 +126,10 @@ invitedBy: integer('invited_by').references((): AnySQLiteColumn => users.id)
 ## Relations v2 (v1 API)
 
 ### defineRelations
+
 ```typescript
-import { defineRelations } from 'drizzle-orm'
-import * as schema from './schema'
+import { defineRelations } from "drizzle-orm";
+import * as schema from "./schema";
 
 export const relations = defineRelations(schema, (r) => ({
   users: {
@@ -135,18 +145,20 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.users.id,
     }),
   },
-}))
+}));
 ```
 
 ### Key differences from v0
-| v0 | v1 |
-|----|-----|
+
+| v0                                                             | v1                                                |
+| -------------------------------------------------------------- | ------------------------------------------------- |
 | `relations(table, ({ one, many }) => ...)` scattered per table | `defineRelations(schema, (r) => ...)` single call |
-| `fields: [table.col]` | `from: r.table.col` (or array) |
-| `references: [other.col]` | `to: r.other.col` (or array) |
-| `relationName: 'foo'` | `alias: 'foo'` |
+| `fields: [table.col]`                                          | `from: r.table.col` (or array)                    |
+| `references: [other.col]`                                      | `to: r.other.col` (or array)                      |
+| `relationName: 'foo'`                                          | `alias: 'foo'`                                    |
 
 ### Many-to-many with `through`
+
 ```typescript
 users: {
   groups: r.many.groups({
@@ -157,36 +169,39 @@ users: {
 ```
 
 ### Optional relations
+
 ```typescript
 posts: r.many.posts({
   from: r.users.id,
   to: r.posts.authorId,
-  optional: false,  // makes the relation required at type level
-})
+  optional: false, // makes the relation required at type level
+});
 ```
 
 ### Predefined filters on relations
+
 ```typescript
 activePosts: r.many.posts({
   from: r.users.id,
   to: r.posts.authorId,
-  where: { status: 'active' },
-})
+  where: { status: "active" },
+});
 ```
 
 ### Modular relations (split across files)
+
 ```typescript
-import { defineRelationsPart } from 'drizzle-orm'
+import { defineRelationsPart } from "drizzle-orm";
 
 const part1 = defineRelations(schema, (r) => ({
   users: { posts: r.many.posts() },
-}))
+}));
 
 const part2 = defineRelationsPart(schema, (r) => ({
   posts: { author: r.one.users() },
-}))
+}));
 
-const db = drizzle({ client, relations: { ...part1, ...part2 } })
+const db = drizzle({ client, relations: { ...part1, ...part2 } });
 ```
 
 ---
@@ -194,6 +209,7 @@ const db = drizzle({ client, relations: { ...part1, ...part2 } })
 ## Queries
 
 ### CRUD operations
+
 ```typescript
 import { eq, lt, gt, and, or, sql } from 'drizzle-orm'
 
@@ -216,90 +232,92 @@ await db.delete(users).where(eq(users.id, 1))
 ### Relational queries (v1 syntax)
 
 **Where — object syntax (NOT function syntax):**
+
 ```typescript
 // Simple
 const user = await db.query.users.findFirst({
   where: { id: 1 },
-})
+});
 
 // Operators
 const users = await db.query.users.findMany({
   where: { age: { gt: 18 } },
-})
+});
 
 // AND (implicit — multiple keys)
 const users = await db.query.users.findMany({
-  where: { name: 'John', age: { gte: 18 } },
-})
+  where: { name: "John", age: { gte: 18 } },
+});
 
 // Explicit AND/OR
 const users = await db.query.users.findMany({
   where: {
-    OR: [
-      { name: 'John' },
-      { age: { lt: 18 } },
-    ],
+    OR: [{ name: "John" }, { age: { lt: 18 } }],
   },
-})
+});
 
 // RAW SQL in where
 const users = await db.query.users.findMany({
   where: {
     RAW: (table) => sql`LOWER(${table.name}) LIKE 'john%'`,
   },
-})
+});
 
 // Filter by relation (v1 only)
 const users = await db.query.users.findMany({
   where: {
-    posts: { title: { like: '%drizzle%' } },
+    posts: { title: { like: "%drizzle%" } },
   },
-})
+});
 ```
 
 **OrderBy — object syntax:**
+
 ```typescript
 const users = await db.query.users.findMany({
-  orderBy: { id: 'asc' },
-})
+  orderBy: { id: "asc" },
+});
 // Multiple
 const users = await db.query.users.findMany({
-  orderBy: { lastName: 'asc', firstName: 'asc' },
-})
+  orderBy: { lastName: "asc", firstName: "asc" },
+});
 ```
 
 **With (eager loading):**
+
 ```typescript
 const usersWithPosts = await db.query.users.findMany({
   with: {
     posts: true,
   },
-})
+});
 
 // Nested with filters
 const usersWithPosts = await db.query.users.findMany({
   with: {
     posts: {
-      where: { status: 'published' },
+      where: { status: "published" },
       limit: 5,
       offset: 0,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       with: {
         comments: true,
       },
     },
   },
-})
+});
 ```
 
 **Columns (select specific fields):**
+
 ```typescript
 const users = await db.query.users.findMany({
   columns: { id: true, name: true },
-})
+});
 ```
 
 ### Offset on relations (v1 only)
+
 ```typescript
 await db.query.posts.findMany({
   limit: 5,
@@ -307,7 +325,7 @@ await db.query.posts.findMany({
   with: {
     comments: { offset: 3, limit: 3 },
   },
-})
+});
 ```
 
 ---
@@ -316,20 +334,21 @@ await db.query.posts.findMany({
 
 ```typescript
 // drizzle.config.ts
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  out: './drizzle',
-  schema: './src/lib/schema.ts',
-  dialect: 'turso',
+  out: "./drizzle",
+  schema: "./src/lib/schema.ts",
+  dialect: "turso",
   dbCredentials: {
     url: process.env.TURSO_DATABASE_URL!,
     authToken: process.env.TURSO_AUTH_TOKEN!,
   },
-})
+});
 ```
 
 ### Commands
+
 ```bash
 npx drizzle-kit generate   # Generate migration SQL files
 npx drizzle-kit migrate    # Apply migrations
@@ -347,6 +366,7 @@ npx drizzle-kit studio     # Open Drizzle Studio GUI
 ## Migration folder structure (v1)
 
 v1 removes `journal.json`. Each migration is its own folder:
+
 ```
 drizzle/
   0000_initial/
@@ -361,16 +381,90 @@ Run `npx drizzle-kit up` to upgrade from the old flat format.
 
 ---
 
-## Validator integration (v1)
+## Zod Schema Generation (v1)
 
-Validators are now built into `drizzle-orm`:
+Starting from beta.15, `drizzle-zod` is deprecated. Validators are built into `drizzle-orm`:
+
 ```typescript
 // Old (removed): import { createInsertSchema } from 'drizzle-zod'
 // New:
-import { createInsertSchema, createSelectSchema } from 'drizzle-orm/zod'
+import {
+  createSelectSchema,
+  createInsertSchema,
+  createUpdateSchema,
+  createSchemaFactory,
+} from "drizzle-orm/zod";
 ```
 
-Available: `drizzle-orm/zod`, `drizzle-orm/valibot`, `drizzle-orm/typebox`, `drizzle-orm/arktype`.
+Also available: `drizzle-orm/valibot`, `drizzle-orm/typebox`, `drizzle-orm/arktype`.
+
+### createSelectSchema — validate data coming FROM the database
+
+```typescript
+import { createSelectSchema } from "drizzle-orm/zod";
+import { tasks } from "./schema";
+
+const taskSelectSchema = createSelectSchema(tasks);
+type Task = z.infer<typeof taskSelectSchema>;
+```
+
+### createInsertSchema — validate data going INTO the database
+
+```typescript
+const taskInsertSchema = createInsertSchema(tasks);
+// Fields with defaults become optional
+// Generated columns are excluded
+const parsed = taskInsertSchema.parse(userInput);
+await db.insert(tasks).values(parsed);
+```
+
+### createUpdateSchema — validate partial updates
+
+```typescript
+const taskUpdateSchema = createUpdateSchema(tasks);
+// All fields are optional (partial update)
+// Generated columns are excluded
+const parsed = taskUpdateSchema.parse(userInput);
+await db.update(tasks).set(parsed).where(eq(tasks.id, id));
+```
+
+### Refinements — extend or override column schemas
+
+```typescript
+// Callback extends the derived schema (applied before nullability/optionality)
+const insertSchema = createInsertSchema(tasks, {
+  title: (schema) => schema.min(1).max(200),
+});
+
+// Direct Zod schema overwrites entirely (including nullability)
+const insertSchema = createInsertSchema(tasks, {
+  title: z.string().min(1).max(200),
+});
+```
+
+### createSchemaFactory — custom Zod instance or coercion
+
+```typescript
+import { createSchemaFactory } from "drizzle-orm/zod";
+
+// Use with extended Zod (e.g. @hono/zod-openapi)
+const { createInsertSchema } = createSchemaFactory({ zodInstance: z });
+
+// Enable type coercion (e.g. string → date)
+const { createInsertSchema } = createSchemaFactory({
+  coerce: { date: true }, // or true for all types
+});
+```
+
+### Type mappings
+
+- `text()` → `z.string()`
+- `text({ enum: [...] })` → `z.enum([...])`
+- `integer()` → `z.number().int()`
+- `integer({ mode: 'boolean' })` → `z.boolean()`
+- `real()` → `z.number()`
+- Nullable columns → `.nullable()`
+- Columns with defaults → `.optional()` (in insert/update schemas)
 
 ---
 
@@ -387,14 +481,29 @@ Available: `drizzle-orm/zod`, `drizzle-orm/valibot`, `drizzle-orm/typebox`, `dri
 
 ```typescript
 import {
-  eq, ne, lt, gt, lte, gte,
-  and, or, not,
-  like, ilike,
-  inArray, notInArray,
-  isNull, isNotNull,
+  eq,
+  ne,
+  lt,
+  gt,
+  lte,
+  gte,
+  and,
+  or,
+  not,
+  like,
+  ilike,
+  inArray,
+  notInArray,
+  isNull,
+  isNotNull,
   between,
   sql,
-  asc, desc,
-  count, sum, avg, min, max,
-} from 'drizzle-orm'
+  asc,
+  desc,
+  count,
+  sum,
+  avg,
+  min,
+  max,
+} from "drizzle-orm";
 ```
