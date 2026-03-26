@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import appCss from "../styles/app.css?url";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "New Tab Todo" },
     ],
+    links: [{ rel: "stylesheet", href: appCss }],
   }),
 });
 
@@ -32,14 +34,7 @@ function RootComponent() {
       <head>
         <HeadContent />
       </head>
-      <body
-        style={{
-          margin: 0,
-          fontFamily: "system-ui, sans-serif",
-          background: "#1a1a2e",
-          color: "#eee",
-        }}
-      >
+      <body className="m-0 font-sans bg-background text-foreground">
         <QueryClientProvider client={queryClient}>
           <Outlet />
         </QueryClientProvider>
