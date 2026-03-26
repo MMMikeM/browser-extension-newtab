@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "New Tab Todo",
+  "version": "1.0.0",
+  "browser_specific_settings": {
+    "gecko": { "id": "newtab-todo@local" }
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "permissions": [
+    "storage"
+  ]
+}
