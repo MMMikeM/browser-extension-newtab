@@ -29,10 +29,10 @@ A working spike lives at `../newtab-todo-spike/` — it confirmed the architectu
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { defineConfig } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000'
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
 export default defineConfig({
   plugins: [
@@ -40,7 +40,7 @@ export default defineConfig({
       spa: {
         enabled: true,
         prerender: {
-          outputPath: '/index.html',
+          outputPath: "/index.html",
         },
       },
     }),
@@ -48,23 +48,23 @@ export default defineConfig({
     // MUST come after tanstackStart. MUST use environments.client.define
     // to avoid breaking server-side routing (server needs relative /_serverFn/).
     {
-      name: 'extension-server-fn-base',
+      name: "extension-server-fn-base",
       config() {
         return {
           environments: {
             client: {
               define: {
-                'process.env.TSS_SERVER_FN_BASE': JSON.stringify(`${SERVER_URL}/_serverFn/`),
-                'import.meta.env.TSS_SERVER_FN_BASE': JSON.stringify(`${SERVER_URL}/_serverFn/`),
+                "process.env.TSS_SERVER_FN_BASE": JSON.stringify(`${SERVER_URL}/_serverFn/`),
+                "import.meta.env.TSS_SERVER_FN_BASE": JSON.stringify(`${SERVER_URL}/_serverFn/`),
               },
             },
           },
-        }
+        };
       },
-      enforce: 'post',
+      enforce: "post",
     },
   ],
-})
+});
 ```
 
 ### Router MUST use hash history
@@ -73,21 +73,19 @@ In `moz-extension://` context, the URL is `moz-extension://<uuid>/index.html` wh
 
 ```typescript
 // src/router.tsx
-import { createRouter } from '@tanstack/react-router'
-import { createHashHistory, createMemoryHistory } from '@tanstack/history'
-import { routeTree } from './routeTree.gen'
+import { createRouter } from "@tanstack/react-router";
+import { createHashHistory, createMemoryHistory } from "@tanstack/history";
+import { routeTree } from "./routeTree.gen";
 
-const isServer = typeof window === 'undefined'
+const isServer = typeof window === "undefined";
 
 const router = createRouter({
   routeTree,
-  history: isServer
-    ? createMemoryHistory({ initialEntries: ['/'] })
-    : createHashHistory(),
-})
+  history: isServer ? createMemoryHistory({ initialEntries: ["/"] }) : createHashHistory(),
+});
 
 export function getRouter() {
-  return router
+  return router;
 }
 ```
 
@@ -95,7 +93,7 @@ export function getRouter() {
 
 ```typescript
 // src/routes/__root.tsx
-import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 // NOT from '@tanstack/react-start' — Meta and Scripts moved to react-router
 ```
 
@@ -110,20 +108,23 @@ Firefox MV2 extensions enforce `script-src 'self'` — no `'unsafe-inline'` allo
 Additionally, the TSR hydration manifest contains `children:"import(\"...\")\"` entries that cause the `Asset` component to create inline scripts at runtime via `document.createElement('script'); script.textContent = ...` — also blocked by CSP.
 
 **Fix**: A post-build script (`scripts/build-extension.ts`) must:
+
 1. Extract all inline `<script>` tags to external `.js` files
 2. Patch the TSR manifest to replace `children:"import(\"<path>\")"` with `src:"<path>"` in the attrs object — this makes the Asset component use the CSP-safe `createElement('script'); script.src = ...` code path instead.
 
 The regex for the manifest patch:
+
 ```typescript
 content.replace(
   /,async:(!0|true)\},children:"import\(\\"([^"]+)\\"\)"\}/g,
-  (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`
-)
+  (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`,
+);
 ```
 
 ### CORS for extension → server
 
 The production server MUST set these headers for `moz-extension://` origins:
+
 ```
 Access-Control-Allow-Origin: <the moz-extension:// origin>
 Access-Control-Allow-Headers: content-type, x-tsr-serverFn, accept
@@ -157,10 +158,7 @@ The `dist/server/server.js` is a handler module (exports `{ fetch }`), not a sta
     "newtab": "index.html"
   },
   "content_security_policy": "script-src 'self'; object-src 'self'",
-  "permissions": [
-    "storage",
-    "https://your-app.fly.dev/*"
-  ]
+  "permissions": ["storage", "https://your-app.fly.dev/*"]
 }
 ```
 

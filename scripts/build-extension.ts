@@ -7,33 +7,33 @@
  *    inline `children` (prevents CSP-blocked dynamic script creation at runtime)
  */
 
-import { readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 
-const ROOT = join(import.meta.dirname, '..')
-const CLIENT_DIR = join(ROOT, 'dist', 'client')
-const EXT_SRC = join(ROOT, 'extension')
-const EXT_OUT = join(ROOT, 'dist', 'extension')
+const ROOT = join(import.meta.dirname, "..");
+const CLIENT_DIR = join(ROOT, "dist", "client");
+const EXT_SRC = join(ROOT, "extension");
+const EXT_OUT = join(ROOT, "dist", "extension");
 
 // Clean and create output
-rmSync(EXT_OUT, { recursive: true, force: true })
-mkdirSync(EXT_OUT, { recursive: true })
+rmSync(EXT_OUT, { recursive: true, force: true });
+mkdirSync(EXT_OUT, { recursive: true });
 
 // Copy client build output
-cpSync(CLIENT_DIR, EXT_OUT, { recursive: true })
+cpSync(CLIENT_DIR, EXT_OUT, { recursive: true });
 
 // Copy manifest
-cpSync(join(EXT_SRC, 'manifest.json'), join(EXT_OUT, 'manifest.json'))
+cpSync(join(EXT_SRC, "manifest.json"), join(EXT_OUT, "manifest.json"));
 
 // Extract inline scripts from index.html
-let html = readFileSync(join(EXT_OUT, 'index.html'), 'utf-8')
+let html = readFileSync(join(EXT_OUT, "index.html"), "utf-8");
 
-let scriptIndex = 0
-const inlineScriptRegex = /<script([^>]*)>([^<]+)<\/script>/g
+let scriptIndex = 0;
+const inlineScriptRegex = /<script([^>]*)>([^<]+)<\/script>/g;
 
 html = html.replace(inlineScriptRegex, (match, attrs: string, content: string) => {
-  if (attrs.includes('src=')) return match
-  if (!content.trim()) return match
+  if (attrs.includes("src=")) return match;
+  if (!content.trim()) return match;
 
   // Patch TSR manifest: convert inline script children to src attributes.
   //
@@ -45,24 +45,24 @@ html = html.replace(inlineScriptRegex, (match, attrs: string, content: string) =
   // (creates inline <script>textContent=...</script> which CSP blocks).
   const patchedContent = content.replace(
     /,async:(!0|true)\},children:"import\(\\"([^"]+)\\"\)"\}/g,
-    (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`
-  )
+    (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`,
+  );
 
   if (patchedContent !== content) {
-    console.log(`  Patched TSR manifest: converted inline import() to src attribute`)
+    console.log(`  Patched TSR manifest: converted inline import() to src attribute`);
   }
 
-  const filename = `_inline-${scriptIndex++}.js`
-  writeFileSync(join(EXT_OUT, filename), patchedContent)
+  const filename = `_inline-${scriptIndex++}.js`;
+  writeFileSync(join(EXT_OUT, filename), patchedContent);
 
-  const typeMatch = attrs.match(/type="([^"]*)"/)
-  const typeAttr = typeMatch ? ` type="${typeMatch[1]}"` : ''
-  const asyncAttr = attrs.includes('async') ? ' async' : ''
+  const typeMatch = attrs.match(/type="([^"]*)"/);
+  const typeAttr = typeMatch ? ` type="${typeMatch[1]}"` : "";
+  const asyncAttr = attrs.includes("async") ? " async" : "";
 
-  return `<script${typeAttr}${asyncAttr} src="/${filename}"></script>`
-})
+  return `<script${typeAttr}${asyncAttr} src="/${filename}"></script>`;
+});
 
-writeFileSync(join(EXT_OUT, 'index.html'), html)
+writeFileSync(join(EXT_OUT, "index.html"), html);
 
-console.log(`Extension built to ${EXT_OUT}`)
-console.log(`Extracted ${scriptIndex} inline script(s)`)
+console.log(`Extension built to ${EXT_OUT}`);
+console.log(`Extracted ${scriptIndex} inline script(s)`);

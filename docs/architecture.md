@@ -66,10 +66,7 @@ With a static long-lived auth token (see Auth section), no background script is 
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "permissions": [
-    "storage",
-    "https://your-app.fly.dev/*"
-  ]
+  "permissions": ["storage", "https://your-app.fly.dev/*"]
 }
 ```
 
@@ -130,13 +127,13 @@ Query handles cross-device consistency without any custom sync logic:
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30,         // 30s before background refetch
-      refetchOnWindowFocus: true,    // syncs when switching back to this tab
-      refetchOnReconnect: true,      // syncs after coming back online
-      networkMode: 'offlineFirst',   // serves cache while offline
-    }
-  }
-})
+      staleTime: 1000 * 30, // 30s before background refetch
+      refetchOnWindowFocus: true, // syncs when switching back to this tab
+      refetchOnReconnect: true, // syncs after coming back online
+      networkMode: "offlineFirst", // serves cache while offline
+    },
+  },
+});
 ```
 
 `refetchOnWindowFocus` is the primary cross-device sync mechanism. Open a new tab on machine B — Query fires a background refetch and the UI updates with any changes made on machine A. No polling, no websockets, no manual sync logic.
@@ -210,9 +207,9 @@ The server validates the token on every request with a simple constant-time comp
 
 ## Release & Update Flow
 
-| Change | Action |
-|---|---|
-| UI / frontend (dev) | Edit → `about:debugging` reload — no signing needed |
-| UI / frontend (release) | Rebuild → re-sign `.xpi` via AMO unlisted → reinstall |
-| API / server functions | `fly deploy` → live immediately, no extension change needed |
-| Schema migration | Deploy migration to Fly.io → backend handles it |
+| Change                  | Action                                                      |
+| ----------------------- | ----------------------------------------------------------- |
+| UI / frontend (dev)     | Edit → `about:debugging` reload — no signing needed         |
+| UI / frontend (release) | Rebuild → re-sign `.xpi` via AMO unlisted → reinstall       |
+| API / server functions  | `fly deploy` → live immediately, no extension change needed |
+| Schema migration        | Deploy migration to Fly.io → backend handles it             |
