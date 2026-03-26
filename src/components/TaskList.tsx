@@ -1,4 +1,4 @@
-import type { Task } from "../functions/tasks";
+import type { Task } from "~/functions/tasks";
 import { TaskItem } from "./TaskItem";
 
 export function TaskList({
@@ -17,7 +17,7 @@ export function TaskList({
   if (tasks.length === 0) return null;
 
   return (
-    <ul style={{ listStyle: "none", padding: 0 }}>
+    <ul className="flex flex-col">
       {tasks.map((task) => (
         <TaskItem
           key={task.id}

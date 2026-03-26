@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Input } from "~/components/ui/input";
 
 export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
   const [value, setValue] = useState("");
@@ -13,13 +14,12 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         setValue("");
       }}
     >
-      <input
+      <Input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Add a task..."
         autoFocus
-        style={{ width: "100%", padding: "0.5rem", boxSizing: "border-box" }}
       />
     </form>
   );

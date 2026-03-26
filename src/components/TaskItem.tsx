@@ -1,4 +1,7 @@
-import type { Task } from "../functions/tasks";
+import type { Task } from "~/functions/tasks";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 export function TaskItem({
   task,
@@ -12,22 +15,18 @@ export function TaskItem({
   onDelete: () => void;
 }) {
   return (
-    <li
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        padding: "0.25rem 0",
-        opacity: pending ? 0.5 : 1,
-      }}
-    >
-      <input type="checkbox" checked={task.status === "done"} onChange={onToggle} disabled={pending} />
-      <span style={{ flex: 1, textDecoration: task.status === "done" ? "line-through" : "none" }}>
+    <li className={cn("flex items-center gap-3 py-1.5", pending && "opacity-50")}>
+      <Checkbox
+        checked={task.status === "done"}
+        onCheckedChange={onToggle}
+        disabled={pending}
+      />
+      <span className={cn("flex-1", task.status === "done" && "line-through text-muted-foreground")}>
         {task.title}
       </span>
-      <button onClick={onDelete} disabled={pending} style={{ cursor: "pointer" }}>
+      <Button variant="ghost" size="icon-xs" onClick={onDelete} disabled={pending}>
         x
-      </button>
+      </Button>
     </li>
   );
 }
