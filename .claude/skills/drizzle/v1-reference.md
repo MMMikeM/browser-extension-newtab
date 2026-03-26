@@ -224,9 +224,17 @@ const [inserted] = await db.insert(users).values({ ... }).returning()
 
 // Update
 await db.update(users).set({ name: 'Bob' }).where(eq(users.id, 1))
+// Update returning
+const [updated] = await db.update(users).set({ name: 'Bob' }).where(eq(users.id, 1)).returning()
 
 // Delete
 await db.delete(users).where(eq(users.id, 1))
+
+// Upsert (insert or update on conflict)
+await db.insert(users).values({ id, name, email }).onConflictDoUpdate({
+  target: users.id,
+  set: { name, email },
+})
 ```
 
 ### Relational queries (v1 syntax)
@@ -326,6 +334,36 @@ await db.query.posts.findMany({
     comments: { offset: 3, limit: 3 },
   },
 });
+```
+
+---
+
+## Counting
+
+### `db.$count()` — simple filtered count
+
+```typescript
+const count = await db.$count(users, eq(users.role, "admin"));
+```
+
+### `selectDistinct()` — distinct with joins
+
+```typescript
+const rows = await db
+  .selectDistinct({ id: tasks.id })
+  .from(tasks)
+  .innerJoin(tags, eq(tasks.id, tags.taskId))
+  .where(inArray(tags.name, ["urgent", "bug"]));
+```
+
+### Multiple counts in one round-trip
+
+```typescript
+const [stats] = await db.all<{ total: number; active: number }>(sql`
+  SELECT
+    (SELECT COUNT(*) FROM users) as total,
+    (SELECT COUNT(*) FROM users WHERE role = 'admin') as active
+`);
 ```
 
 ---
