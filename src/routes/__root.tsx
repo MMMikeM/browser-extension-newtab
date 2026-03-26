@@ -34,7 +34,7 @@ function RootComponent() {
       <head>
         <HeadContent />
       </head>
-      <body className="m-0 font-sans bg-background text-foreground">
+      <body>
         <QueryClientProvider client={queryClient}>
           <Outlet />
         </QueryClientProvider>

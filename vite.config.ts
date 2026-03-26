@@ -5,6 +5,9 @@ import tailwindcss from "@tailwindcss/vite";
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   plugins: [
     tailwindcss(),
     tanstackStart({
