@@ -1,6 +1,12 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import type { VariantProps } from "tailwind-variants";
+export { cn } from "tailwind-variants";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
+/**
+ * Props for a base-ui primitive wrapped with a tv() variant definition.
+ * Replaces base-ui's render-prop className with a plain string and
+ * merges in the variant props from tv().
+ */
+export type StyledProps<
+  TPrimitive,
+  TVariants extends (...args: any) => any,
+> = Omit<TPrimitive, "className"> & VariantProps<TVariants> & { className?: string };
