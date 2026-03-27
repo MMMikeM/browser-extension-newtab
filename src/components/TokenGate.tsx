@@ -3,8 +3,15 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 
+const TOKEN_KEY = "newtab-todo-token";
+
+function readToken() {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem(TOKEN_KEY) || "";
+}
+
 export function TokenGate({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState(() => localStorage.getItem("newtab-todo-token") || "");
+  const [token, setToken] = useState(readToken);
   const [input, setInput] = useState("");
 
   if (token) return <>{children}</>;
@@ -21,7 +28,7 @@ export function TokenGate({ children }: { children: React.ReactNode }) {
             className="flex flex-col gap-3"
             onSubmit={(e) => {
               e.preventDefault();
-              localStorage.setItem("newtab-todo-token", input);
+              localStorage.setItem(TOKEN_KEY, input);
               setToken(input);
             }}
           >

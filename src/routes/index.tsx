@@ -14,12 +14,10 @@ export const Route = createFileRoute("/")({
 });
 
 function TaskApp() {
-  const { data: tasks = [], isLoading } = useTasks();
+  const { data: tasks = [] } = useTasks();
   const addTask = useAddTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
-
-  if (isLoading) return <div className="p-8 text-muted-foreground">Loading...</div>;
 
   const activeTasks = tasks.filter((t) => t.status !== "done");
   const doneTasks = tasks.filter((t) => t.status === "done");
