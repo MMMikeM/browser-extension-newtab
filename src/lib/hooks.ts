@@ -3,7 +3,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { generateKeyBetween } from "fractional-indexing";
 import { getTasks, createTask, updateTask, deleteTask } from "../functions/tasks";
 
-export const tasksQueryOptions = () =>
+const tasksQueryOptions = () =>
   queryOptions({
     queryKey: ["tasks"] as const,
     queryFn: () => getTasks(),
