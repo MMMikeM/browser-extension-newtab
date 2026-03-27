@@ -65,7 +65,7 @@ Access-Control-Expose-Headers: x-tss-serialized, x-tss-raw
 - `pnpm lint` / `pnpm fmt` — oxlint / oxfmt
 - `npx drizzle-kit push` — push schema to Turso
 - `npx drizzle-kit studio` — Drizzle Studio GUI
-- Load `dist/extension/` via `about:debugging` → This Firefox → Load Temporary Add-on
+- Load `.output/extension/` via `about:debugging` → This Firefox → Load Temporary Add-on
 
 ## Project structure
 

@@ -1,182 +1,127 @@
-# New Tab Todo — Architecture & Technical Plan
+# New Tab Todo — Architecture
 
 ## Overview
 
-A personal task tracker built as a Firefox browser extension, replacing the new tab page. Single user, 2–3 machines, no offline requirement as a primary concern. The guiding principle throughout is simplicity: every architectural decision biases towards the least complex solution that satisfies the constraints.
+A personal task tracker that replaces the browser new tab page. Runs as a Firefox extension and as a web app at the same URL. Local-first: data lives on-device in IndexedDB, with optional sync to a server for cross-device consistency.
 
 ---
 
-## Constraints & Goals
+## Principles
 
-- **Personal use only** — sideloaded, not distributed via AMO
-- **Single user, multi-device** — 2–3 machines needing consistent state
-- **No offline-first requirement** — offline read cache is a nice-to-have, not a hard requirement
-- **Zero-infra preference** — no self-managed databases, minimal operational overhead
-- **TypeScript throughout** — both client and server
-- **Native feel** — instant shell render on new tab open, no visible loading flash
+- **Local state is king** — the app works fully offline. Every interaction updates local state instantly.
+- **Sync is optional** — set a token to enable background sync to the server. Without it, the app is a standalone local todo list.
+- **Native feel** — prerendered HTML loads from disk with the full layout visible before JS executes. No blank flash, no loading spinners.
+- **Eventual consistency** — local changes sync to the server when online. Conflicts resolved by last-write-wins on `updatedAt`.
 
 ---
 
-## Architecture Overview
-
-Two components, cleanly separated:
+## Architecture
 
 ```
-┌─────────────────────────────┐        ┌───────────────────────────────┐
-│     Firefox Extension       │        │       Fly.io (Start server)   │
-│                             │        │                               │
-│  TanStack Start (SPA mode)  │◄──────►│  Start server functions       │
-│  Static prerendered shell   │  HTTPS │  Turso via @libsql/client     │
-│  TanStack Query (hydration) │        │  JWT auth                     │
-└─────────────────────────────┘        └───────────────────────────────┘
-       Runs locally                            Single deployment
-     (files in .xpi)                         (same repo as client)
+┌──────────────────────────────────┐        ┌────────────────────────────────┐
+│   Client (extension or browser)  │        │    Fly.io (TanStack Start)     │
+│                                  │        │                                │
+│   Legend State observable         │◄──────►│   Server functions (CRUD)      │
+│   ├─ IDB persistence (local)    │  sync  │   Drizzle ORM → Turso (libSQL) │
+│   └─ syncedCrud (remote)        │        │   Bearer token auth            │
+│                                  │        │                                │
+│   Prerendered SSR shell          │        │   Nitro server + CORS          │
+│   TanStack Router (hash/browser) │        │   middleware for extensions    │
+└──────────────────────────────────┘        └────────────────────────────────┘
 ```
 
-The backend is the single source of truth. The extension is a thin client. No local database, no sync engine, no WASM, no CRDT.
+The client is the source of truth. The server is the sync target.
 
 ---
 
-## Open Questions / Spikes Required
+## Client
 
-> **All resolved — see CLAUDE.md for spike results.**
+### Legend State (data layer)
+
+Legend State v3 replaces TanStack Query. A single `syncedCrud` observable handles:
+
+- **Local persistence** — IndexedDB via `observablePersistIndexedDB`. Data survives page reloads and offline use.
+- **Remote sync** — CRUD operations via TanStack Start server functions. Gated by `waitForSet: authToken$` — sync only runs when a token is present in localStorage.
+- **Retry** — infinite retry with exponential backoff. Pending changes persist to IDB and survive app restarts (`retrySync: true`).
+- **LWW conflict resolution** — `fieldUpdatedAt: 'updatedAt'` lets Legend State track which version wins.
+
+```typescript
+export const tasks$ = observable(
+  syncedCrud({
+    list: () => getTasks(),
+    create: (input) => createTask({ data: input }),
+    update: (input) => updateTask({ data: { ...input, updatedAt: new Date().toISOString() } }),
+    delete: (input) => deleteTask({ data: { id: input.id } }),
+    persist: { name: "tasks", plugin: idbPlugin, retrySync: true },
+    retry: { infinite: true },
+    fieldUpdatedAt: "updatedAt",
+    waitForSet: authToken$,
+  }),
+);
+```
+
+### TanStack Start (SSR + server functions)
+
+Full SSR mode (not SPA). The server renders complete HTML including route content. Build-time prerendering produces a static `index.html` with the full layout shell — heading, input field, list containers — visible from the first frame.
+
+The extension ships this prerendered HTML. The web version at `fly.dev` gets live SSR on each request.
+
+### Routing
+
+Context-aware history — browser history for the web, hash history for the extension, memory history for SSR:
+
+```typescript
+const router = createRouter({
+  routeTree,
+  history: isServer
+    ? createMemoryHistory({ initialEntries: ["/"] })
+    : isExtension
+      ? createHashHistory()
+      : createBrowserHistory(),
+});
+```
+
+Hash history is needed in the extension because `moz-extension://<uuid>/index.html` has pathname `/index.html` which doesn't match the `/` route. Hash history makes the route `#/` regardless of the base URL.
+
+### React hooks
+
+Thin wrappers over the Legend State store, maintaining a familiar React API:
+
+- `useTasks()` — returns `{ data: Task[] }` sorted by `sortOrder`
+- `useAddTask()` — returns `{ add(title) }` with cuid2 ID + fractional indexing
+- `useUpdateTask()` — returns `{ mutate({ data }) }` for status/field changes
+- `useDeleteTask()` — returns `{ mutate({ data }) }` for removal
+
+All mutations are instant — they write to the observable directly. Remote sync happens in the background.
 
 ---
 
 ## Extension
 
-### Manifest
-
-MV2 with `"persistent": false` (non-persistent event page). MV2 is the right choice here:
-
-- No deprecation timeline from Mozilla
-- Event pages have full DOM access (unlike MV3 service workers)
-- No `'wasm-unsafe-eval'` CSP complications
-
-With a static long-lived auth token (see Auth section), no background script is needed at all — the manifest simplifies to:
+MV2, sideloaded via `about:debugging` during development.
 
 ```json
 {
   "manifest_version": 2,
   "name": "New Tab Todo",
-  "version": "1.0.0",
-  "browser_specific_settings": {
-    "gecko": { "id": "newtab-todo@local" }
-  },
-  "chrome_url_overrides": {
-    "newtab": "index.html"
-  },
-  "permissions": ["storage", "https://your-app.fly.dev/*"]
+  "chrome_url_overrides": { "newtab": "index.html" },
+  "permissions": ["storage", "https://extension-sync-service.fly.dev/*"]
 }
 ```
 
-### Sideloading & Dev Workflow
-
-The `.xpi` is signed as "self-distributed" (unlisted) via AMO — uploaded, signed, downloaded. Installed manually via `about:addons` → "Install Add-on From File". Re-sign and reinstall on frontend changes.
-
-During initial development this re-sign cycle is the highest-friction part of the workflow. Two options to reduce it:
-
-- **`about:debugging` temporary install** — load the unpacked `dist/` folder directly, no signing needed. Survives browser restarts as long as you re-load it. Fine for active development.
-- **Localhost bookmark** — run `vite dev` and open the app as a regular browser tab. Loses the new-tab override behaviour but is the fastest iteration loop for pure UI work. Switch to the extension once the UI stabilises.
-
-### Structure
-
-```
-extension/
-  index.html              ← prerendered shell (Start SPA output)
-  assets/                 ← JS/CSS chunks from build
-  manifest.json
-```
-
-The extension carries no logic beyond the UI. All business logic lives in server functions on Fly.io.
+The extension build (`pnpm build:ext`) takes the prerendered HTML from `.output/public/`, patches inline scripts for MV2 CSP compliance, and outputs to `.output/extension/`.
 
 ---
 
-## Frontend
+## Server
 
-### TanStack Start — SPA Mode
+- **Runtime**: Node.js 24 on Fly.io (Amsterdam region)
+- **Framework**: TanStack Start with Nitro server
+- **Database**: Turso (libSQL) with embedded replica (local SQLite synced to Turso cloud)
+- **Auth**: Static bearer token validated with `crypto.timingSafeEqual`
+- **CORS**: Nitro middleware allows `moz-extension://` and `chrome-extension://` origins
 
-TanStack Start in SPA mode outputs a fully static `dist/` folder — HTML, JS, CSS — with no server required. This folder becomes the extension's content. The server functions run on Fly.io from the same repo.
-
-Why Start over plain Vite + React:
-
-- TanStack Router, Query, and Form in one cohesive setup
-- Server functions are the API layer — end-to-end type safety from server to client call, no separate framework, no hand-rolled fetch clients, no API contract to maintain
-- Single repo — client and server code live together, server functions co-located with the routes that use them
-- If a web version of the app is ever wanted, the same codebase deploys as a full Start app with SSR — near-zero migration cost
-- SPA mode static prerendering gives a native-feel new tab without a server
-
-ISR is not applicable — the extension ships static files and frontend updates require a reinstall. That is an acceptable trade-off for a personal tool.
-
-### Prerendering & Hydration
-
-The prerendered shell is a static skeleton: layout, chrome, empty task list with a loading state. No data is baked in at build time. On new tab open:
-
-1. Browser renders prerendered HTML from disk — **instant, no network request**
-2. JS bundle loads and hydrates
-3. TanStack Query fires server function calls to Fly.io
-4. Data renders in-place — no layout shift because the skeleton already occupies the space
-
-This eliminates the white flash that makes browser extension new tab pages feel janky.
-
-### TanStack Query Configuration
-
-Query handles cross-device consistency without any custom sync logic:
-
-```typescript
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 30, // 30s before background refetch
-      refetchOnWindowFocus: true, // syncs when switching back to this tab
-      refetchOnReconnect: true, // syncs after coming back online
-      networkMode: "offlineFirst", // serves cache while offline
-    },
-  },
-});
-```
-
-`refetchOnWindowFocus` is the primary cross-device sync mechanism. Open a new tab on machine B — Query fires a background refetch and the UI updates with any changes made on machine A. No polling, no websockets, no manual sync logic.
-
-### Offline Cache (Secondary)
-
-`persistQueryClient` with an IndexedDB adapter gives free offline read capability — open a new tab offline and the last known task list is still visible. Mutations queue and retry on reconnect via `networkMode: 'offlineFirst'`. This requires no additional architecture; it's a Query config option.
-
----
-
-## Backend
-
-### Stack
-
-- **Runtime**: Node.js on Fly.io (persistent VM, no cold starts)
-- **API layer**: TanStack Start server functions — no separate framework needed
-- **Database**: Turso (libSQL) via `@libsql/client` HTTP client — no WASM, no native deps, free tier is generous (5 GB, 500M row reads/month)
-- **Auth**: Static long-lived bearer token — no JWT library, no session store, no refresh logic
-
-### Repo Structure
-
-```
-src/
-  routes/
-    index.tsx              ← new tab UI
-  functions/
-    tasks.ts               ← server functions: getTasks, createTask, updateTask, deleteTask
-  lib/
-    db.ts                  ← Turso client
-    auth.ts                ← bearer token middleware
-```
-
-### Conflict Resolution — Last Write Wins
-
-With a backend mediating all writes, conflict resolution is a single SQL condition:
-
-```sql
-UPDATE tasks
-SET title = ?, status = ?, updated_at = ?
-WHERE id = ? AND updated_at < ?
-```
-
-**Clock skew caveat**: `updated_at < ?` relies on wall-clock timestamps agreeing across machines. For 2–3 personal devices this is unlikely to cause problems in practice, but if it ever does, the fix is a one-column schema change — replace `updated_at` with a monotonic `version INTEGER` incremented server-side on every write.
+Server functions are the sync API — `getTasks`, `createTask`, `updateTask`, `deleteTask`. Each validates input with Drizzle/Zod schemas and uses the auth middleware.
 
 ---
 
@@ -184,32 +129,67 @@ WHERE id = ? AND updated_at < ?
 
 ```sql
 CREATE TABLE tasks (
-  id          TEXT PRIMARY KEY,        -- cuid2 generated client-side
+  id          TEXT PRIMARY KEY,        -- cuid2, generated client-side
   title       TEXT NOT NULL,
+  description TEXT,                    -- nullable, for notes
   status      TEXT NOT NULL DEFAULT 'todo',  -- todo | in_progress | done
-  sort_order  TEXT,                    -- fractional indexing (see below)
+  sort_order  TEXT,                    -- fractional indexing
   created_at  TEXT NOT NULL,           -- ISO 8601
   updated_at  TEXT NOT NULL            -- ISO 8601, used for LWW
 );
 ```
 
-`sort_order` uses TEXT-based fractional indices via the `fractional-indexing` npm package rather than REAL.
-
 ---
 
 ## Auth
 
-A single long-lived static token is the right choice for a personal tool. Set it once via the token gate UI, stored in `localStorage` (works in both extension and browser tab contexts), passed as a `Bearer` header on every server function call.
-
-The server validates the token on every request with a simple constant-time comparison.
+A single long-lived static token stored in `localStorage` (works in both extension and browser contexts). Set it once, passed as a `Bearer` header on every server function call. Without a token, the app works offline-only — no sync, no server calls.
 
 ---
 
-## Release & Update Flow
+## Build & Deploy
 
-| Change                  | Action                                                      |
-| ----------------------- | ----------------------------------------------------------- |
-| UI / frontend (dev)     | Edit → `about:debugging` reload — no signing needed         |
-| UI / frontend (release) | Rebuild → re-sign `.xpi` via AMO unlisted → reinstall       |
-| API / server functions  | `fly deploy` → live immediately, no extension change needed |
-| Schema migration        | Deploy migration to Fly.io → backend handles it             |
+| Command          | Output                                | Purpose                                    |
+| ---------------- | ------------------------------------- | ------------------------------------------ |
+| `pnpm build`     | `.output/server/` + `.output/public/` | Server deployment (Fly.io)                 |
+| `pnpm build:ext` | `.output/extension/`                  | Extension files (load via about:debugging) |
+| `pnpm dev`       | Dev server on localhost               | Development                                |
+| `git push main`  | GitHub Actions → Fly.io               | Auto-deploy                                |
+
+---
+
+## Project Structure
+
+```
+src/
+  routes/
+    __root.tsx              ← HTML shell, HeadContent/Scripts
+    index.tsx               ← main task UI
+  functions/
+    tasks.ts                ← server functions (CRUD, Drizzle, Zod)
+  components/
+    AddTaskInput.tsx
+    TaskItem.tsx
+    TaskList.tsx
+    ui/                     ← shadcn components (base preset)
+  lib/
+    store.ts                ← Legend State store (syncedCrud + IDB)
+    hooks.ts                ← React hooks wrapping the store
+    middleware.ts            ← TanStack auth middleware (client + server)
+    utils.ts                ← cn(), StyledProps
+  server/
+    db.ts                   ← Drizzle + Turso embedded replica
+    auth.ts                 ← bearer token validation
+    schema.ts               ← Drizzle table definitions
+    columns.ts              ← column helper functions
+  styles/
+    app.css                 ← Tailwind v4 + shadcn theme
+  router.tsx                ← context-aware history (hash/browser/memory)
+server/
+  middleware/
+    cors.ts                 ← Nitro CORS for extension origins
+extension/
+  manifest.json             ← MV2 manifest (source)
+scripts/
+  build-extension.ts        ← CSP patching for extension build
+```

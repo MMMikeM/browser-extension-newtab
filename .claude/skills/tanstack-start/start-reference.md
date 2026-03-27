@@ -338,7 +338,7 @@ vite build
   → dist/server/          (server handler, exports { fetch })
 
 scripts/build-extension.ts
-  → dist/extension/       (CSP-safe copy + manifest.json)
+  → .output/extension/    (CSP-safe copy + manifest.json)
 ```
 
 The server handler (`dist/server/server.js`) is NOT a standalone server. It exports `{ fetch }`. The `scripts/serve-prod.ts` wraps it in a Node HTTP server.

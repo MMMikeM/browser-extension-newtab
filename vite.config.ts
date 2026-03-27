@@ -43,11 +43,9 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
-      spa: {
+      prerender: {
         enabled: true,
-        prerender: {
-          outputPath: "/index.html",
-        },
+        crawlLinks: false,
       },
       importProtection: {
         client: {

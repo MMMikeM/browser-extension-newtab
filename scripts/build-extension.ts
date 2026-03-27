@@ -13,7 +13,7 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dirname, "..");
 const CLIENT_DIR = join(ROOT, ".output", "public");
 const EXT_SRC = join(ROOT, "extension");
-const EXT_OUT = join(ROOT, "dist", "extension");
+const EXT_OUT = join(ROOT, ".output", "extension");
 
 // Clean and create output
 rmSync(EXT_OUT, { recursive: true, force: true });

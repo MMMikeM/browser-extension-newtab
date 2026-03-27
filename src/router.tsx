@@ -1,21 +1,27 @@
 import { createRouter } from "@tanstack/react-router";
-import { createHashHistory, createMemoryHistory } from "@tanstack/history";
+import { createBrowserHistory, createHashHistory, createMemoryHistory } from "@tanstack/history";
 import { routeTree } from "./routeTree.gen";
 
-const isServer = typeof window === "undefined";
-
-const router = createRouter({
-  routeTree,
-  history: isServer ? createMemoryHistory({ initialEntries: ["/"] }) : createHashHistory(),
-  defaultNotFoundComponent: () => <p>Page not found</p>,
-});
-
-export function getRouter() {
-  return router;
+function getBuildTarget() {
+  if (typeof window === "undefined") return "server";
+  if (location.protocol.endsWith("-extension:")) return "extension";
+  return "browser";
 }
 
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
+const createHistory = (buildTarget: "server" | "extension" | "browser") => {
+  switch (buildTarget) {
+    case "server":
+      return createMemoryHistory({ initialEntries: ["/"] });
+    case "extension":
+      return createHashHistory();
+    case "browser":
+      return createBrowserHistory();
   }
+};
+export function getRouter() {
+  return createRouter({
+    routeTree,
+    history: createHistory(getBuildTarget()),
+    defaultNotFoundComponent: () => <p>Page not found</p>,
+  });
 }

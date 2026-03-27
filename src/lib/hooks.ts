@@ -47,7 +47,7 @@ export function useUpdateTask() {
 export function useDeleteTask() {
   return {
     mutate: ({ data: { id } }: { data: { id: string } }) => {
-      tasks$[id].delete();
+      tasks$[id]?.delete();
     },
   };
 }

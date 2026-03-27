@@ -1,38 +1,65 @@
 import { observable } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
-import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
 import { getTasks, createTask, updateTask, deleteTask } from "~/functions/tasks";
 
-const idbPlugin = observablePersistIndexedDB({
-  databaseName: "newtab-todo",
-  version: 1,
-  tableNames: ["tasks"],
-});
-
+const isServer = typeof window === "undefined";
 const TOKEN_KEY = "newtab-todo-token";
 
 export const authToken$ = observable<string | null>(
-  typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null,
+  isServer ? null : localStorage.getItem(TOKEN_KEY),
 );
 
-if (typeof window !== "undefined") {
+if (!isServer) {
   window.addEventListener("storage", (e) => {
     if (e.key === TOKEN_KEY) authToken$.set(e.newValue);
   });
 }
 
+let idbPlugin: any = undefined;
+if (!isServer) {
+  const { observablePersistIndexedDB } = await import("@legendapp/state/persist-plugins/indexeddb");
+  idbPlugin = observablePersistIndexedDB({
+    databaseName: "newtab-todo",
+    version: 1,
+    tableNames: ["tasks"],
+  });
+}
+
 export const tasks$ = observable(
   syncedCrud({
-    list: () => getTasks(),
-    create: (input) => createTask({ data: input }),
-    update: (input) => updateTask({ data: { ...input, updatedAt: new Date().toISOString() } }),
-    delete: (input) => deleteTask({ data: { id: input.id } }),
-    persist: {
-      name: "tasks",
-      plugin: idbPlugin,
-      retrySync: true,
+    list: async () => {
+      if (!authToken$.peek()) return [];
+      try {
+        return await getTasks();
+      } catch {
+        return [];
+      }
     },
-    retry: { infinite: true, backoff: "exponential", maxDelay: 30 },
+    create: async (input) => {
+      await createTask({ data: input });
+    },
+    update: async (input) => {
+      await updateTask({ data: { ...input, id: input.id!, updatedAt: new Date().toISOString() } });
+    },
+    delete: async (input) => {
+      await deleteTask({ data: { id: input.id } });
+    },
+    ...(idbPlugin
+      ? {
+          persist: {
+            name: "tasks",
+            plugin: idbPlugin,
+            retrySync: true,
+          },
+        }
+      : {}),
+    initial: {} as Record<string, any>,
+    retry: {
+      infinite: true,
+      backoff: "exponential",
+      maxDelay: 60,
+      delay: 1000,
+    },
     fieldUpdatedAt: "updatedAt",
     fieldCreatedAt: "createdAt",
     waitForSet: authToken$,
