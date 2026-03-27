@@ -1,3 +1,4 @@
+import { defineRelations } from "drizzle-orm";
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import { pk, string, nullableString, oneOf, createdAt, updatedAt } from "./columns";
 
@@ -12,3 +13,5 @@ export const tasks = sqliteTable("tasks", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+export const relations = defineRelations({ tasks });
