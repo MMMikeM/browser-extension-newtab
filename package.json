@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node scripts/build-extension.ts",
-    "build:ext": "node scripts/build-extension.ts",
+    "build": "vite build",
+    "build:ext": "vite build && node scripts/build-extension.ts",
     "start": "node .output/server/index.mjs",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
