@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
-const CLIENT_DIR = join(ROOT, "dist", "client");
+const CLIENT_DIR = join(ROOT, ".output", "public");
 const EXT_SRC = join(ROOT, "extension");
 const EXT_OUT = join(ROOT, "dist", "extension");
 
