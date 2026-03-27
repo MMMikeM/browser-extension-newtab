@@ -3,7 +3,7 @@ import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
   out: "./drizzle",
-  schema: "./src/lib/schema.ts",
+  schema: "./src/server/schema.ts",
   dialect: "turso",
   dbCredentials: {
     url: process.env.TURSO_DATABASE_URL!,

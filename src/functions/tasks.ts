@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { and, eq, lt } from "drizzle-orm";
-import { db } from "../lib/db.server";
-import { tasks } from "../lib/schema";
+import { db } from "../server/db";
+import { tasks } from "../server/schema";
 import { authMiddleware } from "../lib/middleware";
 
 const selectSchema = createSelectSchema(tasks).pick({ id: true });

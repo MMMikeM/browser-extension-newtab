@@ -1,5 +1,6 @@
 import { defineConfig, type PluginOption } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -47,6 +48,16 @@ export default defineConfig({
         prerender: {
           outputPath: "/index.html",
         },
+      },
+      importProtection: {
+        client: {
+          files: ["**/*.server.*", "**/server/**"],
+        },
+      },
+    }),
+    viteReact({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
       },
     }),
     nitro({ serverDir: "./server" }),

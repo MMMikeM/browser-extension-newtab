@@ -1,6 +1,6 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
-import { validateToken } from "./auth.server";
+import { validateToken } from "../server/auth";
 
 export const authMiddleware = createMiddleware({ type: "function" })
   .client(async ({ next }) => {
