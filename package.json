@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node --experimental-strip-types scripts/build-extension.ts",
-    "build:ext": "node --experimental-strip-types scripts/build-extension.ts",
-    "start": "node --experimental-strip-types scripts/serve-prod.ts",
+    "build": "vite build && node scripts/build-extension.ts",
+    "build:ext": "node scripts/build-extension.ts",
+    "start": "node scripts/serve-prod.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
