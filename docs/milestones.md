@@ -25,12 +25,14 @@ Core task tracker replacing the new tab page. Shipped and deployed.
 Make this the tool you actually reach for every day.
 
 ### PWA support
+
 - `manifest.webmanifest` (name, icons, `display: standalone`, theme color)
 - Service worker for offline shell caching (static assets)
 - Works on phone via "Add to Home Screen"
 - Same backend, same auth — just a different client entry point
 
 ### Due dates & reminders
+
 - `due_at` column on tasks (nullable ISO 8601)
 - Date picker in the UI
 - Push notifications for upcoming/overdue tasks
@@ -38,16 +40,19 @@ Make this the tool you actually reach for every day.
 - Service worker handles push events (works even when tab is closed)
 
 ### Notes
+
 - `description` column already exists in schema — just not exposed in the UI
 - Expandable task row or detail drawer to view/edit notes
 - Markdown support (nice-to-have, not required)
 
 ### Drag-to-reorder
+
 - `sortOrder` with fractional indexing already implemented in the schema and hooks
 - Wire up drag-and-drop in the UI (e.g., `@dnd-kit/core` or native drag events)
 - Optimistic reorder with rollback on failure
 
 ### Task descriptions in UI
+
 - The `description` column exists but the UI doesn't show it
 - Inline editing or a detail view
 
@@ -56,22 +61,27 @@ Make this the tool you actually reach for every day.
 ## Milestone 3: Polish
 
 ### Skeleton loading states
+
 - Replace "Loading..." text with layout-preserving skeletons
 - No layout shift when data arrives
 
 ### Multiple lists / categories
+
 - New `lists` table, `list_id` FK on tasks
 - Tab or sidebar navigation between lists
 
 ### Recurring tasks
+
 - Recurrence rules (daily, weekly, custom)
 - Auto-create next occurrence on completion
 
 ### Offline mutation persistence
+
 - Persist paused mutations to IndexedDB via `persistQueryClient`
 - Resume on reconnect with `resumePausedMutations()`
 - Requires `setMutationDefaults` with `mutationKey` for each mutation
 
 ### Search / filter
+
 - Filter by status, due date, list
 - Full-text search on title + description
