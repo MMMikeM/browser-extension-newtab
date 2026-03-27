@@ -1,10 +1,4 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  queryOptions,
-  type QueryKey,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, queryOptions, type QueryKey } from "@tanstack/react-query";
 import { createId } from "@paralleldrive/cuid2";
 import { generateKeyBetween } from "fractional-indexing";
 import { getTasks, createTask, updateTask, deleteTask } from "../functions/tasks";
@@ -18,12 +12,20 @@ declare module "@tanstack/react-query" {
   }
 }
 
+const TOKEN_KEY = "newtab-todo-token";
 const TASKS_KEY = ["tasks"] as const;
+
+function hasSyncToken() {
+  return typeof window !== "undefined" && !!localStorage.getItem(TOKEN_KEY);
+}
 
 const tasksQueryOptions = () =>
   queryOptions({
     queryKey: TASKS_KEY,
-    queryFn: () => getTasks(),
+    queryFn: async () => {
+      if (!hasSyncToken()) return [];
+      return getTasks();
+    },
   });
 
 export const useTasks = () => useQuery(tasksQueryOptions());
@@ -36,15 +38,10 @@ export const useAddTask = () => {
     meta: { invalidates: [TASKS_KEY] },
     onMutate: async ({ data }) => {
       await qc.cancelQueries(tasksQueryOptions());
-      const previous = qc.getQueryData(TASKS_KEY);
       qc.setQueryData(TASKS_KEY, (old: Task[] = []) => [
         ...old,
         { ...data, status: "todo", description: null, createdAt: "", updatedAt: "" } as Task,
       ]);
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
   });
 
@@ -66,14 +63,9 @@ export const useUpdateTask = () => {
     meta: { invalidates: [TASKS_KEY] },
     onMutate: async ({ data: { id, ...fields } }) => {
       await qc.cancelQueries(tasksQueryOptions());
-      const previous = qc.getQueryData(TASKS_KEY);
       qc.setQueryData(TASKS_KEY, (old: Task[] = []) =>
         old.map((t) => (t.id === id ? { ...t, ...fields } : t)),
       );
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
   });
 };
@@ -85,12 +77,7 @@ export const useDeleteTask = () => {
     meta: { invalidates: [TASKS_KEY] },
     onMutate: async ({ data: { id } }) => {
       await qc.cancelQueries(tasksQueryOptions());
-      const previous = qc.getQueryData(TASKS_KEY);
       qc.setQueryData(TASKS_KEY, (old: Task[] = []) => old.filter((t) => t.id !== id));
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
   });
 };

@@ -1,16 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTasks, useAddTask, useUpdateTask, useDeleteTask } from "~/lib/hooks";
 import type { Task } from "~/functions/tasks";
-import { TokenGate } from "~/components/TokenGate";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { TaskList } from "~/components/TaskList";
 
 export const Route = createFileRoute("/")({
-  component: () => (
-    <TokenGate>
-      <TaskApp />
-    </TokenGate>
-  ),
+  component: TaskApp,
 });
 
 function TaskApp() {
