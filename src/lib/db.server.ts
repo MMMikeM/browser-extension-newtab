@@ -1,9 +1,9 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "./schema";
+import { relations } from "./schema";
 
 const client = createClient({
-  url: "file:local.db",
+  url: "file:.data/local.db",
   syncUrl: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN,
   syncInterval: 60,
@@ -12,4 +12,4 @@ const client = createClient({
 // Enable foreign key enforcement (off by default in SQLite)
 await client.execute("PRAGMA foreign_keys = ON");
 
-export const db = drizzle({ client, schema, casing: "snake_case" });
+export const db = drizzle({ client, relations, casing: "snake_case" });
