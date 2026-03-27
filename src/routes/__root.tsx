@@ -1,11 +1,14 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
-import { matchQuery, MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { matchQuery, MutationCache, QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { idbPersister } from "~/lib/persister";
 import appCss from "../styles/app.css?url";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 30,
+      gcTime: 1000 * 60 * 60 * 24,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
       networkMode: "offlineFirst",
@@ -43,9 +46,12 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: idbPersister }}
+        >
           <Outlet />
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
         <Scripts />
       </body>
     </html>

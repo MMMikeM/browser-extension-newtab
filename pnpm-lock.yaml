@@ -38,6 +38,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.95.2
         version: 5.95.2(react@19.2.4)
+      '@tanstack/react-query-persist-client':
+        specifier: ^5.95.2
+        version: 5.95.2(@tanstack/react-query@5.95.2(react@19.2.4))(react@19.2.4)
       '@tanstack/react-router':
         specifier: ^1.168.4
         version: 1.168.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -53,9 +56,12 @@ importers:
       h3:
         specifier: 2.0.1-rc.20
         version: 2.0.1-rc.20(crossws@0.4.4(srvx@0.11.13))
+      idb-keyval:
+        specifier: ^6.2.2
+        version: 6.2.2
       nitro:
         specifier: 3.0.260311-beta
-        version: 3.0.260311-beta(@azure/identity@4.13.1)(@libsql/client@0.17.2)(dotenv@17.3.1)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6))(jiti@2.6.1)(vite@8.0.3(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+        version: 3.0.260311-beta(@azure/identity@4.13.1)(@libsql/client@0.17.2)(dotenv@17.3.1)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6))(idb-keyval@6.2.2)(jiti@2.6.1)(vite@8.0.3(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -1610,6 +1616,15 @@ packages:
   '@tanstack/query-core@5.95.2':
     resolution: {integrity: sha512-o4T8vZHZET4Bib3jZ/tCW9/7080urD4c+0/AUaYVpIqOsr7y0reBc1oX3ttNaSW5mYyvZHctiQ/UOP2PfdmFEQ==}
 
+  '@tanstack/query-persist-client-core@5.95.2':
+    resolution: {integrity: sha512-Opfj34WZ594YXpEcZEs8WBiyPGrjrKlGILfk/Ss283uwWQ36C5nX3tRY/bBiXmM82KWauUuNvahwGwiyco/8cQ==}
+
+  '@tanstack/react-query-persist-client@5.95.2':
+    resolution: {integrity: sha512-i3fvzD8gaLgQyFvRc/+iSUr60aL31tMN+5QM11zdPRg0K9CirIQjHD7WgXFBnD29KJDvcjcv7OrIBaPwZ+H9xw==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.95.2
+      react: ^18 || ^19
+
   '@tanstack/react-query@5.95.2':
     resolution: {integrity: sha512-/wGkvLj/st5Ud1Q76KF1uFxScV7WeqN1slQx5280ycwAyYkIPGaRZAEgHxe3bjirSd5Zpwkj6zNcR4cqYni/ZA==}
     peerDependencies:
@@ -2574,6 +2589,9 @@ packages:
   iconv-lite@0.7.2:
     resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
     engines: {node: '>=0.10.0'}
+
+  idb-keyval@6.2.2:
+    resolution: {integrity: sha512-yjD9nARJ/jb1g+CvD0tlhUHOrJ9Sy0P8T9MF3YaLlHnSRpwPfpTX0XIvpmw3gAJUmEu3FiICLBDPXVwyEvrleg==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -4987,6 +5005,16 @@ snapshots:
 
   '@tanstack/query-core@5.95.2': {}
 
+  '@tanstack/query-persist-client-core@5.95.2':
+    dependencies:
+      '@tanstack/query-core': 5.95.2
+
+  '@tanstack/react-query-persist-client@5.95.2(@tanstack/react-query@5.95.2(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.95.2
+      '@tanstack/react-query': 5.95.2(react@19.2.4)
+      react: 19.2.4
+
   '@tanstack/react-query@5.95.2(react@19.2.4)':
     dependencies:
       '@tanstack/query-core': 5.95.2
@@ -5948,6 +5976,8 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
+  idb-keyval@6.2.2: {}
+
   ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
@@ -6268,7 +6298,7 @@ snapshots:
 
   nf3@0.3.14: {}
 
-  nitro@3.0.260311-beta(@azure/identity@4.13.1)(@libsql/client@0.17.2)(dotenv@17.3.1)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6))(jiti@2.6.1)(vite@8.0.3(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
+  nitro@3.0.260311-beta(@azure/identity@4.13.1)(@libsql/client@0.17.2)(dotenv@17.3.1)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6))(idb-keyval@6.2.2)(jiti@2.6.1)(vite@8.0.3(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.4(srvx@0.11.13)
@@ -6283,7 +6313,7 @@ snapshots:
       rolldown: 1.0.0-rc.12
       srvx: 0.11.13
       unenv: 2.0.0-rc.24
-      unstorage: 2.0.0-alpha.7(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6)))(ofetch@2.0.0-alpha.3)
+      unstorage: 2.0.0-alpha.7(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6)))(idb-keyval@6.2.2)(ofetch@2.0.0-alpha.3)
     optionalDependencies:
       dotenv: 17.3.1
       jiti: 2.6.1
@@ -7002,10 +7032,11 @@ snapshots:
       picomatch: 4.0.4
       webpack-virtual-modules: 0.6.2
 
-  unstorage@2.0.0-alpha.7(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6)))(ofetch@2.0.0-alpha.3):
+  unstorage@2.0.0-alpha.7(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6)))(idb-keyval@6.2.2)(ofetch@2.0.0-alpha.3):
     optionalDependencies:
       '@azure/identity': 4.13.1
       db0: 0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@4.3.6))
+      idb-keyval: 6.2.2
       ofetch: 2.0.0-alpha.3
 
   until-async@3.0.2: {}
