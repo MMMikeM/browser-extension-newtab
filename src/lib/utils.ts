@@ -6,7 +6,8 @@ export { cn } from "tailwind-variants";
  * Replaces base-ui's render-prop className with a plain string and
  * merges in the variant props from tv().
  */
-export type StyledProps<
+export type StyledProps<TPrimitive, TVariants extends (...args: any) => any> = Omit<
   TPrimitive,
-  TVariants extends (...args: any) => any,
-> = Omit<TPrimitive, "className"> & VariantProps<TVariants> & { className?: string };
+  "className"
+> &
+  VariantProps<TVariants> & { className?: string };

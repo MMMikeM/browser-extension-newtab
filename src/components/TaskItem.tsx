@@ -16,12 +16,10 @@ export function TaskItem({
 }) {
   return (
     <li className={cn("flex items-center gap-3 py-1.5", pending && "opacity-50")}>
-      <Checkbox
-        checked={task.status === "done"}
-        onCheckedChange={onToggle}
-        disabled={pending}
-      />
-      <span className={cn("flex-1", task.status === "done" && "line-through text-muted-foreground")}>
+      <Checkbox checked={task.status === "done"} onCheckedChange={onToggle} disabled={pending} />
+      <span
+        className={cn("flex-1", task.status === "done" && "line-through text-muted-foreground")}
+      >
         {task.title}
       </span>
       <Button variant="ghost" size="icon-xs" onClick={onDelete} disabled={pending}>
