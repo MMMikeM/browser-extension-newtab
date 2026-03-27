@@ -199,7 +199,7 @@ CREATE TABLE tasks (
 
 ## Auth
 
-A single long-lived static token is the right choice for a personal tool. Set it once in an extension options page, stored in `browser.storage.local`, passed as a `Bearer` header on every server function call.
+A single long-lived static token is the right choice for a personal tool. Set it once via the token gate UI, stored in `localStorage` (works in both extension and browser tab contexts), passed as a `Bearer` header on every server function call.
 
 The server validates the token on every request with a simple constant-time comparison.
 
