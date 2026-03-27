@@ -237,8 +237,7 @@ function Button({ color, size, children }: ButtonProps) {
 
 ```typescript
 interface ButtonProps
-  extends Omit<ButtonVariants, "color">,
-    Required<Pick<ButtonVariants, "color">> {
+  extends Omit<ButtonVariants, "color">, Required<Pick<ButtonVariants, "color">> {
   children: React.ReactNode;
 }
 ```
@@ -248,26 +247,32 @@ interface ButtonProps
 ## Configuration
 
 ### Per-instance
+
 ```typescript
 const button = tv({ base: "..." }, { twMerge: false });
 ```
 
 ### Global
+
 ```typescript
 import { defaultConfig } from "tailwind-variants";
 defaultConfig.twMerge = false;
 ```
 
 ### Custom instance
+
 ```typescript
 import { createTV } from "tailwind-variants";
 const tv = createTV({
   twMerge: true,
-  twMergeConfig: { /* custom tailwind-merge config */ },
+  twMergeConfig: {
+    /* custom tailwind-merge config */
+  },
 });
 ```
 
 ### Lite build (no tailwind-merge)
+
 ```typescript
 import { tv } from "tailwind-variants/lite";
 // ~80% smaller, no conflict resolution
@@ -343,11 +348,11 @@ const { tab } = tabs()
 
 ## Migration from CVA + clsx + tailwind-merge
 
-| Before | After |
-|---|---|
-| `import { cva } from "class-variance-authority"` | `import { tv } from "tailwind-variants"` |
-| `cva("base", { variants: {...} })` | `tv({ base: "base", variants: {...} })` |
-| `import { clsx } from "clsx"` | `import { cx } from "tailwind-variants"` |
-| `twMerge(clsx(...))` | `cn(...)` from `tailwind-variants` |
-| Custom `cn()` in `utils.ts` | `cn()` from `tailwind-variants` (re-exported via `~/lib/utils`) |
-| `VariantProps` from CVA | `VariantProps` from `tailwind-variants` |
+| Before                                           | After                                                           |
+| ------------------------------------------------ | --------------------------------------------------------------- |
+| `import { cva } from "class-variance-authority"` | `import { tv } from "tailwind-variants"`                        |
+| `cva("base", { variants: {...} })`               | `tv({ base: "base", variants: {...} })`                         |
+| `import { clsx } from "clsx"`                    | `import { cx } from "tailwind-variants"`                        |
+| `twMerge(clsx(...))`                             | `cn(...)` from `tailwind-variants`                              |
+| Custom `cn()` in `utils.ts`                      | `cn()` from `tailwind-variants` (re-exported via `~/lib/utils`) |
+| `VariantProps` from CVA                          | `VariantProps` from `tailwind-variants`                         |

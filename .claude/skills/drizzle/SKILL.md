@@ -90,15 +90,15 @@ const findByIds = async (ids: string[]) => {
 
 ### Choose the right API
 
-| Use Case                          | API                                  |
-| --------------------------------- | ------------------------------------ |
-| Fetching entities with relations  | Query API (`db.query.table.*`)       |
-| Simple CRUD                       | Query API                            |
-| Simple filtered count             | `db.$count(table, filter)`           |
-| Multiple counts in one query      | Raw SQL with scalar subqueries       |
-| COUNT, SUM, AVG, GROUP BY         | Select Builder (`db.select().from()`) |
-| Complex JOINs not in relations    | Select Builder                       |
-| DISTINCT with JOINs              | `db.selectDistinct()`                |
+| Use Case                         | API                                   |
+| -------------------------------- | ------------------------------------- |
+| Fetching entities with relations | Query API (`db.query.table.*`)        |
+| Simple CRUD                      | Query API                             |
+| Simple filtered count            | `db.$count(table, filter)`            |
+| Multiple counts in one query     | Raw SQL with scalar subqueries        |
+| COUNT, SUM, AVG, GROUP BY        | Select Builder (`db.select().from()`) |
+| Complex JOINs not in relations   | Select Builder                        |
+| DISTINCT with JOINs              | `db.selectDistinct()`                 |
 
 ## Implementation rules
 
@@ -135,13 +135,10 @@ const findByIds = async (ids: string[]) => {
 ### Upsert
 
 ```typescript
-await db
-  .insert(tasks)
-  .values({ id, title, columnId })
-  .onConflictDoUpdate({
-    target: tasks.id,
-    set: { title, columnId },
-  });
+await db.insert(tasks).values({ id, title, columnId }).onConflictDoUpdate({
+  target: tasks.id,
+  set: { title, columnId },
+});
 ```
 
 ### Always use `.returning()` on mutations
@@ -150,11 +147,7 @@ await db
 // CORRECT — caller gets generated ID, timestamps, defaults
 const [task] = await db.insert(tasks).values(data).returning();
 
-const [updated] = await db
-  .update(tasks)
-  .set({ title })
-  .where(eq(tasks.id, id))
-  .returning();
+const [updated] = await db.update(tasks).set({ title }).where(eq(tasks.id, id)).returning();
 ```
 
 Skip `.returning()` only for fire-and-forget operations (batch cleanup, etc.).

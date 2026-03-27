@@ -9,16 +9,19 @@ argument-hint: "[task description]"
 Your task: $ARGUMENTS
 
 Before starting, read the reference doc:
+
 - `${CLAUDE_SKILL_DIR}/tv-reference.md` — full API, slots, variants, composition, TypeScript
 
 ## Project context
 
 This project uses `tailwind-variants` as the **single styling utility**, replacing:
+
 - `class-variance-authority` (CVA) → use `tv()` with `variants` instead
 - `clsx` → use `cx()` from `tailwind-variants`
 - `tailwind-merge` → built into `tv()` and `cn()`
 
 `cn` is re-exported from `~/lib/utils` for compatibility with shadcn components:
+
 ```typescript
 // ~/lib/utils.ts
 export { cn } from "tailwind-variants";
@@ -46,7 +49,7 @@ Import `tv`, `VariantProps`, `cx` directly from `tailwind-variants`. Import `cn`
 
 9. **Pass extra classes via `class` key in `tv()` calls**, not `className`:
    ```typescript
-   buttonVariants({ variant: "primary", class: className })
+   buttonVariants({ variant: "primary", class: className });
    ```
 
 ## Base-UI className pattern (CRITICAL)
@@ -54,6 +57,7 @@ Import `tv`, `VariantProps`, `cx` directly from `tailwind-variants`. Import `cn`
 Base-UI primitives (`@base-ui/react`) define `className` as `string | ((state) => string)` (render prop). `tv()` only accepts strings. When wrapping base-ui primitives:
 
 **Omit the render-prop className, re-add as plain string:**
+
 ```typescript
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { tv, type VariantProps } from "tailwind-variants"
