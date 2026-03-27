@@ -1,5 +1,5 @@
 app = 'extension-sync-service'
-primary_region = 'lhr'
+primary_region = 'ams'
 
 [build]
   [build.args]
