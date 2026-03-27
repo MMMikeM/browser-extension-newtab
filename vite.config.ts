@@ -43,10 +43,12 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
-      prerender: {
-        enabled: true,
-        crawlLinks: false,
-      },
+      prerender: process.env.NO_PRERENDER
+        ? undefined
+        : {
+            enabled: true,
+            crawlLinks: false,
+          },
       importProtection: {
         client: {
           files: ["**/*.server.*", "**/server/**"],

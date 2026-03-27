@@ -13,6 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG SERVER_URL
 ENV SERVER_URL=${SERVER_URL}
+ENV NO_PRERENDER=1
 RUN pnpm build
 
 FROM base AS runtime
