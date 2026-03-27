@@ -3,6 +3,7 @@ import { useTasks, useAddTask, useUpdateTask, useDeleteTask } from "~/lib/hooks"
 import type { Task } from "~/functions/tasks";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { TaskList } from "~/components/TaskList";
+import { SyncSettings } from "~/components/SyncSettings";
 
 export const Route = createFileRoute("/")({
   component: TaskApp,
@@ -29,8 +30,11 @@ function TaskApp() {
   const handleDelete = (id: string) => deleteTask.mutate({ data: { id } });
 
   return (
-    <div className="mx-auto max-w-xl p-8">
-      <h1 className="mb-6 text-2xl font-bold">Tasks</h1>
+    <div className="mx-auto min-h-screen max-w-xl p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Tasks</h1>
+        <SyncSettings />
+      </div>
       <AddTaskInput onAdd={(title) => addTask.add(title)} />
       <div className="mt-4 flex flex-col gap-6">
         <TaskList tasks={activeTasks} onToggle={handleToggle} onDelete={handleDelete} />
