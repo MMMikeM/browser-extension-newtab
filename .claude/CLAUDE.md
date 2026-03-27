@@ -1,5 +1,9 @@
 # New Tab Todo
 
+## Rules
+
+- **Never commit without explicit user permission.** Always ask before committing.
+
 Personal task tracker Firefox extension replacing the new tab page. Single user, 2-3 machines, backend on Fly.io.
 
 ## Architecture
