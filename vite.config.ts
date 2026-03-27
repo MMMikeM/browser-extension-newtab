@@ -1,5 +1,6 @@
 import { defineConfig, type PluginOption } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
@@ -48,6 +49,7 @@ export default defineConfig({
         },
       },
     }),
+    nitro({ serverDir: "./server" }),
     remoteServerFnBase(SERVER_URL),
   ],
 });
