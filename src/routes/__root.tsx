@@ -1,5 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { matchQuery, MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import appCss from "../styles/app.css?url";
 
 const queryClient = new QueryClient({
@@ -14,6 +14,14 @@ const queryClient = new QueryClient({
       networkMode: "offlineFirst",
     },
   },
+  mutationCache: new MutationCache({
+    onSuccess: (_data, _variables, _context, mutation) => {
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          mutation.meta?.invalidates?.some((queryKey) => matchQuery({ queryKey }, query)) ?? true,
+      });
+    },
+  }),
 });
 
 export const Route = createRootRoute({

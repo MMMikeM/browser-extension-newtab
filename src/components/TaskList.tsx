@@ -3,14 +3,10 @@ import { TaskItem } from "./TaskItem";
 
 export function TaskList({
   tasks,
-  pendingUpdateId,
-  pendingDeleteId,
   onToggle,
   onDelete,
 }: {
   tasks: Task[];
-  pendingUpdateId: string | null;
-  pendingDeleteId: string | null;
   onToggle: (task: Task) => void;
   onDelete: (id: string) => void;
 }) {
@@ -22,7 +18,6 @@ export function TaskList({
         <TaskItem
           key={task.id}
           task={task}
-          pending={pendingUpdateId === task.id || pendingDeleteId === task.id}
           onToggle={() => onToggle(task)}
           onDelete={() => onDelete(task.id)}
         />

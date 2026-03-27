@@ -7,6 +7,7 @@ const isServer = typeof window === "undefined";
 const router = createRouter({
   routeTree,
   history: isServer ? createMemoryHistory({ initialEntries: ["/"] }) : createHashHistory(),
+  defaultNotFoundComponent: () => <p>Page not found</p>,
 });
 
 export function getRouter() {

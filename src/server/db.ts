@@ -1,6 +1,9 @@
+import { mkdirSync } from "node:fs";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { relations } from "./schema";
+
+mkdirSync(".data", { recursive: true });
 
 const client = createClient({
   url: "file:.data/local.db",

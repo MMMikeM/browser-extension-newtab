@@ -1,11 +1,28 @@
-import { useQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  queryOptions,
+  type QueryKey,
+} from "@tanstack/react-query";
 import { createId } from "@paralleldrive/cuid2";
 import { generateKeyBetween } from "fractional-indexing";
 import { getTasks, createTask, updateTask, deleteTask } from "../functions/tasks";
+import type { Task } from "../functions/tasks";
+
+declare module "@tanstack/react-query" {
+  interface Register {
+    mutationMeta: {
+      invalidates?: QueryKey[];
+    };
+  }
+}
+
+const TASKS_KEY = ["tasks"] as const;
 
 const tasksQueryOptions = () =>
   queryOptions({
-    queryKey: ["tasks"] as const,
+    queryKey: TASKS_KEY,
     queryFn: () => getTasks(),
   });
 
@@ -16,7 +33,19 @@ export const useAddTask = () => {
   const { data: tasks = [] } = useTasks();
   const mutation = useMutation({
     mutationFn: createTask,
-    onSettled: () => qc.invalidateQueries(tasksQueryOptions()),
+    meta: { invalidates: [TASKS_KEY] },
+    onMutate: async ({ data }) => {
+      await qc.cancelQueries(tasksQueryOptions());
+      const previous = qc.getQueryData(TASKS_KEY);
+      qc.setQueryData(TASKS_KEY, (old: Task[] = []) => [
+        ...old,
+        { ...data, status: "todo", description: null, createdAt: "", updatedAt: "" } as Task,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
+    },
   });
 
   return {
@@ -34,7 +63,18 @@ export const useUpdateTask = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: updateTask,
-    onSettled: () => qc.invalidateQueries(tasksQueryOptions()),
+    meta: { invalidates: [TASKS_KEY] },
+    onMutate: async ({ data: { id, ...fields } }) => {
+      await qc.cancelQueries(tasksQueryOptions());
+      const previous = qc.getQueryData(TASKS_KEY);
+      qc.setQueryData(TASKS_KEY, (old: Task[] = []) =>
+        old.map((t) => (t.id === id ? { ...t, ...fields } : t)),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
+    },
   });
 };
 
@@ -42,6 +82,15 @@ export const useDeleteTask = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteTask,
-    onSettled: () => qc.invalidateQueries(tasksQueryOptions()),
+    meta: { invalidates: [TASKS_KEY] },
+    onMutate: async ({ data: { id } }) => {
+      await qc.cancelQueries(tasksQueryOptions());
+      const previous = qc.getQueryData(TASKS_KEY);
+      qc.setQueryData(TASKS_KEY, (old: Task[] = []) => old.filter((t) => t.id !== id));
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
+    },
   });
 };
