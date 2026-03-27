@@ -1,8 +1,38 @@
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
+
+/**
+ * Rewrites server function URLs in the client bundle to point at the remote
+ * Fly.io server. Needed because the extension runs from `moz-extension://`
+ * where there is no local server — without this, `/_serverFn/` calls would
+ * resolve against the extension origin and fail.
+ *
+ * Only applies to production builds; in dev, Vite's dev server proxies
+ * server functions on the same origin.
+ */
+function remoteServerFnBase(serverUrl: string): PluginOption {
+  const base = JSON.stringify(`${serverUrl}/_serverFn/`);
+  return {
+    name: "remote-server-fn-base",
+    config(_, { command }) {
+      if (command !== "build") return;
+      return {
+        environments: {
+          client: {
+            define: {
+              "process.env.TSS_SERVER_FN_BASE": base,
+              "import.meta.env.TSS_SERVER_FN_BASE": base,
+            },
+          },
+        },
+      };
+    },
+    enforce: "post",
+  };
+}
 
 export default defineConfig({
   resolve: {
@@ -17,28 +47,7 @@ export default defineConfig({
           outputPath: "/index.html",
         },
       },
-      importProtection: {
-        client: { files: ["**/*.server.*", "**/server/**"] },
-        server: { files: ["**/*.client.*", "**/client/**"] },
-      },
     }),
-    // Override the server function base URL for extension context (client only).
-    // The server must keep its relative /_serverFn/ path for routing.
-    {
-      name: "extension-server-fn-base",
-      config() {
-        return {
-          environments: {
-            client: {
-              define: {
-                "process.env.TSS_SERVER_FN_BASE": JSON.stringify(`${SERVER_URL}/_serverFn/`),
-                "import.meta.env.TSS_SERVER_FN_BASE": JSON.stringify(`${SERVER_URL}/_serverFn/`),
-              },
-            },
-          },
-        };
-      },
-      enforce: "post",
-    },
+    remoteServerFnBase(SERVER_URL),
   ],
 });
