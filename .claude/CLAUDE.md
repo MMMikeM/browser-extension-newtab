@@ -3,6 +3,7 @@
 ## Rules
 
 - **Never commit without explicit user permission.** Always ask before committing.
+- **Always invoke the relevant skill before writing code that touches its domain.** Don't write Drizzle queries without invoking the drizzle skill. Don't write Legend State code without invoking the legend-state skill. Don't write TanStack Start server functions without invoking the tanstack-start skill. No exceptions — read the reference first, then write code.
 
 Personal task tracker Firefox extension replacing the new tab page. Single user, 2-3 machines, backend on Fly.io.
 
