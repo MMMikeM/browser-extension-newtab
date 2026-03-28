@@ -1,14 +1,9 @@
 import { createRouter } from "@tanstack/react-router";
 import { createBrowserHistory, createHashHistory, createMemoryHistory } from "@tanstack/history";
 import { routeTree } from "./routeTree.gen";
+import { getBuildTarget, type BuildTarget } from "~/lib/build-target";
 
-function getBuildTarget() {
-  if (typeof window === "undefined") return "server";
-  if (location.protocol.endsWith("-extension:")) return "extension";
-  return "browser";
-}
-
-const createHistory = (buildTarget: "server" | "extension" | "browser") => {
+const createHistory = (buildTarget: BuildTarget) => {
   switch (buildTarget) {
     case "server":
       return createMemoryHistory({ initialEntries: ["/"] });
