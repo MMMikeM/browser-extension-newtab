@@ -88,6 +88,7 @@ export const tasks$ = observable(
     },
     fieldUpdatedAt: "updatedAt",
     fieldCreatedAt: "createdAt",
+    onError: (error) => console.error("[sync] error:", error),
     waitForSet: authToken$,
   }),
 );
