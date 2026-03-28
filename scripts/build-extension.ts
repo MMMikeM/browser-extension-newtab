@@ -12,7 +12,7 @@ import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
 const CLIENT_DIR = join(ROOT, ".output", "public");
-const EXT_SRC = join(ROOT, "extension");
+const EXT_SRC = join(ROOT, "manifests");
 const EXT_OUT = join(ROOT, ".output", "extension");
 
 // Clean and create output
@@ -22,8 +22,12 @@ mkdirSync(EXT_OUT, { recursive: true });
 // Copy client build output
 cpSync(CLIENT_DIR, EXT_OUT, { recursive: true });
 
-// Copy manifest
-cpSync(join(EXT_SRC, "manifest.json"), join(EXT_OUT, "manifest.json"));
+// Copy extension manifest
+cpSync(join(EXT_SRC, "extension.json"), join(EXT_OUT, "manifest.json"));
+
+// Strip PWA files from extension output (SW only registers in browser context)
+rmSync(join(EXT_OUT, "sw.js"), { force: true });
+rmSync(join(EXT_OUT, "manifest.webmanifest"), { force: true });
 
 // Extract inline scripts from index.html
 let html = readFileSync(join(EXT_OUT, "index.html"), "utf-8");
