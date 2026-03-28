@@ -10,9 +10,22 @@
 import { readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
+const EXTENSION_MANIFEST = {
+  manifest_version: 2,
+  name: "New Tab Todo",
+  version: "1.0.0",
+  browser_specific_settings: {
+    gecko: { id: "newtab-todo@local" },
+  },
+  chrome_url_overrides: {
+    newtab: "index.html",
+  },
+  content_security_policy: "script-src 'self'; object-src 'self'",
+  permissions: ["storage"],
+};
+
 const ROOT = join(import.meta.dirname, "..");
 const CLIENT_DIR = join(ROOT, ".output", "public");
-const EXT_SRC = join(ROOT, "manifests");
 const EXT_OUT = join(ROOT, ".output", "extension");
 
 // Clean and create output
@@ -22,8 +35,8 @@ mkdirSync(EXT_OUT, { recursive: true });
 // Copy client build output
 cpSync(CLIENT_DIR, EXT_OUT, { recursive: true });
 
-// Copy extension manifest
-cpSync(join(EXT_SRC, "extension.json"), join(EXT_OUT, "manifest.json"));
+// Write extension manifest
+writeFileSync(join(EXT_OUT, "manifest.json"), JSON.stringify(EXTENSION_MANIFEST, null, 2));
 
 // Strip PWA files from extension output (SW only registers in browser context)
 rmSync(join(EXT_OUT, "sw.js"), { force: true });

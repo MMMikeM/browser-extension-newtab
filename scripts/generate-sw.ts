@@ -2,11 +2,12 @@
  * Post-build script: generates the service worker with Workbox precache manifest.
  *
  * 1. Bundles src/sw.ts to JS via Vite's build API
- * 2. Copies web.webmanifest to .output/public/
- * 3. Runs workbox-build injectManifest to produce the final sw.js with precache manifest
+ * 2. Runs workbox-build injectManifest to produce the final sw.js with precache manifest
+ *
+ * Note: manifest.webmanifest lives in public/ and is copied by Vite automatically.
  */
 
-import { copyFileSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { build } from "vite";
 import { injectManifest } from "workbox-build";
@@ -19,13 +20,6 @@ if (!existsSync(OUTPUT_PUBLIC)) {
   console.error("Error: .output/public does not exist. Run vite build first.");
   process.exit(1);
 }
-
-// Copy web manifest
-copyFileSync(
-  join(ROOT, "manifests", "web.webmanifest"),
-  join(OUTPUT_PUBLIC, "manifest.webmanifest"),
-);
-console.log("Copied manifest.webmanifest");
 
 // Bundle SW source to JS via Vite
 await build({
