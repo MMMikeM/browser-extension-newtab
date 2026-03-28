@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
+import { generateSW } from "./plugins/generate-sw";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
@@ -60,6 +61,7 @@ export default defineConfig({
         plugins: ["babel-plugin-react-compiler"],
       },
     }),
+    generateSW(),
     nitro({
       serverDir: "./src/server",
       apiBaseURL: "/api",
