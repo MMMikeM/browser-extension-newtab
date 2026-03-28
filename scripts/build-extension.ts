@@ -1,14 +1,16 @@
 /**
  * Post-build script: assembles the extension from vite build output.
  *
- * Solves two MV2 CSP compliance issues:
- * 1. Extracts inline <script> tags from HTML to external .js files
- * 2. Patches the TSR hydration manifest so script assets use `src` instead of
- *    inline `children` (prevents CSP-blocked dynamic script creation at runtime)
+ * 1. Copies client assets to extension output
+ * 2. Writes MV2 manifest with background script + alarms
+ * 3. Strips PWA files (SW, web manifest)
+ * 4. Extracts inline scripts for CSP compliance
+ * 5. Bundles background.ts → background.js via Vite
  */
 
 import { readFileSync, writeFileSync, cpSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { build } from "vite";
 
 const EXTENSION_MANIFEST = {
   manifest_version: 2,
@@ -21,12 +23,17 @@ const EXTENSION_MANIFEST = {
     newtab: "index.html",
   },
   content_security_policy: "script-src 'self'; object-src 'self'",
-  permissions: ["storage"],
+  permissions: ["storage", "alarms"],
+  background: {
+    scripts: ["background.js"],
+    persistent: false,
+  },
 };
 
 const ROOT = join(import.meta.dirname, "..");
 const CLIENT_DIR = join(ROOT, ".output", "public");
 const EXT_OUT = join(ROOT, ".output", "extension");
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
 // Clean and create output
 rmSync(EXT_OUT, { recursive: true, force: true });
@@ -52,21 +59,13 @@ html = html.replace(inlineScriptRegex, (match, attrs: string, content: string) =
   if (attrs.includes("src=")) return match;
   if (!content.trim()) return match;
 
-  // Patch TSR manifest: convert inline script children to src attributes.
-  //
-  // Before: {tag:"script",attrs:$R[7]={type:"module",async:!0},children:"import(\"/assets/foo.js\")"}
-  // After:  {tag:"script",attrs:$R[7]={type:"module",async:!0,src:"/assets/foo.js"}}
-  //
-  // This makes the Asset component's useEffect take the `attrs.src` code path
-  // (creates external <script src="...">) instead of the `children` path
-  // (creates inline <script>textContent=...</script> which CSP blocks).
   const patchedContent = content.replace(
     /,async:(!0|true)\},children:"import\(\\"([^"]+)\\"\)"\}/g,
     (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`,
   );
 
   if (patchedContent !== content) {
-    console.log(`  Patched TSR manifest: converted inline import() to src attribute`);
+    console.log("  Patched TSR manifest: converted inline import() to src attribute");
   }
 
   const filename = `_inline-${scriptIndex++}.js`;
@@ -81,5 +80,37 @@ html = html.replace(inlineScriptRegex, (match, attrs: string, content: string) =
 
 writeFileSync(join(EXT_OUT, "index.html"), html);
 
+console.log(`Extension assembled: ${scriptIndex} inline script(s) extracted`);
+
+// Build background script
+await build({
+  configFile: false,
+  root: ROOT,
+  resolve: {
+    alias: { "~": join(ROOT, "src") },
+  },
+  define: {
+    __SERVER_URL__: JSON.stringify(SERVER_URL),
+    "process.env.NODE_ENV": JSON.stringify("production"),
+  },
+  build: {
+    lib: {
+      entry: join(ROOT, "src", "background.ts"),
+      formats: ["iife"],
+      name: "background",
+      fileName: () => "background.js",
+    },
+    outDir: EXT_OUT,
+    emptyOutDir: false,
+    minify: false,
+    rollupOptions: {
+      output: {
+        entryFileNames: "background.js",
+      },
+    },
+  },
+  logLevel: "warn",
+});
+
+console.log("Background script built");
 console.log(`Extension built to ${EXT_OUT}`);
-console.log(`Extracted ${scriptIndex} inline script(s)`);

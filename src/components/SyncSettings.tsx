@@ -10,23 +10,30 @@ import { TOKEN_KEY } from "~/lib/constants";
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
-function setAuthToken(token: string) {
+const setAuthToken = (token: string) => {
   localStorage.setItem(TOKEN_KEY, token);
   authToken$.set(token);
-  if (getBuildTarget() === "browser") {
+  const target = getBuildTarget();
+  if (target === "browser") {
     fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     }).catch(() => {});
   }
-}
+  if (target === "extension") {
+    browser.storage.local.set({ [TOKEN_KEY]: token });
+  }
+};
 
-function clearAuthToken() {
+const clearAuthToken = () => {
   localStorage.removeItem(TOKEN_KEY);
   authToken$.set(null);
+  if (getBuildTarget() === "extension") {
+    browser.storage.local.remove(TOKEN_KEY);
+  }
   unregisterPushSubscription();
-}
+};
 
 export function SyncSettings() {
   const token = useValue(authToken$);

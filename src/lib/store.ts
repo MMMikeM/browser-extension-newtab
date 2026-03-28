@@ -17,11 +17,19 @@ if (!isServer) {
     if (e.key === TOKEN_KEY) authToken$.set(e.newValue);
   });
 
+  const target = getBuildTarget();
+
   // Auto-register push when token is set (browser context only)
-  if (getBuildTarget() === "browser") {
+  if (target === "browser") {
     observe(() => {
       if (authToken$.get()) ensurePushRegistered();
     });
+  }
+
+  // Migrate token to browser.storage.local for background script access
+  if (target === "extension") {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) browser.storage.local.set({ [TOKEN_KEY]: token });
   }
 }
 
@@ -70,14 +78,20 @@ export const tasks$ = observable(
       const channel = new BroadcastChannel(SYNC_CHANNEL);
       channel.onmessage = () => refresh();
 
-      // Refresh on tab focus if online (catches cross-environment changes)
-      const visibilityHandler = () => {
-        if (document.visibilityState === "visible" && navigator.onLine) {
-          console.log("[sync] tab visible + online, refreshing");
-          refresh();
-        }
-      };
-      document.addEventListener("visibilitychange", visibilityHandler);
+      // Extension background script sync (alarm-based)
+      const bgHandler =
+        getBuildTarget() === "extension"
+          ? (message: unknown) => {
+              if ((message as { type?: string })?.type === "SYNC_TASKS") {
+                console.log("[sync] background script sync received, refreshing");
+                refresh();
+              }
+            }
+          : null;
+
+      if (bgHandler) {
+        browser.runtime.onMessage.addListener(bgHandler);
+      }
 
       // SW push sync (browser/PWA only)
       const swHandler =
@@ -96,10 +110,8 @@ export const tasks$ = observable(
 
       return () => {
         channel.close();
-        document.removeEventListener("visibilitychange", visibilityHandler);
-        if (swHandler) {
-          navigator.serviceWorker?.removeEventListener("message", swHandler);
-        }
+        if (bgHandler) browser.runtime.onMessage.removeListener(bgHandler);
+        if (swHandler) navigator.serviceWorker?.removeEventListener("message", swHandler);
       };
     },
     persist: await createPersist(),
