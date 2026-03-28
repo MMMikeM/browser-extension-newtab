@@ -47,7 +47,8 @@ export const generateSW = (): PluginOption => {
           },
           outDir: outputPublic,
           emptyOutDir: false,
-          minify: true,
+          minify: false,
+          sourcemap: true,
           rollupOptions: {
             output: {
               entryFileNames: "sw.js",
