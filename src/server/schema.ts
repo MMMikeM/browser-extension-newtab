@@ -14,4 +14,12 @@ export const tasks = sqliteTable("tasks", {
   updatedAt: updatedAt(),
 });
 
-export const relations = defineRelations({ tasks });
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: pk(),
+  endpoint: string("endpoint").unique(),
+  p256dh: string("p256dh"),
+  auth: string("auth"),
+  createdAt: createdAt(),
+});
+
+export const relations = defineRelations({ tasks, pushSubscriptions });
