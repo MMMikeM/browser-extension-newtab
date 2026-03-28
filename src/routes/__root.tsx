@@ -25,6 +25,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   useEffect(() => {
+    console.log("[sw] useEffect fired, calling registerServiceWorker");
     registerServiceWorker();
   }, []);
 
