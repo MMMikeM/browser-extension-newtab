@@ -264,6 +264,14 @@ const users = await db.query.users.findMany({
   },
 });
 
+// NOT
+const users = await db.query.users.findMany({
+  where: {
+    NOT: { id: { gt: 10 } },
+    name: { like: "John%" },
+  },
+});
+
 // RAW SQL in where
 const users = await db.query.users.findMany({
   where: {
