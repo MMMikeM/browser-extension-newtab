@@ -30,9 +30,15 @@ export const generateSW = (): PluginOption => {
       }
 
       // Bundle SW source to JS
+      // Rolldown compiles away self.__WB_MANIFEST (evaluates as undefined).
+      // Use define to replace it with a string literal that survives bundling,
+      // then tell workbox's injectManifest to find that string instead.
       await build({
         configFile: false,
         root,
+        define: {
+          "self.__WB_MANIFEST": '"__WB_MANIFEST__"',
+        },
         build: {
           lib: {
             entry: swSrc,
@@ -56,6 +62,7 @@ export const generateSW = (): PluginOption => {
       const { count, size } = await injectManifest({
         swSrc: swDest,
         swDest,
+        injectionPoint: '"__WB_MANIFEST__"',
         globDirectory: outputPublic,
         globPatterns: ["**/*.{js,css,html,woff2,png,svg,webmanifest}"],
         globIgnores: ["sw.js"],
