@@ -66,16 +66,28 @@ export const tasks$ = observable(
     subscribe: ({ refresh }) => {
       if (isServer) return;
 
-      // Cross-tab sync via BroadcastChannel (works in both browser and extension)
+      // Cross-tab sync via BroadcastChannel (same-origin tabs)
       const channel = new BroadcastChannel(SYNC_CHANNEL);
       channel.onmessage = () => refresh();
+
+      // Refresh on tab focus (catches cross-environment changes)
+      const visibilityHandler = () => {
+        if (document.visibilityState === "visible") {
+          console.log("[sync] tab visible, refreshing");
+          refresh();
+        }
+      };
+      document.addEventListener("visibilitychange", visibilityHandler);
 
       // SW push sync (browser/PWA only)
       const swHandler =
         getBuildTarget() === "browser"
           ? (event: MessageEvent) => {
-            if (event.data?.type === "SYNC_TASKS") refresh();
-          }
+              if (event.data?.type === "SYNC_TASKS") {
+                console.log("[sync] push message received, refreshing");
+                refresh();
+              }
+            }
           : null;
 
       if (swHandler) {
@@ -84,6 +96,7 @@ export const tasks$ = observable(
 
       return () => {
         channel.close();
+        document.removeEventListener("visibilitychange", visibilityHandler);
         if (swHandler) {
           navigator.serviceWorker?.removeEventListener("message", swHandler);
         }
