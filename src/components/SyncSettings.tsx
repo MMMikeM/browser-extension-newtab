@@ -55,7 +55,7 @@ export function SyncSettings() {
         className="text-muted-foreground transition-colors hover:text-foreground"
         aria-label="Sync settings"
       >
-        {token ? "⟳" : "⚙"}
+        ⚙
       </button>
     );
   }
@@ -101,7 +101,7 @@ export function SyncSettings() {
           Cancel
         </Button>
       </div>
-      {token && (
+      {token && getBuildTarget() === "browser" && (
         <button
           onClick={handleTogglePush}
           className="text-xs text-muted-foreground hover:text-foreground"

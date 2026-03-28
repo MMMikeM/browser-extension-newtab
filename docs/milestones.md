@@ -24,14 +24,11 @@ Core task tracker replacing the new tab page. Local-first, shipped and deployed.
 
 Make this the tool you actually reach for every day.
 
-### Real-time sync (SSE)
+### ~~Real-time sync (SSE)~~ — superseded by silent push
 
-Live updates between open tabs/devices while the app is active.
+~~Live updates between open tabs/devices while the app is active.~~
 
-- Server-Sent Events endpoint on Nitro (`/api/tasks/events`)
-- Server broadcasts on every task create/update/delete
-- Legend State `subscribe` callback connects to SSE and calls `update(data)`
-- Automatic reconnect on disconnect
+Silent push already handles this: push arrives → SW `postMessage` → Legend State `subscribe` calls `refresh()`. SSE would be redundant — it only works while the app is open, which push already covers, and push also handles the app-closed case that SSE can't.
 
 ### Background sync (silent push)
 

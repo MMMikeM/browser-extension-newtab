@@ -1,11 +1,13 @@
 import { observable } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
-import { getTasks, createTask, updateTask, deleteTask } from "~/functions/tasks";
+import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/functions/tasks";
+import { now } from "~/server/schema";
 import { getBuildTarget } from "~/lib/build-target";
 import { IDB_CONFIG } from "~/sync/config";
 
 const isServer = typeof window === "undefined";
 const TOKEN_KEY = "newtab-todo-token";
+const SYNC_CHANNEL = "newtab-todo-sync";
 
 export const authToken$ = observable<string | null>(
   isServer ? null : localStorage.getItem(TOKEN_KEY),
@@ -27,6 +29,9 @@ const createPersist = async () => {
   };
 };
 
+// Broadcast changes to other tabs in the same browser
+const broadcastChange = !isServer ? new BroadcastChannel(SYNC_CHANNEL) : null;
+
 export const tasks$ = observable(
   syncedCrud({
     list: async () => {
@@ -38,25 +43,56 @@ export const tasks$ = observable(
       }
     },
     create: async (input) => {
-      await createTask({ data: input });
+      await createTask({
+        data: {
+          ...input,
+          createdAt: now(),
+        },
+      });
+      broadcastChange?.postMessage({ type: "sync" });
     },
     update: async (input) => {
-      await updateTask({ data: { ...input, id: input.id!, updatedAt: new Date().toISOString() } });
+      await updateTask({
+        data: {
+          ...input,
+          id: input.id!,
+          updatedAt: now(),
+        },
+      });
+      broadcastChange?.postMessage({ type: "sync" });
     },
     delete: async (input) => {
       await deleteTask({ data: { id: input.id } });
+      broadcastChange?.postMessage({ type: "sync" });
     },
     subscribe: ({ refresh }) => {
-      if (getBuildTarget() !== "browser") return;
-      // SW sends SYNC_TASKS when a silent push arrives from another device
-      const handler = (event: MessageEvent) => {
-        if (event.data?.type === "SYNC_TASKS") refresh();
+      if (isServer) return;
+
+      // Cross-tab sync via BroadcastChannel (works in both browser and extension)
+      const channel = new BroadcastChannel(SYNC_CHANNEL);
+      channel.onmessage = () => refresh();
+
+      // SW push sync (browser/PWA only)
+      const swHandler =
+        getBuildTarget() === "browser"
+          ? (event: MessageEvent) => {
+              if (event.data?.type === "SYNC_TASKS") refresh();
+            }
+          : null;
+
+      if (swHandler) {
+        navigator.serviceWorker?.addEventListener("message", swHandler);
+      }
+
+      return () => {
+        channel.close();
+        if (swHandler) {
+          navigator.serviceWorker?.removeEventListener("message", swHandler);
+        }
       };
-      navigator.serviceWorker?.addEventListener("message", handler);
-      return () => navigator.serviceWorker?.removeEventListener("message", handler);
     },
     persist: await createPersist(),
-    initial: {} as Record<string, any>,
+    initial: {},
     retry: {
       infinite: true,
       backoff: "exponential",

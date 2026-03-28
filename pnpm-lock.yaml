@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@legendapp/state@3.0.0-beta.46':
+    hash: 06f1c3322394de91696587fc1e54adaa3ab862a08c36af0f6b33cd0f3714e3f6
+    path: patches/@legendapp__state@3.0.0-beta.46.patch
+
 importers:
 
   .:
@@ -25,7 +30,7 @@ importers:
         version: 1.1.6(react@19.2.4)
       '@legendapp/state':
         specifier: 3.0.0-beta.46
-        version: 3.0.0-beta.46(react@19.2.4)
+        version: 3.0.0-beta.46(patch_hash=06f1c3322394de91696587fc1e54adaa3ab862a08c36af0f6b33cd0f3714e3f6)(react@19.2.4)
       '@libsql/client':
         specifier: ^0.17.2
         version: 0.17.2
@@ -6068,7 +6073,7 @@ snapshots:
     dependencies:
       jsbi: 4.3.2
 
-  '@legendapp/state@3.0.0-beta.46(react@19.2.4)':
+  '@legendapp/state@3.0.0-beta.46(patch_hash=06f1c3322394de91696587fc1e54adaa3ab862a08c36af0f6b33cd0f3714e3f6)(react@19.2.4)':
     dependencies:
       use-sync-external-store: 1.6.0(react@19.2.4)
     transitivePeerDependencies:

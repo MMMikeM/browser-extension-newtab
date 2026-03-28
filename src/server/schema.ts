@@ -1,6 +1,12 @@
 import { defineRelations } from "drizzle-orm";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { sqliteTable } from "drizzle-orm/sqlite-core";
+import z from "zod/v4";
 import { pk, string, nullableString, oneOf, createdAt, updatedAt } from "./columns";
+
+const isoDatetime = z.iso.datetime().brand<"iso", "inout">();
+export type ISODateString = z.output<typeof isoDatetime>;
+export const now = (): ISODateString => new Date().toISOString() as ISODateString;
 
 export const taskStatuses = ["todo", "in_progress", "done"] as const;
 
@@ -23,3 +29,17 @@ export const pushSubscriptions = sqliteTable("push_subscriptions", {
 });
 
 export const relations = defineRelations({ tasks, pushSubscriptions });
+
+// Zod schemas for task validation — co-located with the table they validate
+export const taskSelectSchema = createSelectSchema(tasks).pick({ id: true });
+export const taskInsertSchema = createInsertSchema(tasks, {
+  createdAt: isoDatetime,
+})
+  .omit({ updatedAt: true })
+  .strict();
+export const taskUpdateSchema = createUpdateSchema(tasks, {
+  updatedAt: isoDatetime,
+})
+  .required({ id: true, updatedAt: true })
+  .omit({ createdAt: true })
+  .strict();
