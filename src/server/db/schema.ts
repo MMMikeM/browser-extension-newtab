@@ -32,6 +32,7 @@ export const taskInsertSchema = createInsertSchema(tasks, {
   createdAt: isoDatetime,
 })
   .omit({ updatedAt: true })
+  .required({ id: true, createdAt: true })
   .strict();
 export const taskUpdateSchema = createUpdateSchema(tasks, {
   updatedAt: isoDatetime,

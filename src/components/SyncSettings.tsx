@@ -6,8 +6,8 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 
 import { getBuildTarget } from "~/lib/build-target";
+import { TOKEN_KEY } from "~/lib/constants";
 
-const TOKEN_KEY = "newtab-todo-token";
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
 function setAuthToken(token: string) {

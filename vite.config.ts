@@ -60,7 +60,12 @@ export default defineConfig({
         plugins: ["babel-plugin-react-compiler"],
       },
     }),
-    nitro({ serverDir: "./server" }),
+    nitro({
+      serverDir: "./src/server",
+      apiBaseURL: "/api",
+      apiDir: "api",
+      openAPI: { ui: { scalar: {} } },
+    }),
     remoteServerFnBase(SERVER_URL),
   ],
 });

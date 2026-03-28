@@ -1,13 +1,11 @@
 import { observable } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
-import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/functions/tasks";
+import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/rpc/tasks";
 import { now } from "~/lib/utils";
 import { getBuildTarget } from "~/lib/build-target";
-import { IDB_CONFIG } from "~/sync/config";
+import { IDB_CONFIG, TOKEN_KEY, SYNC_CHANNEL } from "~/lib/constants";
 
 const isServer = typeof window === "undefined";
-const TOKEN_KEY = "newtab-todo-token";
-const SYNC_CHANNEL = "newtab-todo-sync";
 
 export const authToken$ = observable<string | null>(
   isServer ? null : localStorage.getItem(TOKEN_KEY),
@@ -42,27 +40,16 @@ export const tasks$ = observable(
         return [];
       }
     },
-    create: async (input) => {
-      await createTask({
-        data: {
-          ...input,
-          createdAt: now(),
-        },
-      });
+    create: async ({ createdAt, updatedAt, ...input }) => {
+      await createTask({ data: { ...input, createdAt: now() } });
       broadcastChange?.postMessage({ type: "sync" });
     },
-    update: async (input) => {
-      await updateTask({
-        data: {
-          ...input,
-          id: input.id!,
-          updatedAt: now(),
-        },
-      });
+    update: async ({ createdAt, updatedAt, ...input }) => {
+      await updateTask({ data: { ...input, id: input.id!, updatedAt: now() } });
       broadcastChange?.postMessage({ type: "sync" });
     },
-    delete: async (input) => {
-      await deleteTask({ data: { id: input.id } });
+    delete: async ({ id }) => {
+      await deleteTask({ data: { id } });
       broadcastChange?.postMessage({ type: "sync" });
     },
     subscribe: ({ refresh }) => {

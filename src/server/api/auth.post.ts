@@ -1,5 +1,5 @@
 import { defineHandler } from "h3";
-import { validateToken } from "../../../src/server/auth";
+import { validateToken } from "../auth";
 
 export default defineHandler(async (event) => {
   const body = (await event.req.json()) as { token?: string };

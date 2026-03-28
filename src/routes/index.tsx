@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTasks, useAddTask, useUpdateTask, useDeleteTask } from "~/lib/hooks";
-import type { Task } from "~/functions/tasks";
+import type { Task } from "~/rpc/tasks";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { TaskList } from "~/components/TaskList";
 import { SyncSettings } from "~/components/SyncSettings";

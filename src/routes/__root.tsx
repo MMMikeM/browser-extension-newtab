@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { registerServiceWorker } from "~/lib/register-sw";
-import appCss from "../styles/app.css?url";
+import appCss from "../app.css?url";
 
 export const Route = createRootRoute({
   component: RootComponent,

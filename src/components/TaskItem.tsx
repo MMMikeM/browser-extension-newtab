@@ -1,4 +1,4 @@
-import type { Task } from "~/functions/tasks";
+import type { Task } from "~/rpc/tasks";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";

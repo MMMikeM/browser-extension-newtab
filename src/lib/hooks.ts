@@ -2,7 +2,7 @@ import { useValue } from "@legendapp/state/react";
 import { createId } from "@paralleldrive/cuid2";
 import { generateKeyBetween } from "fractional-indexing";
 import { tasks$ } from "./store";
-import type { Task } from "~/functions/tasks";
+import type { Task } from "~/rpc/tasks";
 
 export function useTasks() {
   const tasksMap = useValue(tasks$);

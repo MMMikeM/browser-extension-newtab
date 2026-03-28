@@ -1,6 +1,6 @@
 import { defineHandler } from "h3";
-import { extractToken, validateToken } from "../../../src/server/auth";
-import { db } from "../../../src/server/db";
+import { extractToken, validateToken } from "../auth";
+import taskRepo from "../db/task.repo";
 
 export default defineHandler(async (event) => {
   const token = extractToken(event.req);
@@ -12,9 +12,5 @@ export default defineHandler(async (event) => {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const tasks = await db.query.tasks.findMany({
-    orderBy: { sortOrder: "asc", createdAt: "asc" },
-  });
-
-  return tasks;
+  return taskRepo.list();
 });

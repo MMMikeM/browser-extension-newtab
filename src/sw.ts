@@ -7,7 +7,7 @@ import { ExpirationPlugin } from "workbox-expiration";
 import { observable, syncState } from "@legendapp/state";
 import { synced } from "@legendapp/state/sync";
 import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
-import { IDB_CONFIG, API_PATH } from "~/sync/config";
+import { IDB_CONFIG, API_PATH } from "~/lib/constants";
 
 declare let self: ServiceWorkerGlobalScope;
 

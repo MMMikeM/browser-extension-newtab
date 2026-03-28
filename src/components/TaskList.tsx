@@ -1,4 +1,4 @@
-import type { Task } from "~/functions/tasks";
+import type { Task } from "~/rpc/tasks";
 import { TaskItem } from "./TaskItem";
 
 export function TaskList({

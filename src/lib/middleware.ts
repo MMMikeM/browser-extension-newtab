@@ -1,10 +1,11 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { validateToken } from "../server/auth";
+import { TOKEN_KEY } from "./constants";
 
 export const authMiddleware = createMiddleware({ type: "function" })
   .client(async ({ next }) => {
-    const token = localStorage.getItem("newtab-todo-token") || "";
+    const token = localStorage.getItem(TOKEN_KEY) || "";
     return next({
       headers: { Authorization: `Bearer ${token}` },
     });
