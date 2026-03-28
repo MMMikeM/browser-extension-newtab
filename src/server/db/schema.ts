@@ -1,12 +1,8 @@
 import { defineRelations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { sqliteTable } from "drizzle-orm/sqlite-core";
-import z from "zod/v4";
 import { pk, string, nullableString, oneOf, createdAt, updatedAt } from "./columns";
-
-const isoDatetime = z.iso.datetime().brand<"iso", "inout">();
-export type ISODateString = z.output<typeof isoDatetime>;
-export const now = (): ISODateString => new Date().toISOString() as ISODateString;
+import { isoDatetime } from "~/lib/utils";
 
 export const taskStatuses = ["todo", "in_progress", "done"] as const;
 

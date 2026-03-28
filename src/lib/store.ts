@@ -1,7 +1,7 @@
 import { observable } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
 import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/functions/tasks";
-import { now } from "~/server/schema";
+import { now } from "~/lib/utils";
 import { getBuildTarget } from "~/lib/build-target";
 import { IDB_CONFIG } from "~/sync/config";
 
@@ -76,8 +76,8 @@ export const tasks$ = observable(
       const swHandler =
         getBuildTarget() === "browser"
           ? (event: MessageEvent) => {
-              if (event.data?.type === "SYNC_TASKS") refresh();
-            }
+            if (event.data?.type === "SYNC_TASKS") refresh();
+          }
           : null;
 
       if (swHandler) {

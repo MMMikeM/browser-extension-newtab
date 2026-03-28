@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { sendPushNotification, type VapidConfig } from "@mmmike/web-push";
-import { db } from "./db";
-import { pushSubscriptions } from "./schema";
+import { db } from "./db/client";
+import { pushSubscriptions } from "./db/schema";
 
 const vapid: VapidConfig = {
   subject: process.env.VAPID_SUBJECT!,
