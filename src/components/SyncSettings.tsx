@@ -5,8 +5,28 @@ import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 
+import { getBuildTarget } from "~/lib/build-target";
+
 const TOKEN_KEY = "newtab-todo-token";
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
+
+function setAuthToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+  authToken$.set(token);
+  if (getBuildTarget() === "browser") {
+    fetch("/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    }).catch(() => {});
+  }
+}
+
+function clearAuthToken() {
+  localStorage.removeItem(TOKEN_KEY);
+  authToken$.set(null);
+  unregisterPushSubscription();
+}
 
 export function SyncSettings() {
   const token = useValue(authToken$);
@@ -54,10 +74,8 @@ export function SyncSettings() {
           size="sm"
           className="h-7 text-xs"
           onClick={() => {
-            if (input.trim()) {
-              localStorage.setItem(TOKEN_KEY, input.trim());
-              authToken$.set(input.trim());
-            }
+            const trimmed = input.trim();
+            if (trimmed) setAuthToken(trimmed);
             setInput("");
             setOpen(false);
           }}
@@ -70,9 +88,7 @@ export function SyncSettings() {
             size="sm"
             className="h-7 text-xs"
             onClick={() => {
-              localStorage.removeItem(TOKEN_KEY);
-              authToken$.set(null);
-              unregisterPushSubscription();
+              clearAuthToken();
               setPushEnabled(false);
               setInput("");
               setOpen(false);

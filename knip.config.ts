@@ -6,6 +6,7 @@ export default {
     "src/router.tsx",
     "src/sw.ts",
     "server/middleware/**/*.ts",
+    "server/routes/**/*.ts",
     "scripts/*.ts",
   ],
   project: ["src/**/*.{ts,tsx}", "server/**/*.ts", "scripts/**/*.ts"],
