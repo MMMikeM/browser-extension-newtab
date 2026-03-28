@@ -41,14 +41,17 @@ export const tasks$ = observable(
       }
     },
     create: async ({ createdAt, updatedAt, ...input }) => {
+      console.log("[sync] CREATE fired for:", input.id);
       await createTask({ data: { ...input, createdAt: now() } });
       broadcastChange?.postMessage({ type: "sync" });
     },
     update: async ({ createdAt, updatedAt, ...input }) => {
+      console.log("[sync] UPDATE fired for:", input.id);
       await updateTask({ data: { ...input, id: input.id!, updatedAt: now() } });
       broadcastChange?.postMessage({ type: "sync" });
     },
     delete: async ({ id }) => {
+      console.log("[sync] DELETE fired for:", id);
       await deleteTask({ data: { id } });
       broadcastChange?.postMessage({ type: "sync" });
     },
