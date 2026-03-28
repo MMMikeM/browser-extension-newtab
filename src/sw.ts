@@ -12,7 +12,6 @@ import { IDB_CONFIG, API_PATH } from "~/lib/constants";
 declare let self: ServiceWorkerGlobalScope;
 
 // Precache static assets (injected by workbox-build)
-// @ts-expect-error — workbox-build replaces self.__WB_MANIFEST at build time
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 

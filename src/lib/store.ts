@@ -1,8 +1,9 @@
-import { observable } from "@legendapp/state";
+import { observable, observe } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
 import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/rpc/tasks";
 import { now } from "~/lib/utils";
 import { getBuildTarget } from "~/lib/build-target";
+import { ensurePushRegistered } from "~/lib/push";
 import { IDB_CONFIG, TOKEN_KEY, SYNC_CHANNEL } from "~/lib/constants";
 
 const isServer = typeof window === "undefined";
@@ -15,6 +16,13 @@ if (!isServer) {
   window.addEventListener("storage", (e) => {
     if (e.key === TOKEN_KEY) authToken$.set(e.newValue);
   });
+
+  // Auto-register push when token is set (browser context only)
+  if (getBuildTarget() === "browser") {
+    observe(() => {
+      if (authToken$.get()) ensurePushRegistered();
+    });
+  }
 }
 
 const createPersist = async () => {
