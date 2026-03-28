@@ -38,6 +38,7 @@ export const generateSW = (): PluginOption => {
         root,
         define: {
           "self.__WB_MANIFEST": '"__WB_MANIFEST__"',
+          "process.env.NODE_ENV": JSON.stringify("production"),
         },
         build: {
           lib: {
@@ -48,7 +49,6 @@ export const generateSW = (): PluginOption => {
           outDir: outputPublic,
           emptyOutDir: false,
           minify: false,
-          sourcemap: true,
           rollupOptions: {
             output: {
               entryFileNames: "sw.js",
