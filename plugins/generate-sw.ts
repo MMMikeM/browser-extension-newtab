@@ -43,7 +43,8 @@ export const generateSW = (): PluginOption => {
         build: {
           lib: {
             entry: swSrc,
-            formats: ["es"],
+            formats: ["umd"],
+            name: "sw",
             fileName: () => "sw.js",
           },
           outDir: outputPublic,
