@@ -29,8 +29,6 @@ export function useAddTask() {
         status: "todo",
         description: null,
         sortOrder: generateKeyBetween(lastOrder, null),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       } as Task);
     },
   };
