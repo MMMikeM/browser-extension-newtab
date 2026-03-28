@@ -1,6 +1,8 @@
 import { observable } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
 import { getTasks, createTask, updateTask, deleteTask } from "~/functions/tasks";
+import { getBuildTarget } from "~/lib/build-target";
+import { IDB_CONFIG } from "~/sync/config";
 
 const isServer = typeof window === "undefined";
 const TOKEN_KEY = "newtab-todo-token";
@@ -15,15 +17,15 @@ if (!isServer) {
   });
 }
 
-let idbPlugin: any = undefined;
-if (!isServer) {
+const createPersist = async () => {
+  if (typeof window === "undefined") return undefined;
   const { observablePersistIndexedDB } = await import("@legendapp/state/persist-plugins/indexeddb");
-  idbPlugin = observablePersistIndexedDB({
-    databaseName: "newtab-todo",
-    version: 1,
-    tableNames: ["tasks"],
-  });
-}
+  return {
+    name: "tasks",
+    plugin: observablePersistIndexedDB(IDB_CONFIG),
+    retrySync: true,
+  };
+};
 
 export const tasks$ = observable(
   syncedCrud({
@@ -44,15 +46,16 @@ export const tasks$ = observable(
     delete: async (input) => {
       await deleteTask({ data: { id: input.id } });
     },
-    ...(idbPlugin
-      ? {
-          persist: {
-            name: "tasks",
-            plugin: idbPlugin,
-            retrySync: true,
-          },
-        }
-      : {}),
+    subscribe: ({ refresh }) => {
+      if (getBuildTarget() !== "browser") return;
+      // SW sends SYNC_TASKS when a silent push arrives from another device
+      const handler = (event: MessageEvent) => {
+        if (event.data?.type === "SYNC_TASKS") refresh();
+      };
+      navigator.serviceWorker?.addEventListener("message", handler);
+      return () => navigator.serviceWorker?.removeEventListener("message", handler);
+    },
+    persist: await createPersist(),
     initial: {} as Record<string, any>,
     retry: {
       infinite: true,
