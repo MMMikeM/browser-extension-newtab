@@ -1,3 +1,5 @@
+/// <reference lib="webworker" />
+
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 import { NetworkFirst, CacheFirst } from "workbox-strategies";
@@ -57,3 +59,23 @@ registerRoute(
 );
 
 // /_serverFn/* is NOT registered — Legend State handles sync/retry via IDB
+
+// Skip waiting and claim clients immediately
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
+// Silent push: fetch latest tasks and notify open clients to refresh
+self.addEventListener("push", (event) => {
+  const data = event.data?.json();
+  if (data?.title !== "sync") return;
+
+  event.waitUntil(
+    (async () => {
+      // Notify any open clients to refresh their data
+      const clients = await self.clients.matchAll({ type: "window" });
+      for (const client of clients) {
+        client.postMessage({ type: "SYNC_TASKS" });
+      }
+    })(),
+  );
+});
