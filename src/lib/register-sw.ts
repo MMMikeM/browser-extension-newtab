@@ -1,10 +1,17 @@
 export const registerServiceWorker = () => {
-  if (typeof window === "undefined") return;
-  if (location.protocol.endsWith("-extension:")) return;
-  if (!("serviceWorker" in navigator)) return;
+  console.log("[sw] guards:", {
+    hasWindow: typeof window !== "undefined",
+    isExtension: typeof window !== "undefined" && location.protocol.endsWith("-extension:"),
+    hasSW: typeof window !== "undefined" && "serviceWorker" in navigator,
+  });
 
+  if (typeof window === "undefined") return console.log("[sw] skipped: no window");
+  if (location.protocol.endsWith("-extension:")) return console.log("[sw] skipped: extension context");
+  if (!("serviceWorker" in navigator)) return console.log("[sw] skipped: no serviceWorker API");
+
+  console.log("[sw] calling register(/sw.js)");
   navigator.serviceWorker
     .register("/sw.js")
-    .then((reg) => console.log("[sw] registered:", reg.scope))
+    .then((reg) => console.log("[sw] registered:", reg.scope, reg))
     .catch((err) => console.error("[sw] registration failed:", err));
 };
