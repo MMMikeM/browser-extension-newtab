@@ -70,10 +70,10 @@ export const tasks$ = observable(
       const channel = new BroadcastChannel(SYNC_CHANNEL);
       channel.onmessage = () => refresh();
 
-      // Refresh on tab focus (catches cross-environment changes)
+      // Refresh on tab focus if online (catches cross-environment changes)
       const visibilityHandler = () => {
-        if (document.visibilityState === "visible") {
-          console.log("[sync] tab visible, refreshing");
+        if (document.visibilityState === "visible" && navigator.onLine) {
+          console.log("[sync] tab visible + online, refreshing");
           refresh();
         }
       };
