@@ -4,6 +4,9 @@ import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 import { NetworkFirst, CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
+import { observable, syncState } from "@legendapp/state";
+import { synced } from "@legendapp/state/sync";
+import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
 import { IDB_CONFIG, API_PATH } from "~/lib/constants";
 
 declare let self: ServiceWorkerGlobalScope;
@@ -69,58 +72,36 @@ self.addEventListener("activate", (event: ExtendableEvent) =>
 );
 
 /**
- * Fetch tasks from the API and write directly to Legend State's IDB store.
- *
- * Legend State uses: database "newtab-todo", object store "tasks", keyPath "id".
- * Each task is a separate record. We upsert by ID and remove tasks that no
- * longer exist on the server. Metadata keys (__legend_metadata) are preserved.
+ * Fetch tasks via /api/tasks (cookie auth sent automatically) and write
+ * to Legend State's IDB store. Used when push arrives and no clients are open.
  */
-const backgroundSync = async () => {
-  const res = await fetch(API_PATH, { credentials: "include" });
-  if (!res.ok) return;
+async function backgroundSync() {
+  const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
 
-  const tasks: { id: string }[] = await res.json();
-  const serverIds = new Set(tasks.map((t) => t.id));
-
-  const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open(IDB_CONFIG.databaseName, IDB_CONFIG.version);
-    req.onupgradeneeded = () => {
-      for (const table of IDB_CONFIG.tableNames) {
-        if (!req.result.objectStoreNames.contains(table)) {
-          req.result.createObjectStore(table, { keyPath: "id" });
+  const tasks$ = observable(
+    synced({
+      get: async () => {
+        const res = await fetch(API_PATH, { credentials: "include" });
+        if (!res.ok) return {};
+        const tasks = await res.json();
+        // Convert array to Record<id, task> (Legend State's syncedCrud format)
+        const record: Record<string, unknown> = {};
+        for (const task of tasks) {
+          record[task.id] = task;
         }
-      }
-    };
-    req.onerror = () => reject(req.error);
-    req.onsuccess = () => resolve(req.result);
-  });
+        return record;
+      },
+      persist: {
+        name: "tasks",
+        plugin: idbPlugin,
+      },
+      mode: "set",
+    }),
+  );
 
-  const tx = db.transaction("tasks", "readwrite");
-  const store = tx.objectStore("tasks");
-
-  // Upsert all server tasks
-  for (const task of tasks) {
-    store.put(task);
-  }
-
-  // Remove local tasks not on server (preserve metadata keys)
-  const allKeys: IDBValidKey[] = await new Promise((resolve) => {
-    const req = store.getAllKeys();
-    req.onsuccess = () => resolve(req.result);
-  });
-
-  for (const key of allKeys) {
-    if (typeof key === "string" && !key.includes("__legend") && !serverIds.has(key)) {
-      store.delete(key);
-    }
-  }
-
-  await new Promise<void>((resolve) => {
-    tx.oncomplete = () => resolve();
-  });
-
-  db.close();
-};
+  // Trigger the fetch + IDB write
+  await syncState(tasks$).sync();
+}
 
 // Silent push: sync tasks across devices
 self.addEventListener("push", (event: PushEvent) => {
@@ -137,7 +118,7 @@ self.addEventListener("push", (event: PushEvent) => {
           client.postMessage({ type: "SYNC_TASKS" });
         }
       } else {
-        // App is closed — write directly to IDB
+        // App is closed — fetch and write to IDB via Legend State
         await backgroundSync();
       }
     })(),
