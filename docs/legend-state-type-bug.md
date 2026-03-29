@@ -16,8 +16,8 @@ const tasks$ = observable(
     create: (input) => {
       // TypeScript says input.createdAt is `string`
       // At runtime, input.createdAt is a `Date` object
-      console.log(typeof input.createdAt);           // "object"
-      console.log(input.createdAt instanceof Date);   // true
+      console.log(typeof input.createdAt); // "object"
+      console.log(input.createdAt instanceof Date); // true
 
       // This silently breaks any downstream code expecting a string:
       fetch("/api/tasks", {
@@ -27,8 +27,8 @@ const tasks$ = observable(
     },
     update: (input) => {
       // Same issue — TypeScript says string, runtime is Date
-      console.log(typeof input.updatedAt);            // "object"
-      console.log(input.updatedAt instanceof Date);   // true
+      console.log(typeof input.updatedAt); // "object"
+      console.log(input.updatedAt instanceof Date); // true
     },
     fieldUpdatedAt: "updatedAt",
     fieldCreatedAt: "createdAt",

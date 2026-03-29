@@ -6,7 +6,8 @@ export const registerServiceWorker = () => {
   });
 
   if (typeof window === "undefined") return console.log("[sw] skipped: no window");
-  if (location.protocol.endsWith("-extension:")) return console.log("[sw] skipped: extension context");
+  if (location.protocol.endsWith("-extension:"))
+    return console.log("[sw] skipped: extension context");
   if (!("serviceWorker" in navigator)) return console.log("[sw] skipped: no serviceWorker API");
 
   console.log("[sw] calling register(/sw.js)");

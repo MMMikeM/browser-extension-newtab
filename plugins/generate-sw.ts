@@ -71,7 +71,9 @@ export const generateSW = (): PluginOption => {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       });
 
-      console.log(`Service worker generated: ${count} precached files (${Math.round(size / 1024)} KB)`);
+      console.log(
+        `Service worker generated: ${count} precached files (${Math.round(size / 1024)} KB)`,
+      );
     },
   };
 };

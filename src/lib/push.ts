@@ -10,9 +10,18 @@ const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
 export const registerPushSubscription = async (vapidPublicKey: string): Promise<boolean> => {
   console.log("[push] registering, vapidKey length:", vapidPublicKey?.length);
 
-  if (typeof window === "undefined") { console.log("[push] skip: no window"); return false; }
-  if (location.protocol.endsWith("-extension:")) { console.log("[push] skip: extension"); return false; }
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) { console.log("[push] skip: no SW/PushManager"); return false; }
+  if (typeof window === "undefined") {
+    console.log("[push] skip: no window");
+    return false;
+  }
+  if (location.protocol.endsWith("-extension:")) {
+    console.log("[push] skip: extension");
+    return false;
+  }
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    console.log("[push] skip: no SW/PushManager");
+    return false;
+  }
 
   try {
     const permission = await Notification.requestPermission();
@@ -76,10 +85,16 @@ export const isPushSubscribed = async (): Promise<boolean> => {
  */
 export const ensurePushRegistered = async (): Promise<void> => {
   const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
-  if (!vapidKey) { console.warn("[push] no VITE_VAPID_PUBLIC_KEY"); return; }
+  if (!vapidKey) {
+    console.warn("[push] no VITE_VAPID_PUBLIC_KEY");
+    return;
+  }
 
   const alreadySubscribed = await isPushSubscribed();
-  if (alreadySubscribed) { console.log("[push] already subscribed"); return; }
+  if (alreadySubscribed) {
+    console.log("[push] already subscribed");
+    return;
+  }
 
   await registerPushSubscription(vapidKey);
 };
