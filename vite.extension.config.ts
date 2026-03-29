@@ -1,0 +1,116 @@
+/**
+ * Extension build: bundles background.ts + assembles .output/extension/.
+ *
+ * Runs after the main build so .output/public/ has all client assets
+ * including prerendered HTML.
+ *
+ * SERVER_URL controls the remote server for background SSE + task sync.
+ *
+ * Usage: vite build && vite build -c vite.extension.config.ts
+ */
+import { defineConfig, loadEnv } from "vite";
+import { readFileSync, writeFileSync, cpSync, rmSync } from "node:fs";
+import { join, resolve } from "node:path";
+
+const ROOT = resolve(import.meta.dirname);
+const OUTPUT_PUBLIC = join(ROOT, ".output", "public");
+const EXT_OUT = join(ROOT, ".output", "extension");
+
+const EXTENSION_MANIFEST = {
+  manifest_version: 2,
+  name: "New Tab Todo",
+  version: "1.0.0",
+  browser_specific_settings: {
+    gecko: { id: "newtab-todo@local" },
+  },
+  chrome_url_overrides: {
+    newtab: "index.html",
+  },
+  content_security_policy: "script-src 'self'; object-src 'self'",
+  permissions: ["storage"],
+  background: {
+    scripts: ["background.js"],
+    persistent: true,
+  },
+};
+
+const assembleExtension = () => {
+  // Copy client build output into extension dir (alongside background.js)
+  cpSync(OUTPUT_PUBLIC, EXT_OUT, { recursive: true });
+
+  // Write extension manifest
+  writeFileSync(join(EXT_OUT, "manifest.json"), JSON.stringify(EXTENSION_MANIFEST, null, 2));
+
+  // Strip PWA files
+  rmSync(join(EXT_OUT, "sw.js"), { force: true });
+  rmSync(join(EXT_OUT, "manifest.webmanifest"), { force: true });
+
+  // Extract inline scripts for CSP compliance
+  let html = readFileSync(join(EXT_OUT, "index.html"), "utf-8");
+  let scriptIndex = 0;
+  const inlineScriptRegex = /<script([^>]*)>([^<]+)<\/script>/g;
+
+  html = html.replace(inlineScriptRegex, (match, attrs: string, content: string) => {
+    if (attrs.includes("src=")) return match;
+    if (!content.trim()) return match;
+
+    // Patch TSR manifest: convert inline import() to src attribute
+    const patchedContent = content.replace(
+      /,async:(!0|true)\},children:"import\(\\"([^"]+)\\"\)"\}/g,
+      (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`,
+    );
+
+    if (patchedContent !== content) {
+      console.log("  Patched TSR manifest: converted inline import() to src attribute");
+    }
+
+    const filename = `_inline-${scriptIndex++}.js`;
+    writeFileSync(join(EXT_OUT, filename), patchedContent);
+
+    const typeMatch = attrs.match(/type="([^"]*)"/);
+    const typeAttr = typeMatch ? ` type="${typeMatch[1]}"` : "";
+    const asyncAttr = attrs.includes("async") ? " async" : "";
+
+    return `<script${typeAttr}${asyncAttr} src="/${filename}"></script>`;
+  });
+
+  writeFileSync(join(EXT_OUT, "index.html"), html);
+  console.log(`Extension assembled: ${scriptIndex} inline script(s) extracted`);
+  console.log(`Extension built to ${EXT_OUT}`);
+};
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, ROOT, "");
+  const serverUrl = env.SERVER_URL || "http://localhost:3000";
+
+  return {
+    resolve: {
+      alias: { "~": join(ROOT, "src") },
+    },
+    define: {
+      __SERVER_URL__: JSON.stringify(serverUrl),
+      "process.env.NODE_ENV": JSON.stringify("production"),
+    },
+    build: {
+      lib: {
+        entry: join(ROOT, "src", "background.ts"),
+        formats: ["iife"],
+        name: "background",
+        fileName: () => "background.js",
+      },
+      outDir: EXT_OUT,
+      emptyOutDir: true,
+      minify: false,
+      rollupOptions: { output: { entryFileNames: "background.js" } },
+    },
+    logLevel: "warn",
+    plugins: [
+      {
+        name: "assemble-extension",
+        closeBundle() {
+          assembleExtension();
+        },
+      },
+    ],
+  };
+});
