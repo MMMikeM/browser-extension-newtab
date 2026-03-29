@@ -1,10 +1,9 @@
-import { defineConfig, type PluginOption } from "vite";
+import { defineConfig, loadEnv, type PluginOption } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
-
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
+import { resolve } from "node:path";
 
 /**
  * Rewrites server function URLs in the client bundle to point at the remote
@@ -37,36 +36,41 @@ function remoteServerFnBase(serverUrl: string): PluginOption {
   };
 }
 
-export default defineConfig({
-  resolve: {
-    tsconfigPaths: true,
-  },
-  plugins: [
-    tailwindcss(),
-    tanstackStart({
-      prerender: process.env.NO_PRERENDER
-        ? undefined
-        : {
-            enabled: true,
-            crawlLinks: false,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, resolve(import.meta.dirname), "");
+  const serverUrl = env.SERVER_URL || "http://localhost:3000";
+
+  return {
+    resolve: {
+      tsconfigPaths: true,
+    },
+    plugins: [
+      tailwindcss(),
+      tanstackStart({
+        prerender: process.env.NO_PRERENDER
+          ? undefined
+          : {
+              enabled: true,
+              crawlLinks: false,
+            },
+        importProtection: {
+          client: {
+            files: ["**/*.server.*", "**/server/**"],
           },
-      importProtection: {
-        client: {
-          files: ["**/*.server.*", "**/server/**"],
         },
-      },
-    }),
-    viteReact({
-      babel: {
-        plugins: ["babel-plugin-react-compiler"],
-      },
-    }),
-    nitro({
-      serverDir: "./src/server",
-      apiBaseURL: "/api",
-      apiDir: "api",
-      openAPI: { ui: { scalar: {} } },
-    }),
-    remoteServerFnBase(SERVER_URL),
-  ],
+      }),
+      viteReact({
+        babel: {
+          plugins: ["babel-plugin-react-compiler"],
+        },
+      }),
+      nitro({
+        serverDir: "./src/server",
+        apiBaseURL: "/api",
+        apiDir: "api",
+        openAPI: { ui: { scalar: {} } },
+      }),
+      remoteServerFnBase(serverUrl),
+    ],
+  };
 });

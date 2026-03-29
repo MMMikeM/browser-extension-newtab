@@ -4,5 +4,7 @@ dist/
 .output/
 *.local
 .env
+.env.*
+!.env.example
 .data/
 src/routeTree.gen.ts
