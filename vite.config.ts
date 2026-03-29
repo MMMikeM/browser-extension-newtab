@@ -1,7 +1,6 @@
 import { defineConfig, loadEnv, type PluginOption } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
-import babelPlugin from "@rolldown/plugin-babel";
+import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
@@ -52,9 +51,9 @@ export default defineConfig(({ mode }) => {
         prerender: process.env.NO_PRERENDER
           ? undefined
           : {
-              enabled: true,
-              crawlLinks: false,
-            },
+            enabled: true,
+            crawlLinks: false,
+          },
         importProtection: {
           client: {
             files: ["**/*.server.*", "**/server/**"],
@@ -62,7 +61,6 @@ export default defineConfig(({ mode }) => {
         },
       }),
       viteReact(),
-      babelPlugin({ presets: [reactCompilerPreset()] }),
       generateSW(),
       nitro({
         serverDir: "./src/server",
