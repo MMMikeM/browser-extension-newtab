@@ -4,7 +4,7 @@ import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/rpc/t
 import { now } from "~/lib/utils";
 import { getBuildTarget } from "~/lib/build-target";
 import { ensurePushRegistered } from "~/lib/push";
-import { IDB_CONFIG, TOKEN_KEY, SYNC_CHANNEL } from "~/lib/constants";
+import { IDB_CONFIG, TOKEN_KEY } from "~/lib/constants";
 
 const isServer = typeof window === "undefined";
 
@@ -43,9 +43,6 @@ const createPersist = async () => {
   };
 };
 
-// Broadcast changes to other tabs in the same browser
-const broadcastChange = !isServer ? new BroadcastChannel(SYNC_CHANNEL) : null;
-
 export const tasks$ = observable(
   syncedCrud({
     list: async () => {
@@ -59,31 +56,26 @@ export const tasks$ = observable(
     create: async ({ createdAt, updatedAt, ...input }) => {
       console.log("[sync] CREATE fired for:", input.id);
       await createTask({ data: { ...input, createdAt: now() } });
-      broadcastChange?.postMessage({ type: "sync" });
     },
     update: async ({ createdAt, updatedAt, ...input }) => {
       console.log("[sync] UPDATE fired for:", input.id);
       await updateTask({ data: { ...input, id: input.id!, updatedAt: now() } });
-      broadcastChange?.postMessage({ type: "sync" });
     },
     delete: async ({ id }) => {
       console.log("[sync] DELETE fired for:", id);
       await deleteTask({ data: { id } });
-      broadcastChange?.postMessage({ type: "sync" });
     },
     subscribe: ({ refresh }) => {
       if (isServer) return;
 
-      // Cross-tab sync via BroadcastChannel (same-origin tabs)
-      const channel = new BroadcastChannel(SYNC_CHANNEL);
-      channel.onmessage = () => refresh();
+      const target = getBuildTarget();
 
-      // Extension background script sync (alarm-based)
+      // Extension: background page notifies tabs via runtime messages
       const bgHandler =
-        getBuildTarget() === "extension"
+        target === "extension"
           ? (message: unknown) => {
               if ((message as { type?: string })?.type === "SYNC_TASKS") {
-                console.log("[sync] background script sync received, refreshing");
+                console.log("[sync] background SSE sync received, refreshing");
                 refresh();
               }
             }
@@ -93,25 +85,39 @@ export const tasks$ = observable(
         browser.runtime.onMessage.addListener(bgHandler);
       }
 
-      // SW push sync (browser/PWA only)
-      const swHandler =
-        getBuildTarget() === "browser"
-          ? (event: MessageEvent) => {
-              if (event.data?.type === "SYNC_TASKS") {
-                console.log("[sync] push message received, refreshing");
-                refresh();
-              }
-            }
+      // Browser: direct SSE connection for real-time updates
+      let es: EventSource | null = null;
+      let disposed = false;
+
+      const connectSSE = () => {
+        if (disposed || target !== "browser") return;
+        const token = authToken$.peek();
+        if (!token) return;
+
+        es = new EventSource("/api/events");
+        es.addEventListener("tasks-changed", () => {
+          console.log("[sync] SSE tasks-changed, refreshing");
+          refresh();
+        });
+        es.addEventListener("open", () => refresh());
+      };
+
+      // Track token changes to reconnect SSE
+      const stopObserving =
+        target === "browser"
+          ? observe(() => {
+              authToken$.get();
+              es?.close();
+              es = null;
+              connectSSE();
+            })
           : null;
 
-      if (swHandler) {
-        navigator.serviceWorker?.addEventListener("message", swHandler);
-      }
-
       return () => {
-        channel.close();
+        disposed = true;
         if (bgHandler) browser.runtime.onMessage.removeListener(bgHandler);
-        if (swHandler) navigator.serviceWorker?.removeEventListener("message", swHandler);
+        stopObserving?.();
+        es?.close();
       };
     },
     persist: await createPersist(),

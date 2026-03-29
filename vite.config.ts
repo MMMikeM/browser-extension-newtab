@@ -28,6 +28,7 @@ function remoteServerFnBase(serverUrl: string): PluginOption {
             define: {
               "process.env.TSS_SERVER_FN_BASE": base,
               "import.meta.env.TSS_SERVER_FN_BASE": base,
+              "import.meta.env.SSE_URL": JSON.stringify(serverUrl),
             },
           },
         },
