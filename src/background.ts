@@ -1,9 +1,27 @@
 import { observable, syncState } from "@legendapp/state";
 import { synced } from "@legendapp/state/sync";
 import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
-import { IDB_CONFIG, TOKEN_KEY, API_PATH } from "~/lib/constants";
+import {
+  IDB_CONFIG,
+  TOKEN_KEY,
+  API_PATH,
+  EVENTS_PATH,
+  SSE_TASKS_CHANGED,
+  MSG_SYNC_TASKS,
+  MSG_TOKEN_CHANGED,
+} from "~/lib/constants";
 
 declare const __SERVER_URL__: string;
+
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
+const debouncedSync = () => {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    syncTimer = null;
+    syncTasks().catch((err) => console.error("[bg-sse] sync error:", err));
+  }, 300);
+};
 
 const syncTasks = async () => {
   const result = await browser.storage.local.get(TOKEN_KEY);
@@ -42,7 +60,7 @@ const syncTasks = async () => {
   console.log("[bg-sync] synced", tasks.length, "tasks to IDB");
 
   // Notify open extension tabs to refresh from IDB
-  browser.runtime.sendMessage({ type: "SYNC_TASKS" }).catch(() => {});
+  browser.runtime.sendMessage({ type: MSG_SYNC_TASKS }).catch(() => {});
 };
 
 // SSE connection management
@@ -59,13 +77,13 @@ const connect = async () => {
     return;
   }
 
-  const url = `${__SERVER_URL__}/api/events?token=${encodeURIComponent(token)}`;
+  const url = `${__SERVER_URL__}${EVENTS_PATH}?token=${encodeURIComponent(token)}`;
   console.log("[bg-sse] connecting...");
   eventSource = new EventSource(url);
 
-  eventSource.addEventListener("tasks-changed", () => {
+  eventSource.addEventListener(SSE_TASKS_CHANGED, () => {
     console.log("[bg-sse] tasks-changed event received");
-    syncTasks().catch((err) => console.error("[bg-sse] sync error:", err));
+    debouncedSync();
   });
 
   eventSource.addEventListener("open", () => {
@@ -80,7 +98,7 @@ const connect = async () => {
 
 // Listen for token changes from extension tabs
 browser.runtime.onMessage.addListener((message: unknown) => {
-  if ((message as { type?: string })?.type === "TOKEN_CHANGED") {
+  if ((message as { type?: string })?.type === MSG_TOKEN_CHANGED) {
     console.log("[bg-sse] token changed, reconnecting");
     connect().catch((err) => console.error("[bg-sse] reconnect error:", err));
   }

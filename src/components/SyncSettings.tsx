@@ -6,7 +6,7 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 
 import { getBuildTarget } from "~/lib/build-target";
-import { TOKEN_KEY } from "~/lib/constants";
+import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
@@ -23,7 +23,7 @@ const setAuthToken = (token: string) => {
   }
   if (target === "extension") {
     browser.storage.local.set({ [TOKEN_KEY]: token });
-    browser.runtime.sendMessage({ type: "TOKEN_CHANGED" }).catch(() => {});
+    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
   }
 };
 
@@ -32,7 +32,7 @@ const clearAuthToken = () => {
   authToken$.set(null);
   if (getBuildTarget() === "extension") {
     browser.storage.local.remove(TOKEN_KEY);
-    browser.runtime.sendMessage({ type: "TOKEN_CHANGED" }).catch(() => {});
+    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
   }
   unregisterPushSubscription();
 };

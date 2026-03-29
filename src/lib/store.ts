@@ -4,7 +4,13 @@ import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/rpc/t
 import { now } from "~/lib/utils";
 import { getBuildTarget } from "~/lib/build-target";
 import { ensurePushRegistered } from "~/lib/push";
-import { IDB_CONFIG, TOKEN_KEY } from "~/lib/constants";
+import {
+  IDB_CONFIG,
+  TOKEN_KEY,
+  EVENTS_PATH,
+  SSE_TASKS_CHANGED,
+  MSG_SYNC_TASKS,
+} from "~/lib/constants";
 
 const isServer = typeof window === "undefined";
 
@@ -74,7 +80,7 @@ export const tasks$ = observable(
       const bgHandler =
         target === "extension"
           ? (message: unknown) => {
-              if ((message as { type?: string })?.type === "SYNC_TASKS") {
+              if ((message as { type?: string })?.type === MSG_SYNC_TASKS) {
                 console.log("[sync] background SSE sync received, refreshing");
                 refresh();
               }
@@ -94,8 +100,8 @@ export const tasks$ = observable(
         const token = authToken$.peek();
         if (!token) return;
 
-        es = new EventSource("/api/events");
-        es.addEventListener("tasks-changed", () => {
+        es = new EventSource(EVENTS_PATH);
+        es.addEventListener(SSE_TASKS_CHANGED, () => {
           console.log("[sync] SSE tasks-changed, refreshing");
           refresh();
         });
