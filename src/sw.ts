@@ -102,24 +102,9 @@ async function backgroundSync() {
   await syncState(tasks$).sync();
 }
 
-// Silent push: sync tasks across devices
+// Silent push: always sync to IDB (open tabs use SSE for real-time updates)
 self.addEventListener("push", (event: PushEvent) => {
   const data = event.data?.json();
   if (data?.title !== "sync") return;
-
-  event.waitUntil(
-    (async () => {
-      const clients = await self.clients.matchAll({ type: "window" });
-
-      if (clients.length > 0) {
-        // App is open — Legend State's subscribe callback handles the refresh
-        for (const client of clients) {
-          client.postMessage({ type: "SYNC_TASKS" });
-        }
-      } else {
-        // App is closed — fetch and write to IDB via Legend State
-        await backgroundSync();
-      }
-    })(),
-  );
+  event.waitUntil(backgroundSync());
 });
