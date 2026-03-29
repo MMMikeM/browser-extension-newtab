@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:ext:dev": "vite build && node scripts/build-extension.ts",
-    "build:ext:prod": "SERVER_URL=https://extension-sync-service.fly.dev vite build && node scripts/build-extension.ts",
+    "build:sw": "vite build -c vite.sw.config.ts",
+    "build:ext": "vite build -c vite.extension.config.ts",
     "start": "node .output/server/index.mjs",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
