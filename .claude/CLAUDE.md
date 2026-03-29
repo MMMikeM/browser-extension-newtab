@@ -15,6 +15,13 @@ See `docs/architecture.md` for the full spec. Key points:
 - **Backend**: TanStack Start server functions on Fly.io, Turso (libSQL) with embedded replica, bearer token auth via middleware.
 - **Stack**: TypeScript, React 19, TanStack Start (SPA mode), TanStack Router, TanStack Query, Drizzle ORM v1, Vite 8, Tailwind v4, shadcn/ui (base primitives).
 
+## Sync rules
+
+- **Background sync must ALWAYS work, in EVERY context, even when no tabs are open.** IDB must be pre-warmed with the latest server data before the user opens a tab. Stale-on-open is not acceptable.
+- **Extension context**: Persistent MV2 background page holds the sync connection. This is the ONLY way to sync when no extension tabs are open.
+- **Browser/PWA context**: Service worker + Web Push is the ONLY way to sync when no browser tabs are open. Service workers CANNOT use EventSource/SSE — push notifications are the only viable mechanism.
+- **Never propose removing a background sync mechanism** unless you have a replacement that provides equivalent always-on background sync in that context.
+
 ## Stack decisions
 
 - **ORM**: Drizzle v1 beta with `@libsql/client` embedded replica (local SQLite synced to Turso)
