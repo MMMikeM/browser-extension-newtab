@@ -1,14 +1,5 @@
 // Minimal WebExtension API types for background script + extension pages
 declare namespace browser {
-  namespace alarms {
-    interface Alarm {
-      name: string;
-    }
-    function create(name: string, info: { periodInMinutes?: number; when?: number }): void;
-    const onAlarm: {
-      addListener(cb: (alarm: Alarm) => void): void;
-    };
-  }
   namespace runtime {
     function sendMessage(message: unknown): Promise<unknown>;
     const onMessage: {

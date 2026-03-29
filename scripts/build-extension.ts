@@ -23,10 +23,10 @@ const EXTENSION_MANIFEST = {
     newtab: "index.html",
   },
   content_security_policy: "script-src 'self'; object-src 'self'",
-  permissions: ["storage", "alarms"],
+  permissions: ["storage"],
   background: {
     scripts: ["background.js"],
-    persistent: false,
+    persistent: true,
   },
 };
 

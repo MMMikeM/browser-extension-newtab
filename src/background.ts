@@ -5,9 +5,6 @@ import { IDB_CONFIG, TOKEN_KEY, API_PATH } from "~/lib/constants";
 
 declare const __SERVER_URL__: string;
 
-const ALARM_NAME = "sync-tasks";
-const SYNC_INTERVAL_MINUTES = 1; // minimum for MV2, increase to 5 after testing
-
 const syncTasks = async () => {
   const result = await browser.storage.local.get(TOKEN_KEY);
   const token = result[TOKEN_KEY];
@@ -46,19 +43,50 @@ const syncTasks = async () => {
 
   // Notify open extension tabs to refresh from IDB
   browser.runtime.sendMessage({ type: "SYNC_TASKS" }).catch(() => {});
-
 };
 
-// Register periodic alarm
-browser.alarms.create(ALARM_NAME, { periodInMinutes: SYNC_INTERVAL_MINUTES });
+// SSE connection management
+let eventSource: EventSource | null = null;
 
-browser.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === ALARM_NAME) {
-    syncTasks().catch((err) => console.error("[bg-sync] alarm error:", err));
+const connect = async () => {
+  eventSource?.close();
+  eventSource = null;
+
+  const result = await browser.storage.local.get(TOKEN_KEY);
+  const token = result[TOKEN_KEY];
+  if (!token) {
+    console.log("[bg-sse] no token, not connecting");
+    return;
+  }
+
+  const url = `${__SERVER_URL__}/api/events?token=${encodeURIComponent(token)}`;
+  console.log("[bg-sse] connecting...");
+  eventSource = new EventSource(url);
+
+  eventSource.addEventListener("tasks-changed", () => {
+    console.log("[bg-sse] tasks-changed event received");
+    syncTasks().catch((err) => console.error("[bg-sse] sync error:", err));
+  });
+
+  eventSource.addEventListener("open", () => {
+    console.log("[bg-sse] connected, running initial sync");
+    syncTasks().catch((err) => console.error("[bg-sse] initial sync error:", err));
+  });
+
+  eventSource.onerror = () => {
+    console.log("[bg-sse] connection error, will auto-reconnect");
+  };
+};
+
+// Listen for token changes from extension tabs
+browser.runtime.onMessage.addListener((message: unknown) => {
+  if ((message as { type?: string })?.type === "TOKEN_CHANGED") {
+    console.log("[bg-sse] token changed, reconnecting");
+    connect().catch((err) => console.error("[bg-sse] reconnect error:", err));
   }
 });
 
-// Sync immediately on event page wake
-syncTasks().catch((err) => console.error("[bg-sync] initial sync error:", err));
+// Connect on background page load
+connect().catch((err) => console.error("[bg-sse] initial connect error:", err));
 
-console.log("[bg-sync] event page loaded, alarm set for every", SYNC_INTERVAL_MINUTES, "minutes");
+console.log("[bg-sse] persistent background page loaded");

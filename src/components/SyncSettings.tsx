@@ -23,6 +23,7 @@ const setAuthToken = (token: string) => {
   }
   if (target === "extension") {
     browser.storage.local.set({ [TOKEN_KEY]: token });
+    browser.runtime.sendMessage({ type: "TOKEN_CHANGED" }).catch(() => {});
   }
 };
 
@@ -31,6 +32,7 @@ const clearAuthToken = () => {
   authToken$.set(null);
   if (getBuildTarget() === "extension") {
     browser.storage.local.remove(TOKEN_KEY);
+    browser.runtime.sendMessage({ type: "TOKEN_CHANGED" }).catch(() => {});
   }
   unregisterPushSubscription();
 };
