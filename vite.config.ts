@@ -4,6 +4,7 @@ import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
+import { generateSW } from "./plugins/generate-sw";
 
 /**
  * Rewrites server function URLs in the client bundle to point at the remote
@@ -64,6 +65,7 @@ export default defineConfig(({ mode }) => {
           plugins: ["babel-plugin-react-compiler"],
         },
       }),
+      generateSW(),
       nitro({
         serverDir: "./src/server",
         apiBaseURL: "/api",

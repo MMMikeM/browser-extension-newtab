@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:sw": "vite build -c vite.sw.config.ts",
     "build:ext": "vite build -c vite.extension.config.ts",
     "start": "node .output/server/index.mjs",
     "lint": "oxlint",
