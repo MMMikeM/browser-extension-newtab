@@ -5,7 +5,7 @@ import { timingSafeEqual } from "node:crypto";
  * Cookie takes priority (httpOnly, set by /api/auth).
  * Falls back to Bearer token (extension context).
  */
-export function extractToken(request: Request): string | null {
+export function extractToken(request: Request, url?: URL): string | null {
   const cookie = request.headers.get("cookie");
   if (cookie) {
     const match = cookie.match(/(?:^|;\s*)auth=([^;]+)/);
@@ -13,6 +13,10 @@ export function extractToken(request: Request): string | null {
   }
   const header = request.headers.get("authorization");
   if (header) return header.replace(/^Bearer\s+/i, "");
+  if (url) {
+    const param = url.searchParams.get("token");
+    if (param) return param;
+  }
   return null;
 }
 

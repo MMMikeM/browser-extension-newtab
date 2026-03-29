@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { taskSelectSchema, taskInsertSchema, taskUpdateSchema } from "../server/db/schema";
 import { authMiddleware } from "../lib/middleware";
 import { notifyOtherDevices } from "../server/push";
+import { broadcastChange } from "../server/events";
 import taskRepo from "../server/db/task.repo";
 import type { TaskSelect } from "../server/db/task.repo";
 
@@ -16,7 +17,8 @@ export const createTask = createServerFn({ method: "POST" })
   .inputValidator(taskInsertSchema)
   .handler(async ({ data }) => {
     const task = await taskRepo.insert(data);
-    notifyOtherDevices().catch(() => { });
+    broadcastChange();
+    notifyOtherDevices().catch(() => {});
     return task;
   });
 
@@ -25,7 +27,8 @@ export const updateTask = createServerFn({ method: "POST" })
   .inputValidator(taskUpdateSchema)
   .handler(async ({ data: { id, updatedAt, ...fields } }) => {
     const result = await taskRepo.update(id, updatedAt, fields);
-    notifyOtherDevices().catch(() => { });
+    broadcastChange();
+    notifyOtherDevices().catch(() => {});
     return result;
   });
 
@@ -34,6 +37,7 @@ export const deleteTask = createServerFn({ method: "POST" })
   .inputValidator(taskSelectSchema)
   .handler(async ({ data }) => {
     const result = await taskRepo.remove(data.id);
-    notifyOtherDevices().catch(() => { });
+    broadcastChange();
+    notifyOtherDevices().catch(() => {});
     return result;
   });
