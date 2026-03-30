@@ -4,26 +4,77 @@ import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/ind
 import {
   IDB_CONFIG,
   TOKEN_KEY,
-  API_PATH,
   EVENTS_PATH,
-  SSE_TASKS_CHANGED,
-  MSG_SYNC_TASKS,
+  SSE_DATA_CHANGED,
   MSG_TOKEN_CHANGED,
+  API_TASKS_PATH,
+  API_USERS_PATH,
+  API_NOTES_PATH,
+  MSG_SYNC_TASKS,
+  MSG_SYNC_USERS,
+  MSG_SYNC_NOTES,
 } from "~/lib/constants";
 
 declare const __SERVER_URL__: string;
 
+interface ModelDescriptor {
+  name: string;
+  apiPath: string;
+  syncMessage: string;
+}
+
+const models: ModelDescriptor[] = [
+  { name: "tasks", apiPath: API_TASKS_PATH, syncMessage: MSG_SYNC_TASKS },
+  { name: "users", apiPath: API_USERS_PATH, syncMessage: MSG_SYNC_USERS },
+  { name: "notes", apiPath: API_NOTES_PATH, syncMessage: MSG_SYNC_NOTES },
+];
+
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 
-const debouncedSync = () => {
+const debouncedSyncAll = () => {
   if (syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(() => {
     syncTimer = null;
-    syncTasks().catch((err) => console.error("[bg-sse] sync error:", err));
+    syncAllModels().catch((err) => console.error("[bg-sync] sync error:", err));
   }, 300);
 };
 
-const syncTasks = async () => {
+const syncModel = async (model: ModelDescriptor) => {
+  const result = await browser.storage.local.get(TOKEN_KEY);
+  const token = result[TOKEN_KEY];
+  if (!token) return;
+
+  const res = await fetch(`${__SERVER_URL__}${model.apiPath}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    console.error(`[bg-sync] fetch ${model.name} failed:`, res.status);
+    return;
+  }
+
+  const items: { id: string }[] = await res.json();
+  const record: Record<string, unknown> = {};
+  for (const item of items) {
+    record[item.id] = item;
+  }
+
+  const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
+  const store$ = observable(
+    synced({
+      get: () => record,
+      persist: { name: model.name, plugin: idbPlugin },
+      mode: "set",
+    }),
+  );
+
+  await syncState(store$).sync();
+  console.log(`[bg-sync] synced ${items.length} ${model.name} to IDB`);
+
+  browser.runtime.sendMessage({ type: model.syncMessage }).catch(() => {});
+};
+
+const syncAllModels = async () => {
   const result = await browser.storage.local.get(TOKEN_KEY);
   const token = result[TOKEN_KEY];
   if (!token) {
@@ -31,36 +82,7 @@ const syncTasks = async () => {
     return;
   }
 
-  console.log("[bg-sync] fetching tasks...");
-  const res = await fetch(`${__SERVER_URL__}${API_PATH}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!res.ok) {
-    console.error("[bg-sync] fetch failed:", res.status);
-    return;
-  }
-
-  const tasks: { id: string }[] = await res.json();
-  const record: Record<string, unknown> = {};
-  for (const task of tasks) {
-    record[task.id] = task;
-  }
-
-  const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
-  const tasks$ = observable(
-    synced({
-      get: () => record,
-      persist: { name: "tasks", plugin: idbPlugin },
-      mode: "set",
-    }),
-  );
-
-  await syncState(tasks$).sync();
-  console.log("[bg-sync] synced", tasks.length, "tasks to IDB");
-
-  // Notify open extension tabs to refresh from IDB
-  browser.runtime.sendMessage({ type: MSG_SYNC_TASKS }).catch(() => {});
+  await Promise.allSettled(models.map(syncModel));
 };
 
 // SSE connection management
@@ -81,14 +103,14 @@ const connect = async () => {
   console.log("[bg-sse] connecting...");
   eventSource = new EventSource(url);
 
-  eventSource.addEventListener(SSE_TASKS_CHANGED, () => {
-    console.log("[bg-sse] tasks-changed event received");
-    debouncedSync();
+  eventSource.addEventListener(SSE_DATA_CHANGED, () => {
+    console.log("[bg-sse] data-changed event received");
+    debouncedSyncAll();
   });
 
   eventSource.addEventListener("open", () => {
     console.log("[bg-sse] connected, running initial sync");
-    syncTasks().catch((err) => console.error("[bg-sse] initial sync error:", err));
+    syncAllModels().catch((err) => console.error("[bg-sse] initial sync error:", err));
   });
 
   eventSource.onerror = () => {

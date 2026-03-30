@@ -51,9 +51,9 @@ export default defineConfig(({ mode }) => {
         prerender: process.env.NO_PRERENDER
           ? undefined
           : {
-            enabled: true,
-            crawlLinks: false,
-          },
+              enabled: true,
+              crawlLinks: false,
+            },
         importProtection: {
           client: {
             files: ["**/*.server.*", "**/server/**"],

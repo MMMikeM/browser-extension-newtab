@@ -2,13 +2,13 @@ import { useNitroHooks } from "nitro/app";
 
 declare module "nitro/types" {
   interface NitroRuntimeHooks {
-    "tasks:changed": () => void;
+    "data:changed": () => void;
   }
 }
 
-export const onTasksChanged = (fn: () => void) => useNitroHooks().hook("tasks:changed", fn);
+export const onDataChanged = (fn: () => void) => useNitroHooks().hook("data:changed", fn);
 
 export const broadcastChange = () => {
-  console.log("[sse] broadcasting tasks:changed");
-  useNitroHooks().callHook("tasks:changed");
+  console.log("[sse] broadcasting data:changed");
+  useNitroHooks().callHook("data:changed");
 };

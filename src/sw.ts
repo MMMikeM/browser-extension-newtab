@@ -7,7 +7,7 @@ import { ExpirationPlugin } from "workbox-expiration";
 import { observable, syncState } from "@legendapp/state";
 import { synced } from "@legendapp/state/sync";
 import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
-import { IDB_CONFIG, API_PATH } from "~/lib/constants";
+import { IDB_CONFIG, API_TASKS_PATH, API_USERS_PATH, API_NOTES_PATH } from "~/lib/constants";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -70,36 +70,37 @@ self.addEventListener("activate", (event: ExtendableEvent) =>
   event.waitUntil(self.clients.claim()),
 );
 
-/**
- * Fetch tasks via /api/tasks (cookie auth sent automatically) and write
- * to Legend State's IDB store. Used when push arrives and no clients are open.
- */
-async function backgroundSync() {
+const modelPaths = [API_TASKS_PATH, API_USERS_PATH, API_NOTES_PATH];
+const modelNames = ["tasks", "users", "notes"];
+
+async function syncModel(apiPath: string, storeName: string) {
   const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
 
-  const tasks$ = observable(
+  const store$ = observable(
     synced({
       get: async () => {
-        const res = await fetch(API_PATH, { credentials: "include" });
+        const res = await fetch(apiPath, { credentials: "include" });
         if (!res.ok) return {};
-        const tasks = await res.json();
-        // Convert array to Record<id, task> (Legend State's syncedCrud format)
+        const items = await res.json();
         const record: Record<string, unknown> = {};
-        for (const task of tasks) {
-          record[task.id] = task;
+        for (const item of items) {
+          record[item.id] = item;
         }
         return record;
       },
       persist: {
-        name: "tasks",
+        name: storeName,
         plugin: idbPlugin,
       },
       mode: "set",
     }),
   );
 
-  // Trigger the fetch + IDB write
-  await syncState(tasks$).sync();
+  await syncState(store$).sync();
+}
+
+async function backgroundSync() {
+  await Promise.allSettled(modelPaths.map((path, i) => syncModel(path, modelNames[i])));
 }
 
 // Silent push: always sync to IDB (open tabs use SSE for real-time updates)

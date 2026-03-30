@@ -1,7 +1,7 @@
 import { defineHandler, createEventStream, getRequestURL } from "h3";
 import { extractToken, validateToken } from "../auth";
-import { onTasksChanged } from "../events";
-import { SSE_TASKS_CHANGED } from "~/lib/constants";
+import { onDataChanged } from "../events";
+import { SSE_DATA_CHANGED } from "~/lib/constants";
 
 const HEARTBEAT_INTERVAL = 30_000;
 
@@ -20,8 +20,8 @@ export default defineHandler((event) => {
 
   stream.push({ retry: 3000, data: "" });
 
-  const unhook = onTasksChanged(() => {
-    stream.push({ event: SSE_TASKS_CHANGED, data: "" }).catch(() => stream.close());
+  const unhook = onDataChanged(() => {
+    stream.push({ event: SSE_DATA_CHANGED, data: "" }).catch(() => stream.close());
   });
 
   const heartbeat = setInterval(() => {
