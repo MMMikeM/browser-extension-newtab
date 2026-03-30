@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useValue } from "@legendapp/state/react";
-import { authToken$ } from "~/lib/store";
+import { authToken$ } from "~/lib/auth-token";
 import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";

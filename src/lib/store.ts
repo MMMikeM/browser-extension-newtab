@@ -1,43 +1,13 @@
-import { observable, observe } from "@legendapp/state";
+import { observable } from "@legendapp/state";
 import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
 import { getTasks, createTask, updateTask, deleteTask, type Task } from "~/rpc/tasks";
 import { now } from "~/lib/utils";
 import { getBuildTarget } from "~/lib/build-target";
-import { ensurePushRegistered } from "~/lib/push";
-import {
-  IDB_CONFIG,
-  TOKEN_KEY,
-  EVENTS_PATH,
-  SSE_TASKS_CHANGED,
-  MSG_SYNC_TASKS,
-} from "~/lib/constants";
+import { subscribeSSE } from "~/lib/sse";
+import { authToken$ } from "~/lib/auth-token";
+import { IDB_CONFIG, MSG_SYNC_TASKS } from "~/lib/constants";
 
 const isServer = typeof window === "undefined";
-
-export const authToken$ = observable<string | null>(
-  isServer ? null : localStorage.getItem(TOKEN_KEY),
-);
-
-if (!isServer) {
-  window.addEventListener("storage", (e) => {
-    if (e.key === TOKEN_KEY) authToken$.set(e.newValue);
-  });
-
-  const target = getBuildTarget();
-
-  // Auto-register push when token is set (browser context only)
-  if (target === "browser") {
-    observe(() => {
-      if (authToken$.get()) ensurePushRegistered();
-    });
-  }
-
-  // Migrate token to browser.storage.local for background script access
-  if (target === "extension") {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) browser.storage.local.set({ [TOKEN_KEY]: token });
-  }
-}
 
 const createPersist = async () => {
   if (typeof window === "undefined") return undefined;
@@ -59,16 +29,16 @@ export const tasks$ = observable(
         return [];
       }
     },
-    create: async ({ createdAt, updatedAt, ...input }) => {
-      console.log("[sync] CREATE fired for:", input.id);
+    create: async ({ createdAt: _createdAt, updatedAt: _updatedAt, ...input }) => {
+      console.log("[sync:tasks] CREATE fired for:", input.id);
       await createTask({ data: { ...input, createdAt: now() } });
     },
-    update: async ({ createdAt, updatedAt, ...input }) => {
-      console.log("[sync] UPDATE fired for:", input.id);
+    update: async ({ createdAt: _createdAt, updatedAt: _updatedAt, ...input }) => {
+      console.log("[sync:tasks] UPDATE fired for:", input.id);
       await updateTask({ data: { ...input, id: input.id!, updatedAt: now() } });
     },
     delete: async ({ id }) => {
-      console.log("[sync] DELETE fired for:", id);
+      console.log("[sync:tasks] DELETE fired for:", id);
       await deleteTask({ data: { id } });
     },
     subscribe: ({ refresh }) => {
@@ -76,12 +46,11 @@ export const tasks$ = observable(
 
       const target = getBuildTarget();
 
-      // Extension: background page notifies tabs via runtime messages
       const bgHandler =
         target === "extension"
           ? (message: unknown) => {
               if ((message as { type?: string })?.type === MSG_SYNC_TASKS) {
-                console.log("[sync] background SSE sync received, refreshing");
+                console.log("[sync:tasks] background sync received, refreshing");
                 refresh();
               }
             }
@@ -91,39 +60,11 @@ export const tasks$ = observable(
         browser.runtime.onMessage.addListener(bgHandler);
       }
 
-      // Browser: direct SSE connection for real-time updates
-      let es: EventSource | null = null;
-      let disposed = false;
-
-      const connectSSE = () => {
-        if (disposed || target !== "browser") return;
-        const token = authToken$.peek();
-        if (!token) return;
-
-        es = new EventSource(EVENTS_PATH);
-        es.addEventListener(SSE_TASKS_CHANGED, () => {
-          console.log("[sync] SSE tasks-changed, refreshing");
-          refresh();
-        });
-        es.addEventListener("open", () => refresh());
-      };
-
-      // Track token changes to reconnect SSE
-      const stopObserving =
-        target === "browser"
-          ? observe(() => {
-              authToken$.get();
-              es?.close();
-              es = null;
-              connectSSE();
-            })
-          : null;
+      const unsubSSE = target === "browser" ? subscribeSSE(refresh) : null;
 
       return () => {
-        disposed = true;
         if (bgHandler) browser.runtime.onMessage.removeListener(bgHandler);
-        stopObserving?.();
-        es?.close();
+        unsubSSE?.();
       };
     },
     persist: await createPersist(),
@@ -136,7 +77,7 @@ export const tasks$ = observable(
     },
     fieldUpdatedAt: "updatedAt",
     fieldCreatedAt: "createdAt",
-    onError: (error) => console.error("[sync] error:", error),
+    onError: (error) => console.error("[sync:tasks] error:", error),
     waitForSet: authToken$,
   }),
 );
