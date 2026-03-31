@@ -23,7 +23,7 @@ if (!isServer) {
   }
 
   if (target === "extension") {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = authToken$.peek();
     if (token) browser.storage.local.set({ [TOKEN_KEY]: token });
   }
 }
