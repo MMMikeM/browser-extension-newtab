@@ -1,17 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { noteSelectSchema, noteInsertSchema, noteUpdateSchema } from "../server/db/schema";
-import { authMiddleware } from "../lib/middleware";
-import { notifyOtherDevices } from "../server/push";
-import { broadcastChange } from "../server/events";
-import noteRepo from "../server/db/note.repo";
-import type { NoteSelect } from "../server/db/note.repo";
+import { noteSelectSchema, noteInsertSchema, noteUpdateSchema } from "~/server/db/schema";
+import { authMiddleware } from "~/lib/middleware";
+import { notifyAll } from "./notify";
+import noteRepo from "~/server/db/note.repo";
+import type { NoteSelect } from "~/server/db/note.repo";
 
 export type Note = NoteSelect;
-
-const notifyAll = () => {
-  broadcastChange();
-  notifyOtherDevices().catch(() => {});
-};
 
 export const getNotes = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
@@ -21,9 +15,9 @@ export const createNote = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .inputValidator(noteInsertSchema)
   .handler(async ({ data }) => {
-    const note = await noteRepo.insert(data);
+    const result = await noteRepo.insert(data);
     notifyAll();
-    return note;
+    return result;
   });
 
 export const updateNote = createServerFn({ method: "POST" })
