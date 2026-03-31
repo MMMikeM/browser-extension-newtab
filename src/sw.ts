@@ -7,15 +7,15 @@ import { ExpirationPlugin } from "workbox-expiration";
 import { observable, syncState } from "@legendapp/state";
 import { synced } from "@legendapp/state/sync";
 import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
-import { IDB_CONFIG, API_TASKS_PATH, API_USERS_PATH, API_NOTES_PATH } from "~/lib/constants";
+import { keyById } from "~/lib/utils";
+import { MODELS, IDB_CONFIG } from "~/lib/sync/registry";
+import type { SyncModel } from "~/lib/sync/types";
 
 declare let self: ServiceWorkerGlobalScope;
 
-// Precache static assets (injected by workbox-build)
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// Navigation: NetworkFirst with 3s timeout, fallback to cached HTML
 registerRoute(
   new NavigationRoute(
     new NetworkFirst({
@@ -31,7 +31,6 @@ registerRoute(
   ),
 );
 
-// Static assets: CacheFirst
 registerRoute(
   ({ request }) =>
     request.destination === "style" ||
@@ -48,7 +47,6 @@ registerRoute(
   }),
 );
 
-// Images: CacheFirst
 registerRoute(
   ({ request }) => request.destination === "image",
   new CacheFirst({
@@ -64,32 +62,24 @@ registerRoute(
 
 // /_serverFn/* is NOT registered — Legend State handles sync/retry via IDB
 
-// Skip waiting and claim clients immediately
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event: ExtendableEvent) =>
   event.waitUntil(self.clients.claim()),
 );
 
-const modelPaths = [API_TASKS_PATH, API_USERS_PATH, API_NOTES_PATH];
-const modelNames = ["tasks", "users", "notes"];
+const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
 
-async function syncModel(apiPath: string, storeName: string) {
-  const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
-
+const syncModel = async (model: SyncModel) => {
   const store$ = observable(
     synced({
       get: async () => {
-        const res = await fetch(apiPath, { credentials: "include" });
+        const res = await fetch(model.apiPath, { credentials: "include" });
         if (!res.ok) return {};
         const items = await res.json();
-        const record: Record<string, unknown> = {};
-        for (const item of items) {
-          record[item.id] = item;
-        }
-        return record;
+        return keyById(items);
       },
       persist: {
-        name: storeName,
+        name: model.name,
         plugin: idbPlugin,
       },
       mode: "set",
@@ -97,11 +87,11 @@ async function syncModel(apiPath: string, storeName: string) {
   );
 
   await syncState(store$).sync();
-}
+};
 
-async function backgroundSync() {
-  await Promise.allSettled(modelPaths.map((path, i) => syncModel(path, modelNames[i])));
-}
+const backgroundSync = async () => {
+  await Promise.allSettled(Object.values(MODELS).map(syncModel));
+};
 
 // Silent push: always sync to IDB (open tabs use SSE for real-time updates)
 self.addEventListener("push", (event: PushEvent) => {
