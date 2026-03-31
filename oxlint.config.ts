@@ -5,6 +5,7 @@ export default defineConfig({
   ignorePatterns: ["src/routeTree.gen.ts"],
   rules: {
     "func-style": ["error", "expression"],
+    "@typescript-eslint/no-explicit-any": ["error"],
   },
   overrides: [
     {
