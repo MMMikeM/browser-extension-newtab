@@ -20,15 +20,11 @@ export const tasks = sqliteTable("tasks", {
 });
 
 export const taskSelectSchema = createSelectSchema(tasks).pick({ id: true });
-export const taskInsertSchema = createInsertSchema(tasks, {
-  createdAt: isoDatetime,
-})
+export const taskInsertSchema = createInsertSchema(tasks, { createdAt: isoDatetime })
   .omit({ updatedAt: true })
   .required({ id: true, createdAt: true })
   .strict();
-export const taskUpdateSchema = createUpdateSchema(tasks, {
-  updatedAt: isoDatetime,
-})
+export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDatetime })
   .required({ id: true, updatedAt: true })
   .omit({ createdAt: true })
   .strict();
@@ -45,15 +41,11 @@ export const users = sqliteTable("users", {
 });
 
 export const userSelectSchema = createSelectSchema(users).pick({ id: true });
-export const userInsertSchema = createInsertSchema(users, {
-  createdAt: isoDatetime,
-})
+export const userInsertSchema = createInsertSchema(users, { createdAt: isoDatetime })
   .omit({ updatedAt: true })
   .required({ id: true, createdAt: true })
   .strict();
-export const userUpdateSchema = createUpdateSchema(users, {
-  updatedAt: isoDatetime,
-})
+export const userUpdateSchema = createUpdateSchema(users, { updatedAt: isoDatetime })
   .required({ id: true, updatedAt: true })
   .omit({ createdAt: true })
   .strict();
@@ -71,15 +63,11 @@ export const notes = sqliteTable("notes", {
 });
 
 export const noteSelectSchema = createSelectSchema(notes).pick({ id: true });
-export const noteInsertSchema = createInsertSchema(notes, {
-  createdAt: isoDatetime,
-})
+export const noteInsertSchema = createInsertSchema(notes, { createdAt: isoDatetime })
   .omit({ updatedAt: true })
   .required({ id: true, createdAt: true })
   .strict();
-export const noteUpdateSchema = createUpdateSchema(notes, {
-  updatedAt: isoDatetime,
-})
+export const noteUpdateSchema = createUpdateSchema(notes, { updatedAt: isoDatetime })
   .required({ id: true, updatedAt: true })
   .omit({ createdAt: true })
   .strict();

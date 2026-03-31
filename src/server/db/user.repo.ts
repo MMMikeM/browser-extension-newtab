@@ -5,7 +5,8 @@ import { users } from "./schema";
 export type UserInsert = typeof users.$inferInsert;
 export type UserSelect = typeof users.$inferSelect;
 
-const list = async () => (await db.query.users.findMany({ orderBy: { name: "asc" } })) ?? [];
+const list = async () =>
+  (await db.query.users.findMany({ orderBy: { name: "asc" } })) ?? [];
 
 const insert = async (data: UserInsert) => {
   const [row] = await db.insert(users).values(data).returning();

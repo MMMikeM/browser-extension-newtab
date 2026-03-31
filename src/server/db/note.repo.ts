@@ -5,7 +5,8 @@ import { notes } from "./schema";
 export type NoteInsert = typeof notes.$inferInsert;
 export type NoteSelect = typeof notes.$inferSelect;
 
-const list = async () => (await db.query.notes.findMany({ orderBy: { createdAt: "desc" } })) ?? [];
+const list = async () =>
+  (await db.query.notes.findMany({ orderBy: { createdAt: "desc" } })) ?? [];
 
 const insert = async (data: NoteInsert) => {
   const [row] = await db.insert(notes).values(data).returning();
