@@ -1,17 +1,19 @@
 # Server Directory
 
-This directory is **import-protected** — the TanStack Start bundler blocks any file in `**/server/**` from the client bundle. See `importProtection` in `vite.config.ts`.
+**Import-protected** — `importProtection` in `vite.config.ts` blocks any file matching `**/server/**` from the client bundle.
 
-## What goes here
+## What goes here vs `src/rpc/`
 
-Files that use Node builtins, database clients, secrets, or anything that must never reach the browser:
+- **Here**: Node builtins, database clients, secrets — anything that must never reach the browser.
+- **`src/rpc/`**: Server functions (`createServerFn`) are isomorphic — the bundler replaces handlers with RPC stubs on the client. They must NOT live here or import protection blocks the client stubs.
+- **`src/lib/middleware.ts`**: Middleware (`createMiddleware`) has both `.client()` and `.server()` handlers — also must NOT live here.
 
-- `db.ts` — Drizzle instance + Turso embedded replica
-- `auth.ts` — bearer token validation (`crypto.timingSafeEqual`)
-- `schema.ts` — Drizzle table definitions
-- `columns.ts` — column helper functions
+## API routes
 
-## What does NOT go here
+- **`events.get.ts`** — SSE event stream (clients subscribe, mutations broadcast via `events.ts`)
+- **`[model].get.ts`** — generic model list endpoint (used by sync subscribe callbacks)
+- **`auth.post.ts`** — token validation endpoint
 
-- **Server functions** (`createServerFn`) — these are isomorphic. The bundler replaces handler implementations with RPC stubs in the client bundle, so clients need to import them. They live in `src/functions/`.
-- **Middleware** (`createMiddleware`) — the auth middleware has both `.client()` and `.server()` handlers, so it must be importable from both environments. It lives in `src/lib/middleware.ts`.
+## Database
+
+Single Turso instance with embedded replica. `syncInterval: 60` keeps local SQLite in sync. All writes go through Turso (remote-first), reads are local. For a single Fly instance, `syncInterval` could be replaced with manual `client.sync()` on boot + after writes.
