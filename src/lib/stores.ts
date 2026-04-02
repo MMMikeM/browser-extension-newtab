@@ -7,6 +7,29 @@ import { getTasks, createTask, updateTask, deleteTask } from "~/rpc/tasks";
 import { getUsers, createUser, updateUser, deleteUser } from "~/rpc/users";
 import { getNotes, createNote, updateNote, deleteNote } from "~/rpc/notes";
 
+const isNetworkError = (error: unknown): boolean =>
+  error instanceof TypeError ||
+  /network|fetch|timeout|ECONNRE|ENOTFOUND|abort/i.test(error instanceof Error ? error.message : String(error));
+
+const rpcList = async <T>(fn: () => Promise<T[]>): Promise<T[]> => {
+  try {
+    return await fn();
+  } catch (error) {
+    console.error("[rpc]", error);
+    if (isNetworkError(error)) throw error;
+    return [];
+  }
+};
+
+const rpc = async <T>(fn: () => Promise<T>): Promise<T> => {
+  try {
+    return await fn();
+  } catch (error) {
+    console.error("[rpc]", error);
+    throw error;
+  }
+};
+
 const [tasksInfra, usersInfra, notesInfra] = await Promise.all([
   createSyncInfrastructure(MODELS.tasks),
   createSyncInfrastructure(MODELS.users),
@@ -16,17 +39,17 @@ const [tasksInfra, usersInfra, notesInfra] = await Promise.all([
 export const tasks$ = observable(
   syncedCrud({
     ...tasksInfra,
-    list: async () => getTasks(),
+    list: () => rpcList(() => getTasks()),
     create: async (input) => {
       const { createdAt, updatedAt, ...rest } = input;
-      await createTask({ data: { ...rest, createdAt: now() } });
+      await rpc(() => createTask({ data: { ...rest, createdAt: now() } }));
     },
     update: async (input) => {
       const { createdAt, updatedAt, ...rest } = input;
-      await updateTask({ data: { ...rest, id: input.id!, updatedAt: now() } });
+      await rpc(() => updateTask({ data: { ...rest, id: input.id!, updatedAt: now() } }));
     },
     delete: async (input) => {
-      await deleteTask({ data: { id: input.id } });
+      await rpc(() => deleteTask({ data: { id: input.id } }));
     },
   }),
 );
@@ -34,17 +57,17 @@ export const tasks$ = observable(
 export const users$ = observable(
   syncedCrud({
     ...usersInfra,
-    list: async () => getUsers(),
+    list: () => rpcList(() => getUsers()),
     create: async (input) => {
       const { createdAt, updatedAt, ...rest } = input;
-      await createUser({ data: { ...rest, createdAt: now() } });
+      await rpc(() => createUser({ data: { ...rest, createdAt: now() } }));
     },
     update: async (input) => {
       const { createdAt, updatedAt, ...rest } = input;
-      await updateUser({ data: { ...rest, id: input.id!, updatedAt: now() } });
+      await rpc(() => updateUser({ data: { ...rest, id: input.id!, updatedAt: now() } }));
     },
     delete: async (input) => {
-      await deleteUser({ data: { id: input.id } });
+      await rpc(() => deleteUser({ data: { id: input.id } }));
     },
   }),
 );
@@ -52,17 +75,17 @@ export const users$ = observable(
 export const notes$ = observable(
   syncedCrud({
     ...notesInfra,
-    list: async () => getNotes(),
+    list: () => rpcList(() => getNotes()),
     create: async (input) => {
       const { createdAt, updatedAt, ...rest } = input;
-      await createNote({ data: { ...rest, createdAt: now() } });
+      await rpc(() => createNote({ data: { ...rest, createdAt: now() } }));
     },
     update: async (input) => {
       const { createdAt, updatedAt, ...rest } = input;
-      await updateNote({ data: { ...rest, id: input.id!, updatedAt: now() } });
+      await rpc(() => updateNote({ data: { ...rest, id: input.id!, updatedAt: now() } }));
     },
     delete: async (input) => {
-      await deleteNote({ data: { id: input.id } });
+      await rpc(() => deleteNote({ data: { id: input.id } }));
     },
   }),
 );
