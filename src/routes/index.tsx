@@ -218,7 +218,7 @@ function CategoryTabs({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground/40 transition-colors hover:text-muted-foreground"
         >
           +
         </button>
@@ -242,14 +242,24 @@ function DoneSection({
   const [open, setOpen] = useState(false);
 
   return (
-    <div>
+    <div className="mt-2 border-t border-border pt-3">
       <button
         onClick={() => setOpen(!open)}
-        className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+        className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
       >
-        Done ({tasks.length}) {open ? "▾" : "▸"}
+        <span
+          className="inline-block transition-transform"
+          style={{ transform: open ? "rotate(90deg)" : "none" }}
+        >
+          ▸
+        </span>
+        Done ({tasks.length})
       </button>
-      {open && <TaskList tasks={tasks} onToggle={onToggle} onDelete={onDelete} onOpen={onOpen} />}
+      {open && (
+        <div className="mt-2">
+          <TaskList tasks={tasks} onToggle={onToggle} onDelete={onDelete} onOpen={onOpen} />
+        </div>
+      )}
     </div>
   );
 }
@@ -361,19 +371,17 @@ function TaskListView() {
       />
       <div className="flex flex-col gap-4">
         {isEmpty ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">
-            No tasks yet. Type above to add one.
+          <p className="py-16 text-center text-sm text-muted-foreground/70">
+            Nothing here yet. What's on your mind?
           </p>
         ) : (
           <>
             <DragDropProvider
               onDragEnd={(event) => {
-                const { source, target } = event.operation;
-                if (!source || !target || source.id === target.id) return;
-                const oldIndex = activeTasks.findIndex((t) => t.id === source.id);
-                const newIndex = activeTasks.findIndex((t) => t.id === target.id);
-                if (oldIndex === -1 || newIndex === -1) return;
-                handleReorder(activeTasks[oldIndex].id, newIndex, activeTasks);
+                if (!isSortableOperation(event.operation)) return;
+                const { source } = event.operation;
+                if (!source || source.initialIndex === source.index) return;
+                handleReorder(String(source.id), source.index, activeTasks);
               }}
             >
               <TaskList

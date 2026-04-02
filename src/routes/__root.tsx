@@ -23,7 +23,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#1c1917" },
       { name: "darkreader-lock" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { title: "New Tab Todo" },
+      { title: "hearth" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -64,9 +64,9 @@ function RootComponent() {
   }, []);
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tasks</h1>
+    <div className="mx-auto min-h-screen max-w-lg px-6 pt-12 pb-8">
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="font-heading text-lg font-medium tracking-widest text-foreground/50 uppercase">hearth</h1>
         {mounted && (
           <Suspense fallback={<span className="text-muted-foreground">⚙</span>}>
             <SyncSettings />
@@ -74,7 +74,7 @@ function RootComponent() {
         )}
       </div>
       <AddTaskInput onAdd={handleAddTask} />
-      <div className="mt-4 flex flex-col gap-6">
+      <div className="mt-4 flex flex-col gap-4">
         <Outlet />
       </div>
       {mounted && (

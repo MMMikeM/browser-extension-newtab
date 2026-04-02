@@ -2,6 +2,8 @@ import { useRef } from "react";
 import type { Task } from "~/rpc/tasks";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Button } from "~/components/ui/button";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { DragDropVerticalIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "~/lib/utils";
 
 const formatDueDate = (dateStr: string) => {
@@ -44,13 +46,16 @@ export function TaskItem({
   };
 
   return (
-    <div className="group/task flex items-center gap-3 py-1.5">
-      <Checkbox checked={isDone} onCheckedChange={onToggle} />
+    <div className="group/task -mx-2 flex items-start gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-muted/50 animate-[task-enter_200ms_ease-out]">
+      <span className="mt-0.5 flex cursor-grab items-center text-muted-foreground/0 transition-colors group-hover/task:text-muted-foreground/50 active:cursor-grabbing">
+        <HugeiconsIcon icon={DragDropVerticalIcon} size={14} />
+      </span>
+      <Checkbox checked={isDone} onCheckedChange={onToggle} className="mt-0.5" />
       <div
         className={cn("flex min-w-0 flex-1 flex-col", onOpen && "cursor-pointer")}
         onClick={onOpen}
       >
-        <span className={cn("truncate", isDone && "text-muted-foreground line-through")}>
+        <span className={cn("truncate font-medium", isDone && "text-muted-foreground line-through")}>
           {task.title}
         </span>
         {task.description && (
@@ -71,13 +76,13 @@ export function TaskItem({
         <button
           onClick={onSetDueDate ? openPicker : undefined}
           className={cn(
-            "text-xs",
+            "mt-0.5 whitespace-nowrap text-xs",
             onSetDueDate && "cursor-pointer hover:underline",
             isDone
               ? "text-muted-foreground"
               : due.overdue
                 ? "text-destructive"
-                : "text-muted-foreground",
+                : "text-date",
           )}
         >
           {due.label}
@@ -87,15 +92,18 @@ export function TaskItem({
         !isDone && (
           <button
             onClick={openPicker}
-            className="text-xs text-muted-foreground opacity-0 transition-opacity hover:underline group-hover/task:opacity-100"
+            className="mt-0.5 whitespace-nowrap text-xs text-muted-foreground opacity-0 transition-opacity hover:underline group-hover/task:opacity-100"
           >
             set date
           </button>
         )
       )}
-      <Button variant="ghost" size="icon-xs" onClick={onDelete}>
-        x
-      </Button>
+      <button
+        onClick={onDelete}
+        className="mt-1 text-muted-foreground/0 transition-colors hover:text-destructive group-hover/task:text-muted-foreground/40"
+      >
+        <HugeiconsIcon icon={Cancel01Icon} size={14} />
+      </button>
     </div>
   );
 }

@@ -18,7 +18,8 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Add a task..."
+        placeholder="What needs doing?"
+        className="border-transparent bg-transparent text-base placeholder:text-muted-foreground/40 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-transparent"
         // eslint-disable-next-line jsx-a11y/no-autofocus -- new tab page, this is the primary action
         autoFocus
       />
