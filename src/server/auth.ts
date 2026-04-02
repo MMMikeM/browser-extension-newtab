@@ -1,11 +1,11 @@
-import { timingSafeEqual } from "node:crypto";
+import sessionRepo from "./db/session.repo";
 
 /**
  * Extract auth token from cookie or Authorization header.
- * Cookie takes priority (httpOnly, set by /api/auth).
+ * Cookie takes priority (httpOnly, set by login/signup server functions).
  * Falls back to Bearer token (extension context).
  */
-export function extractToken(request: Request, url?: URL): string | null {
+export const extractToken = (request: Request, url?: URL): string | null => {
   const cookie = request.headers.get("cookie");
   if (cookie) {
     const match = cookie.match(/(?:^|;\s*)auth=([^;]+)/);
@@ -18,20 +18,13 @@ export function extractToken(request: Request, url?: URL): string | null {
     if (param) return param;
   }
   return null;
-}
+};
 
-export function validateToken(token: string): void {
-  const expected = process.env.AUTH_TOKEN;
-  if (!expected) throw new Error("AUTH_TOKEN not configured");
-  if (!safeCompare(token, expected)) throw new Error("Unauthorized");
-}
-
-function safeCompare(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) {
-    timingSafeEqual(bufA, bufA);
-    return false;
-  }
-  return timingSafeEqual(bufA, bufB);
-}
+/**
+ * Validate a session token. Returns the userId if valid, throws otherwise.
+ */
+export const validateSession = async (token: string): Promise<string> => {
+  const session = await sessionRepo.findValid(token);
+  if (!session) throw new Error("Unauthorized");
+  return session.userId;
+};
