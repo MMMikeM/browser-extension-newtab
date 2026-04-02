@@ -5,7 +5,7 @@ const OUT = process.env.SCREENSHOT_OUT || "screenshot.png";
 const AUTH_TOKEN = process.env.AUTH_TOKEN || "dev-token-change-me";
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: "dark" });
+const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: "dark", deviceScaleFactor: 2 });
 const page = await ctx.newPage();
 
 // Navigate first so localStorage is on the right origin, then seed it
