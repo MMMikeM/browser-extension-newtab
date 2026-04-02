@@ -1,9 +1,19 @@
-import { useEffect } from "react";
+import type { ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { registerServiceWorker } from "~/lib/register-sw";
+import { AddTaskInput } from "~/components/AddTaskInput";
 import appCss from "../app.css?url";
 
+const SyncSettings = lazy(() =>
+  import("~/components/SyncSettings").then((m) => ({ default: m.SyncSettings })),
+);
+const TanStackDevtools = lazy(() =>
+  import("@tanstack/react-devtools").then((m) => ({ default: m.TanStackDevtools })),
+);
+
 export const Route = createRootRoute({
+  shellComponent: RootShell,
   component: RootComponent,
   head: () => ({
     meta: [
@@ -23,21 +33,52 @@ export const Route = createRootRoute({
   }),
 });
 
-function RootComponent() {
-  useEffect(() => {
-    console.log("[sw] useEffect fired, calling registerServiceWorker");
-    registerServiceWorker();
-  }, []);
-
+function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark">
       <head>
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        {children}
         <Scripts />
       </body>
     </html>
+  );
+}
+
+function RootComponent() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    registerServiceWorker();
+  }, []);
+
+  const handleAddTask = useCallback(async (title: string) => {
+    const { addTask } = await import("~/lib/add-task");
+    addTask(title);
+  }, []);
+
+  return (
+    <div className="mx-auto min-h-screen max-w-xl p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Tasks</h1>
+        {mounted && (
+          <Suspense fallback={<span className="text-muted-foreground">⚙</span>}>
+            <SyncSettings />
+          </Suspense>
+        )}
+      </div>
+      <AddTaskInput onAdd={handleAddTask} />
+      <div className="mt-4 flex flex-col gap-6">
+        <Outlet />
+      </div>
+      {mounted && (
+        <Suspense>
+          <TanStackDevtools />
+        </Suspense>
+      )}
+    </div>
   );
 }

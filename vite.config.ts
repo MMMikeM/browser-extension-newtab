@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv, type PluginOption } from "vite";
+import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
@@ -46,14 +47,10 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths: true,
     },
     plugins: [
+      devtools({ removeDevtoolsOnBuild: false }),
       tailwindcss(),
       tanstackStart({
-        prerender: process.env.NO_PRERENDER
-          ? undefined
-          : {
-              enabled: true,
-              crawlLinks: false,
-            },
+        spa: { enabled: true, prerender: { outputPath: "/index.html" } },
         importProtection: {
           client: {
             files: ["**/*.server.*", "**/server/**"],
@@ -66,7 +63,6 @@ export default defineConfig(({ mode }) => {
         serverDir: "./src/server",
         apiBaseURL: "/api",
         apiDir: "api",
-        openAPI: { ui: { scalar: {} } },
       }),
       remoteServerFnBase(serverUrl),
     ],
