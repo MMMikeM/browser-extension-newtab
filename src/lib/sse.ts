@@ -8,7 +8,6 @@ const listeners = new Set<Listener>();
 let es: EventSource | null = null;
 
 const connect = () => {
-  if (typeof window === "undefined") return;
   if (!authToken$.peek()) return;
 
   es = new EventSource(EVENTS_PATH);
@@ -20,14 +19,12 @@ const connect = () => {
   });
 };
 
-if (typeof window !== "undefined") {
-  observe(() => {
-    authToken$.get();
-    es?.close();
-    es = null;
-    connect();
-  });
-}
+observe(() => {
+  authToken$.get();
+  es?.close();
+  es = null;
+  connect();
+});
 
 export const subscribeSSE = (onRefresh: Listener): (() => void) => {
   listeners.add(onRefresh);

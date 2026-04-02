@@ -1,22 +1,14 @@
 import type { SyncedSubscribeParams } from "@legendapp/state/sync";
+import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
 import { getBuildTarget } from "~/lib/build-target";
 import { subscribeSSE } from "~/lib/sse";
 import { authToken$ } from "~/lib/auth-token";
 import type { SyncModel } from "./types";
 import { IDB_CONFIG } from "./registry";
 
-const isServer = typeof window === "undefined";
-
-const createPersist = async (name: string) => {
-  if (isServer) return undefined;
-  const { observablePersistIndexedDB } = await import("@legendapp/state/persist-plugins/indexeddb");
-  return { name, plugin: observablePersistIndexedDB(IDB_CONFIG), retrySync: true };
-};
-
 const createSyncSubscribe =
   (model: SyncModel) =>
-  ({ refresh }: SyncedSubscribeParams): (() => void) | void => {
-    if (isServer) return;
+  ({ refresh }: SyncedSubscribeParams): (() => void) => {
     const target = getBuildTarget();
 
     const bgHandler =
@@ -37,11 +29,11 @@ const createSyncSubscribe =
 
 export const createSyncInfrastructure = async (model: SyncModel) => ({
   subscribe: createSyncSubscribe(model),
-  persist: await createPersist(model.name),
+  persist: { name: model.name, plugin: observablePersistIndexedDB(IDB_CONFIG), retrySync: true },
   initial: {},
-  retry: { infinite: true, backoff: "exponential" as const, maxDelay: 60, delay: 1000 },
+  retry: { infinite: true, backoff: "exponential" as const, maxDelay: 30, delay: 1000 },
   fieldUpdatedAt: "updatedAt" as const,
   fieldCreatedAt: "createdAt" as const,
-  onError: (error: Error) => console.error(`[sync:${model.name}] error:`, error),
+  onError: (error: Error) => console.error(`[sync:${model.name}]`, error),
   waitForSet: authToken$,
 });
