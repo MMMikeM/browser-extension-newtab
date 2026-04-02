@@ -7,7 +7,7 @@ import { pushSubscriptions } from "~/server/db/schema";
 import { authMiddleware } from "~/lib/middleware";
 
 const subscriptionSchema = z.object({
-  endpoint: z.string().url(),
+  endpoint: z.url(),
   p256dh: z.string(),
   auth: z.string(),
 });
