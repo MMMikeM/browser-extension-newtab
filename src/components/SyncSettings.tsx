@@ -1,55 +1,64 @@
 import { useEffect, useState } from "react";
 import { useValue } from "@legendapp/state/react";
+import { useForm } from "@tanstack/react-form";
 import { authToken$ } from "~/lib/auth-token";
-import { currentUserId$, setCurrentUserId } from "~/lib/current-user";
-import { useUsers, useAddUser } from "~/lib/hooks";
+import { currentUser$, setCurrentUser, clearCurrentUserId } from "~/lib/current-user";
 import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-
+import { loginFn, signupFn, logoutFn, loginSchema, signupSchema } from "~/rpc/auth";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
-const setAuthToken = (token: string) => {
+const persistToken = (token: string) => {
   localStorage.setItem(TOKEN_KEY, token);
   authToken$.set(token);
-  const target = getBuildTarget();
-  if (target === "browser") {
-    fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-    }).catch(() => {});
-  }
-  if (target === "extension") {
+  if (getBuildTarget() === "extension") {
     browser.storage.local.set({ [TOKEN_KEY]: token });
-    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
+    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => { });
   }
 };
 
-const clearAuthToken = () => {
+const clearAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
   authToken$.set(null);
+  clearCurrentUserId();
   if (getBuildTarget() === "extension") {
     browser.storage.local.remove(TOKEN_KEY);
-    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
+    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => { });
   }
   unregisterPushSubscription();
 };
 
 export function SyncSettings() {
   const token = useValue(authToken$);
-  const userId = useValue(currentUserId$);
-  const { data: usersList } = useUsers();
-  const { add: addUser } = useAddUser();
-  const currentUser = userId ? usersList.find((u) => u.id === userId) : null;
+  const currentUser = useValue(currentUser$);
   const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [serverError, setServerError] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
+
+  const schema = mode === "login" ? loginSchema : signupSchema;
+  const form = useForm({
+    defaultValues: { username: "", password: "", name: "" },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      try {
+        const result =
+          mode === "login"
+            ? await loginFn({ data: { username: value.username.trim(), password: value.password, name: "" } })
+            : await signupFn({ data: { username: value.username.trim(), password: value.password, name: value.name.trim() } });
+        persistToken(result.token);
+        setCurrentUser({ id: result.userId, name: result.name, username: result.username });
+        form.reset();
+        setOpen(false);
+      } catch (err) {
+        setServerError(err instanceof Error ? err.message : "Authentication failed");
+      }
+    },
+  });
 
   useEffect(() => {
     isPushSubscribed().then(setPushEnabled);
@@ -65,6 +74,17 @@ export function SyncSettings() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutFn();
+    } catch {
+      // Still clear local state even if server call fails
+    }
+    clearAuth();
+    setPushEnabled(false);
+    setOpen(false);
+  };
+
   if (!open) {
     return (
       <button
@@ -77,96 +97,119 @@ export function SyncSettings() {
     );
   }
 
+  if (token && currentUser) {
+    return (
+      <div className="flex flex-col gap-2">
+        <span className="text-xs text-muted-foreground">
+          {currentUser.name} (@{currentUser.username})
+        </span>
+        {getBuildTarget() === "browser" && (
+          <button
+            onClick={handleTogglePush}
+            className="text-left text-xs text-muted-foreground hover:text-foreground"
+          >
+            {pushEnabled ? "✓ Background sync enabled" : "Enable background sync"}
+          </button>
+        )}
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleLogout}>
+            Log out
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-2">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+      className="flex flex-col gap-2"
+    >
+      {mode === "signup" && (
+        <form.Field name="name" validators={{ onChange: schema.shape.name }}>
+          {(field) => (
+            <>
+              <Input
+                type="text"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder="Name"
+                className="h-7 w-48 text-xs"
+              />
+              {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
+                <span className="text-xs text-destructive">{typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}</span>
+              )}
+            </>
+          )}
+        </form.Field>
+      )}
+      <form.Field name="username" validators={{ onChange: schema.shape.username }}>
+        {(field) => (
+          <>
+            <Input
+              type="text"
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              placeholder="Username"
+              className="h-7 w-48 text-xs"
+            />
+            {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
+              <span className="text-xs text-destructive">{typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}</span>
+            )}
+          </>
+        )}
+      </form.Field>
+      <form.Field name="password" validators={{ onChange: schema.shape.password }}>
+        {(field) => (
+          <>
+            <Input
+              type="password"
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              placeholder="Password"
+              className="h-7 w-48 text-xs"
+            />
+            {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
+              <span className="text-xs text-destructive">{typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}</span>
+            )}
+          </>
+        )}
+      </form.Field>
+      {serverError && <span className="text-xs text-destructive">{serverError}</span>}
       <div className="flex items-center gap-2">
-        <Input
-          type="password"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={token ? "Change sync token..." : "Enter sync token..."}
-          className="h-7 w-48 text-xs"
-        />
+        <Button size="sm" className="h-7 text-xs" disabled={form.state.isSubmitting || !form.state.canSubmit}>
+          {mode === "login" ? "Log in" : "Sign up"}
+        </Button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode(mode === "login" ? "signup" : "login");
+            form.reset();
+            setServerError(null);
+          }}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          {mode === "login" ? "Need an account?" : "Have an account?"}
+        </button>
         <Button
+          type="button"
+          variant="ghost"
           size="sm"
           className="h-7 text-xs"
-          onClick={() => {
-            const trimmed = input.trim();
-            if (trimmed) setAuthToken(trimmed);
-            setInput("");
-            setOpen(false);
-          }}
+          onClick={() => setOpen(false)}
         >
-          Save
-        </Button>
-        {token && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => {
-              clearAuthToken();
-              setPushEnabled(false);
-              setInput("");
-              setOpen(false);
-            }}
-          >
-            Disconnect
-          </Button>
-        )}
-        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setOpen(false)}>
           Cancel
         </Button>
       </div>
-      {token && getBuildTarget() === "browser" && (
-        <button
-          onClick={handleTogglePush}
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
-          {pushEnabled ? "✓ Background sync enabled" : "Enable background sync"}
-        </button>
-      )}
-      {token && !currentUser && (
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Set up your user:</span>
-          <div className="flex items-center gap-2">
-            <Input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Name"
-              className="h-7 w-32 text-xs"
-            />
-            <Input
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              placeholder="Email"
-              className="h-7 w-40 text-xs"
-            />
-            <Button
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => {
-                const name = userName.trim();
-                const email = userEmail.trim();
-                if (!name || !email) return;
-                const { id } = addUser({ name, email, avatarUrl: null });
-                setCurrentUserId(id);
-                setUserName("");
-                setUserEmail("");
-              }}
-            >
-              Create
-            </Button>
-          </div>
-        </div>
-      )}
-      {currentUser && (
-        <span className="text-xs text-muted-foreground">
-          User: {currentUser.name} ({currentUser.email})
-        </span>
-      )}
-    </div>
+    </form>
   );
 }

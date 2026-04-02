@@ -1,7 +1,10 @@
 import { useRef, useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import type { Task } from "~/rpc/tasks";
 import type { Note } from "~/rpc/notes";
-import { useNotes, useAddNote, useUpdateNote, useDeleteNote } from "~/lib/hooks";
+import { useUpdateTask, useDeleteTask, useNotes, useAddNote, useUpdateNote, useDeleteNote } from "~/lib/hooks";
+import { shareTask, deleteTaskShare } from "~/rpc/tasks";
+import { addTask } from "~/lib/add-task";
 import { currentUserId$ } from "~/lib/current-user";
 import {
   Drawer,
@@ -127,6 +130,12 @@ function TaskDetailContent({
         )}
       </div>
 
+      {/* Subtasks */}
+      {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
+
+      {/* Sharing */}
+      {!task.parentId && <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />}
+
       {/* Notes */}
       <div className="flex flex-col gap-2">
         <label className="text-xs font-medium text-muted-foreground">Notes</label>
@@ -214,5 +223,143 @@ function AddNoteInput({ taskId }: { taskId: string }) {
         className="h-8 text-sm"
       />
     </form>
+  );
+}
+
+function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; subtasks: Task["subtasks"] }) {
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
+  const [value, setValue] = useState("");
+
+  const subtasks = [...rawSubtasks].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""));
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-xs font-medium text-muted-foreground">
+        Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}
+      </label>
+      {subtasks.map((sub) => (
+        <div
+          key={sub.id}
+          className="group/sub flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
+        >
+          <Checkbox
+            checked={sub.status === "done"}
+            onCheckedChange={() =>
+              updateTask.mutate({
+                data: { id: sub.id, status: sub.status === "done" ? "todo" : "done" },
+              })
+            }
+            className="size-3.5"
+          />
+          <span
+            className={cn(
+              "flex-1 text-sm",
+              sub.status === "done" && "text-muted-foreground line-through",
+            )}
+          >
+            {sub.title}
+          </span>
+          <button
+            onClick={() => deleteTask.mutate({ data: { id: sub.id } })}
+            className="text-xs text-destructive opacity-0 hover:underline group-hover/sub:opacity-100"
+          >
+            delete
+          </button>
+        </div>
+      ))}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const title = value.trim();
+          if (!title) return;
+          addTask(title, null, taskId);
+          setValue("");
+        }}
+      >
+        <Input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Add a subtask..."
+          className="h-8 text-sm"
+        />
+      </form>
+    </div>
+  );
+}
+
+function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUserId: string; shares: Task["shares"] }) {
+  const currentUserId = currentUserId$.peek();
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const form = useForm({
+    defaultValues: { username: "" },
+    onSubmit: async ({ value }) => {
+      const trimmed = value.username.trim();
+      if (!trimmed) return;
+      setServerError(null);
+      try {
+        await shareTask({ data: { taskId, username: trimmed, permission: "edit" } });
+        form.reset();
+      } catch (err) {
+        setServerError(err instanceof Error ? err.message : "Failed to share");
+      }
+    },
+  });
+
+  const isOwner = currentUserId === taskUserId;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-xs font-medium text-muted-foreground">
+        Shared with{shares.length > 0 ? ` (${shares.length})` : ""}
+      </label>
+      {shares.map((share) => (
+        <div
+          key={share.id}
+          className="group/share flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
+        >
+          <span className="flex-1 text-sm">
+            {share.sharedWithUser ? `${share.sharedWithUser.name} (@${share.sharedWithUser.username})` : share.sharedWithUserId}
+          </span>
+          <span className="text-xs text-muted-foreground">{share.permission}</span>
+          {isOwner && (
+            <button
+              onClick={() => deleteTaskShare({ data: { id: share.id } })}
+              className="text-xs text-destructive opacity-0 hover:underline group-hover/share:opacity-100"
+            >
+              remove
+            </button>
+          )}
+        </div>
+      ))}
+      {isOwner && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit();
+          }}
+          className="flex items-center gap-2"
+        >
+          <form.Field name="username">
+            {(field) => (
+              <Input
+                type="text"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder="Share by username..."
+                className="h-8 text-sm"
+              />
+            )}
+          </form.Field>
+          <Button size="sm" className="h-8 text-xs" disabled={form.state.isSubmitting}>
+            Share
+          </Button>
+        </form>
+      )}
+      {serverError && <span className="text-xs text-destructive">{serverError}</span>}
+    </div>
   );
 }
