@@ -198,19 +198,9 @@ Always include `AvatarFallback` for when the image fails to load:
 
 ---
 
-## Custom triggers use `render` (NOT `asChild`)
+## Custom triggers use `render`
 
-This project uses **base** primitives. Use `render` to replace the default element. Never use `asChild` — that's radix.
-
-**Incorrect:**
-
-```tsx
-<DialogTrigger asChild>
-  <Button>Open</Button>
-</DialogTrigger>
-```
-
-**Correct:**
+Use `render` to replace the default element:
 
 ```tsx
 <DialogTrigger render={<Button />}>Open</DialogTrigger>
@@ -224,6 +214,35 @@ When `render` targets a non-button element (`<a>`, `<span>`), add `nativeButton=
 <Button render={<a href="/docs" />} nativeButton={false}>
   Read the docs
 </Button>
+```
+
+---
+
+## Popup positioning uses `Positioner`
+
+For components with floating content (DropdownMenu, Popover, Tooltip, HoverCard, etc.), positioning props (`side`, `align`) go on the `Positioner`, not the `Content`:
+
+```tsx
+<DropdownMenu>
+  <DropdownMenuTrigger render={<Button variant="outline" />}>Open</DropdownMenuTrigger>
+  <DropdownMenuPositioner side="left" align="start">
+    <DropdownMenuContent>
+      <DropdownMenuItem>Profile</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenuPositioner>
+</DropdownMenu>
+```
+
+## Labels must be inside Group
+
+Menu/dropdown labels must be wrapped in their `Group` component:
+
+```tsx
+<DropdownMenuGroup>
+  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+  <DropdownMenuItem>Profile</DropdownMenuItem>
+  <DropdownMenuItem>Billing</DropdownMenuItem>
+</DropdownMenuGroup>
 ```
 
 ---

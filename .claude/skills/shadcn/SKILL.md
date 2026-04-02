@@ -6,7 +6,9 @@ user-invocable: false
 
 # shadcn/ui
 
-Components are added as source code via the CLI. This project uses **base** primitives (React Aria), **not radix**.
+Components are added as source code via the CLI.
+
+> **This project uses base-ui (`@base-ui/react`).** Components use base-ui APIs — refer to `@base-ui/react` docs and basecn patterns, not generic shadcn examples.
 
 > **CLI runner**: Always use `pnpm dlx shadcn@latest` — this project uses pnpm.
 

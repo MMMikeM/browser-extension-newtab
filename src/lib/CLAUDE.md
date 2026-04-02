@@ -2,6 +2,12 @@
 
 Client-only code. SPA mode means nothing here runs on the server — no `typeof window` or `isServer` guards needed.
 
+## Structure
+
+- **`stores.ts`** — Legend State observable stores with `syncedCrud`
+- **`sync/`** — store creation helpers (`create-store.ts`, `create-hooks.ts`), type registry (`registry.ts`)
+- **`sse.ts`** / **`push.ts`** / **`active-category.ts`** / **`auth-token.ts`** — standalone client modules
+
 ## Non-obvious decisions
 
 - **Dynamic import for `add-task.ts`** in `__root.tsx` — avoids pulling `stores.ts` → `auth-token.ts` → `localStorage` into the prerendered shell's module graph. This is load-bearing; making it a static import breaks prerender.

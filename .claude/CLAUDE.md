@@ -38,8 +38,14 @@ Use `@tanstack/react-start` (1.167.x+). Import map:
 
 Without it, all server functions return `undefined`.
 
+## Stack
+
+TanStack Start (SPA mode) + React 19 + Legend State + Drizzle v1 (Turso/libSQL). Dual target: browser extension (MV2) + PWA.
+
 ## Dev workflow
 
 - `pnpm dev` / `pnpm build` / `pnpm build:ext` / `pnpm start`
 - `pnpm lint` / `pnpm fmt` — oxlint / oxfmt
+- `pnpm typecheck` — tsc --noEmit
+- `pnpm check` — lint + fmt + typecheck + knip (CI gate)
 - `npx drizzle-kit push` — push schema to Turso

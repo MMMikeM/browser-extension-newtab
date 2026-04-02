@@ -345,6 +345,80 @@ The server handler (`dist/server/server.js`) is NOT a standalone server. It expo
 
 ---
 
+## Prerender Module Graph Boundary
+
+### The problem
+
+In SPA mode, the build prerenders the root route's module graph to produce the static shell. This prerender runs in a Node-like environment where browser globals (`localStorage`, `IndexedDB`, `window`) do not exist. If any **static import chain** from the root route reaches code that accesses these globals at module scope (e.g., Legend State stores that read `localStorage` during initialization), the prerender crashes.
+
+### The rule
+
+Every static import from a route file must be **transitively pure** -- no module in the chain may touch browser-only globals at the top level. If a module (or anything it imports) accesses `localStorage`, `IndexedDB`, or similar browser APIs at import time, it **must not** be statically imported.
+
+### Three strategies
+
+| Strategy | When to use | Example |
+| --- | --- | --- |
+| **Static import** | Component is pure -- no store deps, no browser globals in its import chain | `import { AddTaskInput } from '~/components/AddTaskInput'` |
+| **`lazy()` + Suspense** | Component pulls in stores or browser-only code, but is rendered as a React element | `const SyncSettings = lazy(() => import('~/components/SyncSettings').then(...))` |
+| **Dynamic `import()` in callback** | Store/browser code needed imperatively (not rendered), e.g., inside an event handler | `const { addTask } = await import('~/lib/add-task')` |
+
+### Guarding lazy components
+
+Lazy components must be gated behind a `mounted` state to prevent hydration mismatches. The shell renders without them; after hydration, `useEffect` flips `mounted` to true and the lazy component loads:
+
+```typescript
+const [mounted, setMounted] = useState(false);
+useEffect(() => { setMounted(true); }, []);
+
+// In JSX:
+{mounted && (
+  <Suspense fallback={<Spinner />}>
+    <LazyComponent />
+  </Suspense>
+)}
+```
+
+### Current root route example
+
+```typescript
+// src/routes/__root.tsx
+
+// SAFE static imports -- these modules are transitively pure
+import { AddTaskInput } from "~/components/AddTaskInput";
+import appCss from "../app.css?url";
+
+// LAZY -- SyncSettings pulls in stores -> auth-token -> localStorage
+const SyncSettings = lazy(() =>
+  import("~/components/SyncSettings").then((m) => ({ default: m.SyncSettings })),
+);
+
+// LAZY -- TanStackDevtools crashes in SSR/prerender
+const TanStackDevtools = lazy(() =>
+  import("@tanstack/react-devtools").then((m) => ({ default: m.TanStackDevtools })),
+);
+
+// DYNAMIC import() in callback -- addTask pulls in stores
+const handleAddTask = useCallback(async (title: string) => {
+  const [{ addTask }, { activeCategoryId$ }] = await Promise.all([
+    import("~/lib/add-task"),
+    import("~/lib/active-category"),
+  ]);
+  addTask(title, activeCategoryId$.peek());
+}, []);
+```
+
+### Debugging a prerender crash
+
+If the build fails during prerender with a `ReferenceError` for `localStorage`, `indexedDB`, or `window`:
+
+1. Find the offending import chain -- the stack trace shows which module accessed the global
+2. Trace backwards to the route file that statically imports it
+3. Convert the import to `lazy()` (if it is a component) or dynamic `import()` (if it is imperative code)
+4. Verify with `pnpm build` -- the prerender must complete without errors
+
+---
+
 ## Common Mistakes to Avoid
 
 1. **Importing from `@tanstack/start`** — this package is dead. Use `@tanstack/react-start`.
