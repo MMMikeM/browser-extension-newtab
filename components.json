@@ -1,5 +1,8 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
+  "registries": {
+    "@basecn": "https://basecn.dev/r/{name}.json"
+  },
   "style": "base-vega",
   "rsc": false,
   "tsx": true,
@@ -20,6 +23,5 @@
     "hooks": "~/hooks"
   },
   "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {}
+  "menuAccent": "subtle"
 }
