@@ -1,7 +1,6 @@
-import { createId } from "@paralleldrive/cuid2";
-import { generateKeyBetween } from "fractional-indexing";
 import { createModelHooks } from "~/lib/sync/create-hooks";
 import { tasks$, users$, notes$ } from "~/lib/stores";
+import { addTask } from "~/lib/add-task";
 import type { Task } from "~/rpc/tasks";
 import type { User } from "~/rpc/users";
 import type { Note } from "~/rpc/notes";
@@ -14,21 +13,7 @@ const {
   useDelete: useDeleteTask,
 } = createModelHooks<Task>(tasks$, { sort: bySortOrder });
 
-const useAddTask = () => ({
-  add: (title: string) => {
-    const tasksMap = tasks$.peek() ?? {};
-    const sorted = (Object.values(tasksMap) as Task[]).sort(bySortOrder);
-    const lastOrder = sorted.length > 0 ? sorted[sorted.length - 1].sortOrder : null;
-    const id = createId();
-    tasks$[id].set({
-      id,
-      title,
-      status: "todo",
-      description: null,
-      sortOrder: generateKeyBetween(lastOrder, null),
-    } as Task);
-  },
-});
+const useAddTask = () => ({ add: addTask });
 
 export { useTasks, useAddTask, useUpdateTask, useDeleteTask };
 

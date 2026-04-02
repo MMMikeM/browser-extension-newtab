@@ -16,9 +16,11 @@ export const createModelHooks = <T extends { id: string }>(
   };
 
   const useAdd = () => ({
-    add: (fields: Partial<T>) => {
+    add: (fields: Partial<T>): T => {
       const id = createId();
-      (store$ as any)[id].set({ ...fields, id } as T);
+      const record = { ...fields, id } as T;
+      (store$ as any)[id].set(record);
+      return record;
     },
   });
 
