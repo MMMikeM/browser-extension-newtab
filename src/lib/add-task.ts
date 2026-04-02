@@ -6,7 +6,7 @@ import type { Task } from "~/rpc/tasks";
 
 const bySortOrder = (a: Task, b: Task) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "");
 
-export const addTask = (title: string) => {
+export const addTask = (title: string, categoryId?: string | null) => {
   const userId = currentUserId$.peek();
   if (!userId) {
     alert("Set up your user in settings first");
@@ -19,9 +19,11 @@ export const addTask = (title: string) => {
   tasks$[id].set({
     id,
     userId,
+    categoryId: categoryId ?? null,
     title,
     status: "todo",
     description: null,
+    dueDate: null,
     sortOrder: generateKeyBetween(lastOrder, null),
   } as Task);
 };

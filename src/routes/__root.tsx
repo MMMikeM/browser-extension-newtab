@@ -56,8 +56,11 @@ function RootComponent() {
   }, []);
 
   const handleAddTask = useCallback(async (title: string) => {
-    const { addTask } = await import("~/lib/add-task");
-    addTask(title);
+    const [{ addTask }, { activeCategoryId$ }] = await Promise.all([
+      import("~/lib/add-task"),
+      import("~/lib/active-category"),
+    ]);
+    addTask(title, activeCategoryId$.peek());
   }, []);
 
   return (

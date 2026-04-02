@@ -1,6 +1,7 @@
 import { createModelHooks } from "~/lib/sync/create-hooks";
-import { tasks$, users$, notes$ } from "~/lib/stores";
+import { categories$, tasks$, users$, notes$ } from "~/lib/stores";
 import { addTask } from "~/lib/add-task";
+import type { Category } from "~/rpc/categories";
 import type { Task } from "~/rpc/tasks";
 import type { User } from "~/rpc/users";
 import type { Note } from "~/rpc/notes";
@@ -16,6 +17,16 @@ const {
 const useAddTask = () => ({ add: addTask });
 
 export { useTasks, useAddTask, useUpdateTask, useDeleteTask };
+
+const byCategorySortOrder = (a: Category, b: Category) =>
+  (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "");
+
+export const {
+  useList: useCategories,
+  useAdd: useAddCategory,
+  useUpdate: useUpdateCategory,
+  useDelete: useDeleteCategory,
+} = createModelHooks<Category>(categories$, { sort: byCategorySortOrder });
 
 export const {
   useList: useUsers,

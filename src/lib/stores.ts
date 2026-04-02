@@ -3,6 +3,7 @@ import { syncedCrud } from "@legendapp/state/sync-plugins/crud";
 import { now } from "~/lib/utils";
 import { createSyncInfrastructure } from "~/lib/sync/create-store";
 import { MODELS } from "~/lib/sync/registry";
+import { getCategories, createCategory, updateCategory, deleteCategory } from "~/rpc/categories";
 import { getTasks, createTask, updateTask, deleteTask } from "~/rpc/tasks";
 import { getUsers, createUser, updateUser, deleteUser } from "~/rpc/users";
 import { getNotes, createNote, updateNote, deleteNote } from "~/rpc/notes";
@@ -30,11 +31,30 @@ const rpc = async <T>(fn: () => Promise<T>): Promise<T> => {
   }
 };
 
-const [tasksInfra, usersInfra, notesInfra] = await Promise.all([
+const [categoriesInfra, tasksInfra, usersInfra, notesInfra] = await Promise.all([
+  createSyncInfrastructure(MODELS.categories),
   createSyncInfrastructure(MODELS.tasks),
   createSyncInfrastructure(MODELS.users),
   createSyncInfrastructure(MODELS.notes),
 ]);
+
+export const categories$ = observable(
+  syncedCrud({
+    ...categoriesInfra,
+    list: () => rpcList(() => getCategories()),
+    create: async (input) => {
+      const { createdAt, updatedAt, ...rest } = input;
+      await rpc(() => createCategory({ data: { ...rest, createdAt: now() } }));
+    },
+    update: async (input) => {
+      const { createdAt, updatedAt, ...rest } = input;
+      await rpc(() => updateCategory({ data: { ...rest, id: input.id!, updatedAt: now() } }));
+    },
+    delete: async (input) => {
+      await rpc(() => deleteCategory({ data: { id: input.id } }));
+    },
+  }),
+);
 
 export const tasks$ = observable(
   syncedCrud({
