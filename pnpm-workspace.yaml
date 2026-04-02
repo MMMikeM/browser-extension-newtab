@@ -1,2 +1,6 @@
+onlyBuiltDependencies:
+  - esbuild
+  - msw
+
 patchedDependencies:
   "@legendapp/state@3.0.0-beta.46": patches/@legendapp__state@3.0.0-beta.46.patch
