@@ -2,6 +2,7 @@
   "name": "newtab-todo",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.0.0-beta.6",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
