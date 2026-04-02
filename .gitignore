@@ -8,3 +8,4 @@ dist/
 !.env.example
 .data/
 src/routeTree.gen.ts
+screenshot.png
