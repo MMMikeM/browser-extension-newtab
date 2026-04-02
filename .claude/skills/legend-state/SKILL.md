@@ -1,6 +1,6 @@
 ---
 name: legend-state
-description: Work with Legend State — local-first reactive state with persistence, sync, and CRUD operations.
+description: Work with Legend State — local-first reactive state with persistence, sync, and CRUD operations. IMPORTANT — invoke this skill BEFORE writing ANY Legend State code, even simple observable reads or store modifications. This includes creating observables, using syncedCrud, configuring persistence plugins, writing useValue/observe calls, or modifying sync infrastructure. The v3 beta API differs significantly from v2 — guessing will produce broken code. Read the skill first, write code second.
 argument-hint: "[task description]"
 ---
 

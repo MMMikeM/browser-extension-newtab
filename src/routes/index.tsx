@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
+import { useDroppable } from "@dnd-kit/react";
 import { generateKeyBetween } from "fractional-indexing";
 import { useValue } from "@legendapp/state/react";
 import {
@@ -14,6 +15,7 @@ import {
   useDeleteCategory,
 } from "~/lib/hooks";
 import { tasks$ } from "~/lib/stores";
+import { addTask } from "~/lib/add-task";
 import { activeCategoryId$, setActiveCategoryId } from "~/lib/active-category";
 import { currentUserId$ } from "~/lib/current-user";
 import type { Task } from "~/rpc/tasks";
@@ -38,6 +40,8 @@ export const Route = createFileRoute("/")({
   component: TaskListView,
 });
 
+const CATEGORY_DROP_PREFIX = "category-drop-";
+
 function SortableCategoryTab({
   id,
   index,
@@ -47,8 +51,25 @@ function SortableCategoryTab({
   index: number;
   children: (ref: React.RefCallback<HTMLElement>) => React.ReactNode;
 }) {
-  const { ref } = useSortable({ id, index });
+  const { ref } = useSortable({ id, index, type: "category" });
   return <>{children(ref)}</>;
+}
+
+function DroppableCategoryTab({
+  categoryId,
+  activeCategoryId,
+  children,
+}: {
+  categoryId: string;
+  activeCategoryId: string | null;
+  children: (ref: React.RefCallback<HTMLElement>, isDropTarget: boolean) => React.ReactNode;
+}) {
+  const { ref, isDropTarget } = useDroppable({
+    id: `${CATEGORY_DROP_PREFIX}${categoryId}`,
+    accept: "task",
+    disabled: categoryId === activeCategoryId,
+  });
+  return <>{children(ref, isDropTarget)}</>;
 }
 
 function CategoryTabs({
@@ -59,7 +80,6 @@ function CategoryTabs({
   onRename,
   onSetColor,
   onDeleteCategory,
-  onReorder,
 }: {
   categories: Category[];
   activeCategoryId: string | null;
@@ -68,7 +88,6 @@ function CategoryTabs({
   onRename: (id: string, name: string) => void;
   onSetColor: (id: string, color: string | null) => void;
   onDeleteCategory: (id: string) => void;
-  onReorder: (catId: string, newIndex: number, cats: Category[]) => void;
 }) {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
@@ -87,144 +106,143 @@ function CategoryTabs({
   };
 
   return (
-    <DragDropProvider
-      onDragEnd={(event) => {
-        if (!isSortableOperation(event.operation)) return;
-        const { source } = event.operation;
-        if (!source || source.initialIndex === source.index) return;
-        onReorder(String(source.id), source.index, categories);
-      }}
-    >
-      <div className="mb-2 flex items-center gap-1">
-        {categories.map((cat, index) => {
-          const isActive = activeCategoryId === cat.id;
-          const color = cat.color ?? undefined;
+    <div className="mb-2 flex items-center gap-1">
+      {categories.map((cat, index) => {
+        const isActive = activeCategoryId === cat.id;
+        const color = cat.color ?? undefined;
 
-          if (renamingId === cat.id) {
-            return (
-              <form
-                key={cat.id}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  submitRename();
-                }}
-              >
-                <Input
-                  ref={renameRef}
-                  type="text"
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  className="h-7 w-24 text-xs"
-                  onBlur={submitRename}
-                />
-              </form>
-            );
-          }
-
+        if (renamingId === cat.id) {
           return (
-            <SortableCategoryTab key={cat.id} id={cat.id} index={index}>
-              {(sortableRef) => (
-              <ContextMenu>
-                <ContextMenuTrigger
-                  render={
-                    <button
-                      ref={sortableRef}
-                      onClick={() => onSelect(cat.id)}
-                      className={cn(
-                        "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                        isActive
-                          ? color
-                            ? "text-white"
-                            : "bg-primary text-primary-foreground"
-                          : color
-                            ? "hover:bg-muted"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      )}
-                      style={
-                        color
-                          ? isActive
-                            ? { backgroundColor: color }
-                            : { color }
-                          : undefined
-                      }
-                    />
-                  }
-                >
-                  {cat.name}
-                </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuItem
-                onClick={() => {
-                  setRenamingId(cat.id);
-                  setRenameValue(cat.name);
-                }}
-              >
-                Rename
-              </ContextMenuItem>
-              <ContextMenuSub>
-                <ContextMenuSubTrigger>Color</ContextMenuSubTrigger>
-                <ContextMenuSubContent>
-                  <div className="grid grid-cols-4 gap-1 p-1">
-                    {CATEGORY_COLORS.map((c) => (
-                      <button
-                        key={c.name}
-                        onClick={() => onSetColor(cat.id, c.value)}
-                        className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
-                        style={{ backgroundColor: c.value }}
-                        title={c.name}
-                      />
-                    ))}
-                  </div>
-                  <ContextMenuSeparator />
-                  <ContextMenuItem onClick={() => onSetColor(cat.id, null)}>
-                    None
-                  </ContextMenuItem>
-                </ContextMenuSubContent>
-              </ContextMenuSub>
-              <ContextMenuSeparator />
-              <ContextMenuItem variant="destructive" onClick={() => onDeleteCategory(cat.id)}>
-                Delete
-              </ContextMenuItem>
-              </ContextMenuContent>
-              </ContextMenu>
-              )}
-            </SortableCategoryTab>
+            <form
+              key={cat.id}
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitRename();
+              }}
+            >
+              <Input
+                ref={renameRef}
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="h-7 w-24 text-xs"
+                onBlur={submitRename}
+              />
+            </form>
           );
-      })}
-      {adding ? (
-        <form
-          className="flex items-center gap-1"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const name = newName.trim();
-            if (!name) return;
-            onAdd(name);
-            setNewName("");
-            setAdding(false);
+        }
+
+        return (
+          <SortableCategoryTab key={cat.id} id={cat.id} index={index}>
+            {(sortableRef) => (
+            <DroppableCategoryTab categoryId={cat.id} activeCategoryId={activeCategoryId}>
+              {(droppableRef, isDropTarget) => (
+            <ContextMenu>
+              <ContextMenuTrigger
+                render={
+                  <button
+                    ref={(el) => {
+                      sortableRef(el);
+                      droppableRef(el);
+                    }}
+                    onClick={() => onSelect(cat.id)}
+                    className={cn(
+                      "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? color
+                          ? "text-white"
+                          : "bg-primary text-primary-foreground"
+                        : color
+                          ? "hover:bg-muted"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isDropTarget && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                    )}
+                    style={
+                      color
+                        ? isActive
+                          ? { backgroundColor: color }
+                          : { color }
+                        : undefined
+                    }
+                  />
+                }
+              >
+                {cat.name}
+              </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem
+              onClick={() => {
+                setRenamingId(cat.id);
+                setRenameValue(cat.name);
+              }}
+            >
+              Rename
+            </ContextMenuItem>
+            <ContextMenuSub>
+              <ContextMenuSubTrigger>Color</ContextMenuSubTrigger>
+              <ContextMenuSubContent>
+                <div className="grid grid-cols-4 gap-1 p-1">
+                  {CATEGORY_COLORS.map((c) => (
+                    <button
+                      key={c.name}
+                      onClick={() => onSetColor(cat.id, c.value)}
+                      className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
+                      style={{ backgroundColor: c.value }}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={() => onSetColor(cat.id, null)}>
+                  None
+                </ContextMenuItem>
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+            <ContextMenuSeparator />
+            <ContextMenuItem variant="destructive" onClick={() => onDeleteCategory(cat.id)}>
+              Delete
+            </ContextMenuItem>
+            </ContextMenuContent>
+            </ContextMenu>
+              )}
+            </DroppableCategoryTab>
+            )}
+          </SortableCategoryTab>
+        );
+    })}
+    {adding ? (
+      <form
+        className="flex items-center gap-1"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const name = newName.trim();
+          if (!name) return;
+          onAdd(name);
+          setNewName("");
+          setAdding(false);
+        }}
+      >
+        <Input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Name..."
+          className="h-7 w-24 text-xs"
+          autoFocus
+          onBlur={() => {
+            if (!newName.trim()) setAdding(false);
           }}
-        >
-          <Input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Name..."
-            className="h-7 w-24 text-xs"
-            autoFocus
-            onBlur={() => {
-              if (!newName.trim()) setAdding(false);
-            }}
-          />
-        </form>
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground/40 transition-colors hover:text-muted-foreground"
-        >
-          +
-        </button>
-      )}
-      </div>
-    </DragDropProvider>
+        />
+      </form>
+    ) : (
+      <button
+        onClick={() => setAdding(true)}
+        className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground/40 transition-colors hover:text-muted-foreground"
+      >
+        +
+      </button>
+    )}
+    </div>
   );
 }
 
@@ -282,8 +300,9 @@ function TaskListView() {
     }
   }, [categories, activeCategoryId]);
 
-  const categoryTasks = allTasks.filter((t) =>
-    activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId,
+  const categoryTasks = allTasks.filter(
+    (t) =>
+      !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
   );
 
   const activeTasks = categoryTasks.filter((t) => t.status !== "done");
@@ -296,18 +315,24 @@ function TaskListView() {
     ? allTasks.find((t) => t.id === selectedTaskId) ?? null
     : null;
 
-  const handleToggle = (task: Task) =>
-    updateTask.mutate({
-      data: {
-        id: task.id,
-        status: task.status === "done" ? "todo" : "done",
-      },
-    });
+  const handleToggle = (task: Task) => {
+    const newStatus = task.status === "done" ? "todo" : "done";
+    updateTask.mutate({ data: { id: task.id, status: newStatus } });
+    if (newStatus === "done") {
+      const subtasks = allTasks.filter((t) => t.parentId === task.id && t.status !== "done");
+      for (const sub of subtasks) {
+        updateTask.mutate({ data: { id: sub.id, status: "done" } });
+      }
+    }
+  };
 
   const handleDelete = (id: string) => deleteTask.mutate({ data: { id } });
 
   const handleSetDueDate = (id: string, date: string | null) =>
     updateTask.mutate({ data: { id, dueDate: date } });
+
+  const handleAddSubtask = (title: string, parentId: string) =>
+    addTask(title, null, parentId);
 
   const handleReorder = useCallback(
     (taskId: string, newIndex: number, groupTasks: Task[]) => {
@@ -357,8 +382,38 @@ function TaskListView() {
     setActiveCategoryId(remaining.length > 0 ? remaining[0].id : null);
   };
 
+  const handleDragEnd = useCallback(
+    (event: Parameters<NonNullable<React.ComponentProps<typeof DragDropProvider>["onDragEnd"]>>[0]) => {
+      if (event.canceled) return;
+
+      const { target } = event.operation;
+
+      // Task dropped on a category tab
+      if (target && typeof target.id === "string" && target.id.startsWith(CATEGORY_DROP_PREFIX)) {
+        const targetCategoryId = target.id.slice(CATEGORY_DROP_PREFIX.length);
+        const taskId = String(event.operation.source?.id);
+        if (targetCategoryId !== activeCategoryId) {
+          updateTask.mutate({ data: { id: taskId, categoryId: targetCategoryId } });
+        }
+        return;
+      }
+
+      // Sortable reorder (tasks or categories)
+      if (isSortableOperation(event.operation)) {
+        const { source } = event.operation;
+        if (!source || source.initialIndex === source.index) return;
+        if (source.type === "category") {
+          handleReorderCategory(String(source.id), source.index, categories);
+        } else {
+          handleReorder(String(source.id), source.index, activeTasks);
+        }
+      }
+    },
+    [activeCategoryId, activeTasks, categories, updateTask, handleReorder, handleReorderCategory],
+  );
+
   return (
-    <>
+    <DragDropProvider onDragEnd={handleDragEnd}>
       <CategoryTabs
         categories={categories}
         activeCategoryId={activeCategoryId}
@@ -367,7 +422,6 @@ function TaskListView() {
         onRename={handleRenameCategory}
         onSetColor={handleSetCategoryColor}
         onDeleteCategory={handleDeleteCategory}
-        onReorder={handleReorderCategory}
       />
       <div className="flex flex-col gap-4">
         {isEmpty ? (
@@ -376,23 +430,16 @@ function TaskListView() {
           </p>
         ) : (
           <>
-            <DragDropProvider
-              onDragEnd={(event) => {
-                if (!isSortableOperation(event.operation)) return;
-                const { source } = event.operation;
-                if (!source || source.initialIndex === source.index) return;
-                handleReorder(String(source.id), source.index, activeTasks);
-              }}
-            >
-              <TaskList
-                tasks={activeTasks}
-                onToggle={handleToggle}
-                onDelete={handleDelete}
-                onOpen={setSelectedTaskId}
-                onSetDueDate={handleSetDueDate}
-                onReorder={handleReorder}
-              />
-            </DragDropProvider>
+            <TaskList
+              tasks={activeTasks}
+              allTasks={allTasks}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
+              onOpen={setSelectedTaskId}
+              onSetDueDate={handleSetDueDate}
+              onAddSubtask={handleAddSubtask}
+              onReorder={handleReorder}
+            />
             {doneTasks.length > 0 && (
               <DoneSection
                 tasks={doneTasks}
@@ -418,6 +465,6 @@ function TaskListView() {
           }
         }}
       />
-    </>
+    </DragDropProvider>
   );
 }

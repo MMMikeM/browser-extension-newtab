@@ -1,6 +1,6 @@
 ---
 name: drizzle
-description: Set up or modify Drizzle ORM schema, migrations, and queries for this project. Use when working with database schema, relations, migrations, or converting raw SQL to Drizzle. This project uses Drizzle v1 beta with Turso/libSQL.
+description: Set up or modify Drizzle ORM schema, migrations, and queries for this project. Use when working with database schema, relations, migrations, or converting raw SQL to Drizzle. This project uses Drizzle v1 beta with Turso/libSQL. IMPORTANT — invoke this skill BEFORE writing ANY Drizzle code, even simple queries or schema changes. This includes adding columns, writing findFirst/findMany calls, creating new repos, defining relations, or writing any db.query/db.insert/db.update/db.delete code. The v1 API has non-obvious differences from v0 that cause type errors if you guess. Read the skill first, write code second.
 argument-hint: "[task description]"
 ---
 
@@ -90,15 +90,27 @@ const findByIds = async (ids: string[]) => {
 
 ### Choose the right API
 
+**Default to the Query API (`db.query`) for all reads.** The Select Builder (`db.select().from()`) exists but should only be used for aggregates, complex JOINs not expressible via relations, or `DISTINCT`. If you reach for `db.select()` for a simple lookup, you're using the wrong API.
+
 | Use Case                         | API                                   |
 | -------------------------------- | ------------------------------------- |
 | Fetching entities with relations | Query API (`db.query.table.*`)        |
-| Simple CRUD                      | Query API                             |
+| Simple CRUD reads                | Query API                             |
+| Single-row lookup by ID/field    | Query API (`findFirst`)               |
 | Simple filtered count            | `db.$count(table, filter)`            |
 | Multiple counts in one query     | Raw SQL with scalar subqueries        |
 | COUNT, SUM, AVG, GROUP BY        | Select Builder (`db.select().from()`) |
 | Complex JOINs not in relations   | Select Builder                        |
 | DISTINCT with JOINs              | `db.selectDistinct()`                 |
+
+```typescript
+// CORRECT — Query API for lookups
+const user = await db.query.users.findFirst({ where: { id: userId } });
+const tasks = await db.query.tasks.findMany({ where: { userId } });
+
+// WRONG — don't use Select Builder for simple reads
+const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+```
 
 ## Implementation rules
 

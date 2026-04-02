@@ -1,6 +1,6 @@
 ---
 name: tanstack-start
-description: Work with TanStack Start features — server functions, routing, SPA mode, middleware, and the execution model. Use when adding/modifying server functions, routes, loaders, or configuring Start behavior. This project uses @tanstack/react-start in SPA mode for a Firefox extension.
+description: Work with TanStack Start features — server functions, routing, SPA mode, middleware, and the execution model. Use when adding/modifying server functions, routes, loaders, or configuring Start behavior. This project uses @tanstack/react-start in SPA mode for a Firefox extension. IMPORTANT — invoke this skill BEFORE writing ANY server function, middleware, or route code. This includes createServerFn, createMiddleware, getRequestHeader, route definitions, or any import from @tanstack/react-start. The package name changed from @tanstack/start and the API has breaking differences — guessing will produce import errors. Read the skill first, write code second.
 argument-hint: "[task description]"
 ---
 
