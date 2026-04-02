@@ -1,13 +1,13 @@
 FROM node:24-slim AS base
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN corepack enable
+RUN corepack enable && corepack install -g pnpm@11.0.0-beta.6
 
 FROM base AS build
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY patches/ patches/
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+    pnpm ci
 COPY . .
 ARG SERVER_URL
 ENV SERVER_URL=${SERVER_URL}
