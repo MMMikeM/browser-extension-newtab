@@ -4,6 +4,7 @@
 
 - **Never commit without explicit user permission.** Always ask before committing.
 - **Always invoke the relevant skill before writing code that touches its domain.** Don't write Drizzle queries without invoking the drizzle skill. Don't write Legend State code without invoking the legend-state skill. Don't write TanStack Start server functions without invoking the tanstack-start skill. No exceptions — read the reference first, then write code.
+- **Use static imports by default.** Dynamic `import()` is only acceptable when explicitly needed (e.g., breaking circular deps, lazy-loading heavy modules for prerender safety). Always add a comment explaining why.
 
 ## Sync rules
 
