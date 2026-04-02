@@ -18,7 +18,7 @@ await page.evaluate((token) => {
 
 // Reload so the app picks up the token and syncs
 await page.reload({ waitUntil: "domcontentloaded" });
-await page.waitForTimeout(2000);
+await page.waitForTimeout(3000);
 
 await page.screenshot({ path: OUT, fullPage: false });
 await browser.close();
