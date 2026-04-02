@@ -4,6 +4,28 @@ import { sqliteTable } from "drizzle-orm/sqlite-core";
 import { pk, string, nullableString, oneOf, fk, nullableFk, createdAt, updatedAt } from "./columns";
 import { isoDatetime } from "~/lib/utils";
 
+// --- Categories ---
+
+export const categories = sqliteTable("categories", {
+  id: pk(),
+  userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
+  name: string("name"),
+  color: nullableString("color"),
+  sortOrder: nullableString("sort_order"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const categorySelectSchema = createSelectSchema(categories).pick({ id: true });
+export const categoryInsertSchema = createInsertSchema(categories, { createdAt: isoDatetime })
+  .omit({ updatedAt: true })
+  .required({ id: true, createdAt: true })
+  .strict();
+export const categoryUpdateSchema = createUpdateSchema(categories, { updatedAt: isoDatetime })
+  .required({ id: true, updatedAt: true })
+  .omit({ createdAt: true })
+  .strict();
+
 // --- Tasks ---
 
 export const taskStatuses = ["todo", "in_progress", "done"] as const;
@@ -11,9 +33,11 @@ export const taskStatuses = ["todo", "in_progress", "done"] as const;
 export const tasks = sqliteTable("tasks", {
   id: pk(),
   userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
+  categoryId: nullableFk("category_id", () => categories.id, { onDelete: "set null" }),
   title: string("title"),
   description: nullableString("description"),
   status: oneOf("status", taskStatuses).default("todo"),
+  dueDate: nullableString("due_date"),
   sortOrder: nullableString("sort_order"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -84,26 +108,41 @@ export const pushSubscriptions = sqliteTable("push_subscriptions", {
 
 // --- Relations ---
 
-export const relations = defineRelations({ tasks, users, notes, pushSubscriptions }, (r) => ({
-  users: {
-    tasks: r.many.tasks(),
-    notes: r.many.notes(),
-  },
-  tasks: {
-    user: r.one.users({
-      from: r.tasks.userId,
-      to: r.users.id,
-    }),
-    notes: r.many.notes(),
-  },
-  notes: {
-    user: r.one.users({
-      from: r.notes.userId,
-      to: r.users.id,
-    }),
-    task: r.one.tasks({
-      from: r.notes.taskId,
-      to: r.tasks.id,
-    }),
-  },
-}));
+export const relations = defineRelations(
+  { tasks, users, notes, categories, pushSubscriptions },
+  (r) => ({
+    users: {
+      tasks: r.many.tasks(),
+      notes: r.many.notes(),
+      categories: r.many.categories(),
+    },
+    categories: {
+      user: r.one.users({
+        from: r.categories.userId,
+        to: r.users.id,
+      }),
+      tasks: r.many.tasks(),
+    },
+    tasks: {
+      user: r.one.users({
+        from: r.tasks.userId,
+        to: r.users.id,
+      }),
+      category: r.one.categories({
+        from: r.tasks.categoryId,
+        to: r.categories.id,
+      }),
+      notes: r.many.notes(),
+    },
+    notes: {
+      user: r.one.users({
+        from: r.notes.userId,
+        to: r.users.id,
+      }),
+      task: r.one.tasks({
+        from: r.notes.taskId,
+        to: r.tasks.id,
+      }),
+    },
+  }),
+);
