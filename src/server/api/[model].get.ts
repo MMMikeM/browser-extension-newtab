@@ -1,14 +1,12 @@
 import { defineHandler, getRouterParam } from "h3";
-import { extractToken, validateToken } from "../auth";
+import { extractToken, validateSession } from "../auth";
 import categoryRepo from "../db/category.repo";
 import taskRepo from "../db/task.repo";
-import userRepo from "../db/user.repo";
 import noteRepo from "../db/note.repo";
 
-const repos: Record<string, { list: () => Promise<unknown[]> }> = {
+const repos: Record<string, { list: (userId: string) => Promise<unknown[]> }> = {
   categories: categoryRepo,
   tasks: taskRepo,
-  users: userRepo,
   notes: noteRepo,
 };
 
@@ -20,11 +18,12 @@ export default defineHandler(async (event) => {
   const token = extractToken(event.req);
   if (!token) return new Response("Unauthorized", { status: 401 });
 
+  let userId: string;
   try {
-    validateToken(token);
+    userId = await validateSession(token);
   } catch {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  return repo.list();
+  return repo.list(userId);
 });
