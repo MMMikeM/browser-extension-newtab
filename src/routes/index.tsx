@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { DragDropProvider } from "@dnd-kit/react";
-import { useSortable } from "@dnd-kit/react/sortable";
+import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import { generateKeyBetween } from "fractional-indexing";
 import { useValue } from "@legendapp/state/react";
 import {
@@ -89,15 +89,13 @@ function CategoryTabs({
   return (
     <DragDropProvider
       onDragEnd={(event) => {
-        const { source, target } = event.operation;
-        if (!source || !target || source.id === target.id) return;
-        const oldIndex = categories.findIndex((c) => c.id === source.id);
-        const newIndex = categories.findIndex((c) => c.id === target.id);
-        if (oldIndex === -1 || newIndex === -1) return;
-        onReorder(categories[oldIndex].id, newIndex, categories);
+        if (!isSortableOperation(event.operation)) return;
+        const { source } = event.operation;
+        if (!source || source.initialIndex === source.index) return;
+        onReorder(String(source.id), source.index, categories);
       }}
     >
-      <div className="mb-4 flex items-center gap-1">
+      <div className="mb-2 flex items-center gap-1">
         {categories.map((cat, index) => {
           const isActive = activeCategoryId === cat.id;
           const color = cat.color ?? undefined;
