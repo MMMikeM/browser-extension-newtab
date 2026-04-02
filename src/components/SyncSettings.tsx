@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useValue } from "@legendapp/state/react";
 import { authToken$ } from "~/lib/auth-token";
+import { currentUserId$, setCurrentUserId } from "~/lib/current-user";
+import { useUsers, useAddUser } from "~/lib/hooks";
 import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -39,8 +41,14 @@ const clearAuthToken = () => {
 
 export function SyncSettings() {
   const token = useValue(authToken$);
+  const userId = useValue(currentUserId$);
+  const { data: usersList } = useUsers();
+  const { add: addUser } = useAddUser();
+  const currentUser = userId ? usersList.find((u) => u.id === userId) : null;
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [pushEnabled, setPushEnabled] = useState(false);
 
   useEffect(() => {
@@ -117,6 +125,47 @@ export function SyncSettings() {
         >
           {pushEnabled ? "✓ Background sync enabled" : "Enable background sync"}
         </button>
+      )}
+      {token && !currentUser && (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">Set up your user:</span>
+          <div className="flex items-center gap-2">
+            <Input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Name"
+              className="h-7 w-32 text-xs"
+            />
+            <Input
+              type="email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              placeholder="Email"
+              className="h-7 w-40 text-xs"
+            />
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => {
+                const name = userName.trim();
+                const email = userEmail.trim();
+                if (!name || !email) return;
+                const { id } = addUser({ name, email, avatarUrl: null });
+                setCurrentUserId(id);
+                setUserName("");
+                setUserEmail("");
+              }}
+            >
+              Create
+            </Button>
+          </div>
+        </div>
+      )}
+      {currentUser && (
+        <span className="text-xs text-muted-foreground">
+          User: {currentUser.name} ({currentUser.email})
+        </span>
       )}
     </div>
   );
