@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { noteSelectSchema, noteInsertSchema, noteUpdateSchema } from "~/server/db/schema";
+import { noteSelectSchema, noteInsertSchema, noteUpdateSchema } from "~/server/db/note.repo";
 import { authMiddleware } from "~/lib/middleware";
 import { notifyAll } from "./notify";
 import noteRepo from "~/server/db/note.repo";
@@ -9,7 +9,7 @@ export type Note = NoteSelect;
 
 export const getNotes = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
-  .handler(async () => noteRepo.list());
+  .handler(async ({ context }) => noteRepo.list(context.userId));
 
 export const createNote = createServerFn({ method: "POST" })
   .middleware([authMiddleware])

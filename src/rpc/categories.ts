@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { categorySelectSchema, categoryInsertSchema, categoryUpdateSchema } from "~/server/db/schema";
+import { categorySelectSchema, categoryInsertSchema, categoryUpdateSchema } from "~/server/db/category.repo";
 import { authMiddleware } from "~/lib/middleware";
 import { notifyAll } from "./notify";
 import categoryRepo from "~/server/db/category.repo";
@@ -9,7 +9,7 @@ export type Category = CategorySelect;
 
 export const getCategories = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
-  .handler(async () => categoryRepo.list());
+  .handler(async ({ context }) => categoryRepo.list(context.userId));
 
 export const createCategory = createServerFn({ method: "POST" })
   .middleware([authMiddleware])

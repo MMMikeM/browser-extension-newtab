@@ -1,8 +1,7 @@
 import { defineRelations } from "drizzle-orm";
-import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { sqliteTable } from "drizzle-orm/sqlite-core";
+import { text } from "drizzle-orm/sqlite-core";
 import { pk, string, nullableString, oneOf, fk, nullableFk, createdAt, updatedAt } from "./columns";
-import { isoDatetime } from "~/lib/utils";
 
 // --- Categories ---
 
@@ -16,16 +15,6 @@ export const categories = sqliteTable("categories", {
   updatedAt: updatedAt(),
 });
 
-export const categorySelectSchema = createSelectSchema(categories).pick({ id: true });
-export const categoryInsertSchema = createInsertSchema(categories, { createdAt: isoDatetime })
-  .omit({ updatedAt: true })
-  .required({ id: true, createdAt: true })
-  .strict();
-export const categoryUpdateSchema = createUpdateSchema(categories, { updatedAt: isoDatetime })
-  .required({ id: true, updatedAt: true })
-  .omit({ createdAt: true })
-  .strict();
-
 // --- Tasks ---
 
 export const taskStatuses = ["todo", "in_progress", "done"] as const;
@@ -34,6 +23,7 @@ export const tasks = sqliteTable("tasks", {
   id: pk(),
   userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
   categoryId: nullableFk("category_id", () => categories.id, { onDelete: "set null" }),
+  parentId: text("parent_id"),
   title: string("title"),
   description: nullableString("description"),
   status: oneOf("status", taskStatuses).default("todo"),
@@ -43,36 +33,26 @@ export const tasks = sqliteTable("tasks", {
   updatedAt: updatedAt(),
 });
 
-export const taskSelectSchema = createSelectSchema(tasks).pick({ id: true });
-export const taskInsertSchema = createInsertSchema(tasks, { createdAt: isoDatetime })
-  .omit({ updatedAt: true })
-  .required({ id: true, createdAt: true })
-  .strict();
-export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDatetime })
-  .required({ id: true, updatedAt: true })
-  .omit({ createdAt: true })
-  .strict();
-
 // --- Users ---
 
 export const users = sqliteTable("users", {
   id: pk(),
   name: string("name"),
-  email: string("email"),
+  username: string("username").unique(),
+  passwordHash: string("password_hash"),
   avatarUrl: nullableString("avatar_url"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
 
-export const userSelectSchema = createSelectSchema(users).pick({ id: true });
-export const userInsertSchema = createInsertSchema(users, { createdAt: isoDatetime })
-  .omit({ updatedAt: true })
-  .required({ id: true, createdAt: true })
-  .strict();
-export const userUpdateSchema = createUpdateSchema(users, { updatedAt: isoDatetime })
-  .required({ id: true, updatedAt: true })
-  .omit({ createdAt: true })
-  .strict();
+// --- Sessions ---
+
+export const sessions = sqliteTable("sessions", {
+  id: pk(),
+  userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
+  expiresAt: string("expires_at"),
+  createdAt: createdAt(),
+});
 
 // --- Notes ---
 
@@ -86,15 +66,18 @@ export const notes = sqliteTable("notes", {
   updatedAt: updatedAt(),
 });
 
-export const noteSelectSchema = createSelectSchema(notes).pick({ id: true });
-export const noteInsertSchema = createInsertSchema(notes, { createdAt: isoDatetime })
-  .omit({ updatedAt: true })
-  .required({ id: true, createdAt: true })
-  .strict();
-export const noteUpdateSchema = createUpdateSchema(notes, { updatedAt: isoDatetime })
-  .required({ id: true, updatedAt: true })
-  .omit({ createdAt: true })
-  .strict();
+// --- Task Shares ---
+
+export const sharePermissions = ["view", "edit"] as const;
+
+export const taskShares = sqliteTable("task_shares", {
+  id: pk(),
+  taskId: fk("task_id", () => tasks.id, { onDelete: "cascade" }),
+  sharedWithUserId: fk("shared_with_user_id", () => users.id, { onDelete: "cascade" }),
+  permission: oneOf("permission", sharePermissions).default("edit"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
 
 // --- Push Subscriptions ---
 
@@ -109,12 +92,20 @@ export const pushSubscriptions = sqliteTable("push_subscriptions", {
 // --- Relations ---
 
 export const relations = defineRelations(
-  { tasks, users, notes, categories, pushSubscriptions },
+  { tasks, users, notes, categories, pushSubscriptions, sessions, taskShares },
   (r) => ({
     users: {
       tasks: r.many.tasks(),
       notes: r.many.notes(),
       categories: r.many.categories(),
+      sessions: r.many.sessions(),
+      sharedTasks: r.many.taskShares(),
+    },
+    sessions: {
+      user: r.one.users({
+        from: r.sessions.userId,
+        to: r.users.id,
+      }),
     },
     categories: {
       user: r.one.users({
@@ -132,7 +123,23 @@ export const relations = defineRelations(
         from: r.tasks.categoryId,
         to: r.categories.id,
       }),
+      parent: r.one.tasks({
+        from: r.tasks.parentId,
+        to: r.tasks.id,
+      }),
+      subtasks: r.many.tasks(),
       notes: r.many.notes(),
+      shares: r.many.taskShares(),
+    },
+    taskShares: {
+      task: r.one.tasks({
+        from: r.taskShares.taskId,
+        to: r.tasks.id,
+      }),
+      sharedWithUser: r.one.users({
+        from: r.taskShares.sharedWithUserId,
+        to: r.users.id,
+      }),
     },
     notes: {
       user: r.one.users({

@@ -1,16 +1,29 @@
 import { and, eq, lt } from "drizzle-orm";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { db } from "./client";
 import { categories } from "./schema";
+import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
+import { isoDatetime } from "~/lib/utils";
 
 export type CategoryInsert = typeof categories.$inferInsert;
 export type CategorySelect = typeof categories.$inferSelect;
 
-const list = async () =>
-  (await db.query.categories.findMany({ orderBy: { sortOrder: "asc", name: "asc" } })) ?? [];
+export const categorySelectSchema = createSelectSchema(categories).pick({ id: true });
+export const categoryInsertSchema = createInsertSchema(categories, { createdAt: isoDatetime })
+  .omit({ updatedAt: true })
+  .required({ id: true, createdAt: true })
+  .strict();
+export const categoryUpdateSchema = createUpdateSchema(categories, { updatedAt: isoDatetime })
+  .required({ id: true, updatedAt: true })
+  .omit({ createdAt: true })
+  .strict();
+
+const list = async (userId: string) =>
+  db.query.categories.findMany({ where: { userId }, orderBy: { sortOrder: "asc", name: "asc" } });
 
 const insert = async (data: CategoryInsert) => {
   const [row] = await db.insert(categories).values(data).returning();
-  if (!row) throw new Error("Insert failed: no row returned");
+  if (!row) throw new InsertFailedError("category");
   return row;
 };
 
@@ -20,13 +33,13 @@ const update = async (id: string, updatedAt: string, fields: Partial<CategoryIns
     .set({ ...fields, updatedAt })
     .where(and(eq(categories.id, id), lt(categories.updatedAt, updatedAt)))
     .returning();
-  if (!row) throw new Error(`Update failed: stale or missing category ${id}`);
+  if (!row) throw new StaleUpdateError("category", id);
   return row;
 };
 
 const remove = async (id: string) => {
   const [row] = await db.delete(categories).where(eq(categories.id, id)).returning();
-  if (!row) throw new Error(`Delete failed: category ${id} not found`);
+  if (!row) throw new NotFoundError("category", id);
   return row;
 };
 
