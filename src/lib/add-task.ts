@@ -3,6 +3,7 @@ import { generateKeyBetween } from "fractional-indexing";
 import { getCurrentUserId } from "~/lib/current-user";
 import { now } from "~/lib/utils";
 import { tasksCollection } from "~/lib/collections";
+import { offline } from "~/lib/offline";
 import type { Task } from "~/lib/types";
 
 const bySortOrder = (a: Task, b: Task) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "");
@@ -22,19 +23,22 @@ export const addTask = (title: string, categoryId?: string | null, parentId?: st
   const sortOrder = generateKeyBetween(lastOrder, null);
 
   const timestamp = now();
-  tasksCollection.insert({
-    id: createId(),
-    userId,
-    categoryId: parentId ? null : (categoryId ?? null),
-    parentId: parentId ?? null,
-    title,
-    status: "todo",
-    description: null,
-    dueDate: null,
-    sortOrder,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    subtasks: [],
-    shares: [],
-  });
+  const tx = offline.createOfflineTransaction({ mutationFnName: "syncTasks" });
+  tx.mutate(() =>
+    tasksCollection.insert({
+      id: createId(),
+      userId,
+      categoryId: parentId ? null : (categoryId ?? null),
+      parentId: parentId ?? null,
+      title,
+      status: "todo",
+      description: null,
+      dueDate: null,
+      sortOrder,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      subtasks: [],
+      shares: [],
+    }),
+  );
 };
