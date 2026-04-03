@@ -4,8 +4,13 @@ import { ensurePushRegistered } from "~/lib/push";
 import { getBuildTarget } from "~/lib/build-target";
 import { SSE_DATA_CHANGED, EVENTS_PATH } from "~/lib/constants";
 import type { MutationEvent } from "~/lib/constants";
+import { createExternalStore } from "~/lib/external-store";
 
 let es: EventSource | null = null;
+
+export type SyncState = "disconnected" | "connecting" | "connected";
+const syncStateStore = createExternalStore<SyncState>("disconnected");
+export const useSyncState = syncStateStore.useStore;
 
 const collectionMap = {
   tasks: tasksCollection,
@@ -62,19 +67,30 @@ const handleSSEData = (data: string) => {
 
 const connectSSE = () => {
   const token = getAuthToken();
-  if (!token) return;
+  if (!token) {
+    syncStateStore.set("disconnected");
+    return;
+  }
 
+  syncStateStore.set("connecting");
   const url = `${EVENTS_PATH}?token=${encodeURIComponent(token)}`;
   es = new EventSource(url);
   es.addEventListener(SSE_DATA_CHANGED, (e: MessageEvent) => {
     handleSSEData(e.data);
   });
-  es.addEventListener("open", refetchAll);
+  es.addEventListener("open", () => {
+    syncStateStore.set("connected");
+    refetchAll();
+  });
+  es.addEventListener("error", () => {
+    syncStateStore.set("connecting");
+  });
 };
 
 const reconnect = () => {
   es?.close();
   es = null;
+  syncStateStore.set("disconnected");
   if (getAuthToken()) {
     connectSSE();
     if (getBuildTarget() === "browser") ensurePushRegistered();

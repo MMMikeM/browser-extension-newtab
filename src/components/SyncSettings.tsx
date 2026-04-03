@@ -9,6 +9,8 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
+import { useSyncState } from "~/lib/sse";
+import { cn } from "~/lib/utils";
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
@@ -46,6 +48,7 @@ const clearAuth = () => {
 export function SyncSettings() {
   const token = useAuthToken();
   const currentUser = useCurrentUser();
+  const syncState = useSyncState();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [serverError, setServerError] = useState<string | null>(null);
@@ -111,6 +114,27 @@ export function SyncSettings() {
   };
 
   if (!open) {
+    if (token) {
+      return (
+        <button
+          onClick={() => setOpen(true)}
+          className="group relative flex items-center"
+          aria-label="Sync settings"
+        >
+          <span
+            className={cn(
+              "size-2 rounded-full transition-colors",
+              syncState === "connected"
+                ? "bg-primary/70"
+                : syncState === "connecting"
+                  ? "bg-amber-500/70 animate-pulse"
+                  : "bg-muted-foreground/30",
+            )}
+          />
+        </button>
+      );
+    }
+
     return (
       <button
         onClick={() => setOpen(true)}
