@@ -25,9 +25,16 @@ jobs:
 
       - name: Extract extension artifact
         run: |
-          img=$(docker images --filter "reference=registry.fly.io/*" -q | head -1)
-          [ -z "$img" ] && img=$(docker images -q | head -1)
-          id=$(docker create "$img")
+          docker build --target build -t hearth-build \
+            --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
+            --build-arg TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }} \
+            --build-arg TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }} \
+            --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }} \
+            --build-arg VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }} \
+            --build-arg VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }} \
+            --build-arg VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }} \
+            .
+          id=$(docker create hearth-build)
           docker cp "$id:/app/.output/extension" ./extension
           docker rm "$id"
 
