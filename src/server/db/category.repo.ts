@@ -3,7 +3,7 @@ import { createInsertSchema, createSelectSchema, createUpdateSchema } from "driz
 import { db } from "./client";
 import { categories } from "./schema";
 import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
-import { isoDatetime } from "~/lib/utils";
+import { isoDatetime } from "./iso";
 
 export type CategoryInsert = typeof categories.$inferInsert;
 export type CategorySelect = typeof categories.$inferSelect;

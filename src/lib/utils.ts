@@ -1,10 +1,8 @@
 import type { VariantProps } from "tailwind-variants";
-import z from "zod/v4";
+import { ISODateString } from "~/server/db/iso";
 export { cn } from "tailwind-variants";
 
-/** Branded ISO 8601 datetime string — validated by Zod, nominal in TypeScript. */
-export const isoDatetime = z.iso.datetime().brand<"iso", "inout">();
-export type ISODateString = z.output<typeof isoDatetime>;
+
 export const now = (): ISODateString => new Date().toISOString() as ISODateString;
 
 /**
