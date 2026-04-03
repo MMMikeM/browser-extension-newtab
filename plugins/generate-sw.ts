@@ -8,13 +8,11 @@ import type { PluginOption } from "vite";
  * Vite plugin: generates the service worker with Workbox precache manifest.
  *
  * Runs in closeBundle of the client environment build — after Vite writes
- * client assets to .output/public/ but before Nitro scans it for its
- * static asset manifest. This ensures sw.js has correct size/etag in
- * Nitro's manifest.
+ * client assets to dist/client/.
  */
 export const generateSW = (): PluginOption => {
   const root = resolve(import.meta.dirname, "..");
-  const outputPublic = join(root, ".output", "public");
+  const outputPublic = join(root, "dist", "client");
   const swSrc = join(root, "src", "sw.ts");
   const manifestSrc = join(root, "public", "manifest.webmanifest");
 

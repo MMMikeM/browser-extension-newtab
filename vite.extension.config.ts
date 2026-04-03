@@ -8,7 +8,7 @@
  * Usage: vite build && vite build -c vite.extension.config.ts
  */
 import { defineConfig, loadEnv } from "vite";
-import { readFileSync, writeFileSync, cpSync, rmSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, cpSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname);
@@ -47,7 +47,7 @@ const assembleExtension = () => {
   // Extract inline scripts for CSP compliance
   let html = readFileSync(join(EXT_OUT, "index.html"), "utf-8");
   let scriptIndex = 0;
-  const inlineScriptRegex = /<script([^>]*)>([^<]+)<\/script>/g;
+  const inlineScriptRegex = /<script([^>]*)>([\s\S]+?)<\/script>/g;
 
   html = html.replace(inlineScriptRegex, (match, attrs: string, content: string) => {
     if (attrs.includes("src=")) return match;
@@ -65,16 +65,6 @@ const assembleExtension = () => {
 
   writeFileSync(join(EXT_OUT, "index.html"), html);
   console.log(`Extension assembled: ${scriptIndex} inline script(s) extracted`);
-
-  // Copy OPFS worker for TanStackDB SQLite WASM persistence
-  const opfsSrc = join(ROOT, "node_modules/@tanstack/browser-db-sqlite-persistence/dist/assets");
-  const opfsDest = join(EXT_OUT, "assets");
-  const workers = readdirSync(opfsSrc).filter((f) => f.startsWith("opfs-worker-") && f.endsWith(".js"));
-  for (const worker of workers) {
-    cpSync(join(opfsSrc, worker), join(opfsDest, worker));
-    console.log(`  Copied OPFS worker: ${worker}`);
-  }
-
   console.log(`Extension built to ${EXT_OUT}`);
 };
 
