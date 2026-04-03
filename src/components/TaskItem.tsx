@@ -3,6 +3,7 @@ import type { Task } from "~/lib/types";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
+import { GripVertical, Plus, X } from "lucide-react";
 
 const formatDueDate = (dateStr: string) => {
   const date = new Date(dateStr + "T00:00:00");
@@ -75,8 +76,8 @@ export function TaskItem({
         )}
       >
         {!isSubtask && (
-          <span className="mt-0.5 flex cursor-grab items-center text-muted-foreground/0 transition-colors group-hover/task:text-muted-foreground/50 active:cursor-grabbing">
-            <div />
+          <span className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost active:cursor-grabbing">
+            <GripVertical size={14} />
           </span>
         )}
         {isSubtask && <span className="w-3.5" />}
@@ -133,21 +134,21 @@ export function TaskItem({
         {onAddSubtask && !isSubtask && !isDone && (
           <button
             onClick={() => setAddingSubtask(true)}
-            className="mt-1 text-muted-foreground/0 transition-colors hover:text-foreground group-hover/task:text-muted-foreground/40"
+            className="mt-1 text-transparent transition-colors hover:text-foreground group-hover/task:text-ghost"
             title="Add subtask"
           >
-            <div />
+            <Plus size={14} />
           </button>
         )}
         <button
           onClick={onDelete}
-          className="mt-1 text-muted-foreground/0 transition-colors hover:text-destructive group-hover/task:text-muted-foreground/40"
+          className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost"
         >
-          <div />
+          <X size={14} />
         </button>
       </div>
       {subtasks && subtasks.length > 0 && (
-        <div className="ml-6 border-l border-foreground/10 pl-2">
+        <div className="ml-6 border-l border-ghost pl-2">
           {subtasks.map((sub) => (
             <TaskItem
               key={sub.id}

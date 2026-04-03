@@ -13,7 +13,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "~/lib/hooks";
-import { tasksCollection } from "~/lib/collections";
+import { tasksCollection, categoriesCollection } from "~/lib/collections";
 import { addTask } from "~/lib/add-task";
 import { useActiveCategoryId, setActiveCategoryId } from "~/lib/active-category";
 import { useCurrentUserId } from "~/lib/current-user";
@@ -35,6 +35,7 @@ const TaskDetail = lazy(() => import("~/components/TaskDetail").then((m) => ({ d
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CATEGORY_COLORS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
+import { ChevronRight, Ellipsis } from "lucide-react";
 import { pushUndo } from "~/lib/undo";
 
 export const Route = createLazyFileRoute("/")({
@@ -156,7 +157,7 @@ function CategoryTabs({
                                   : "bg-primary text-primary-foreground"
                                 : color
                                   ? "hover:bg-muted"
-                                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                                  : "text-hint hover:bg-muted hover:text-foreground",
                               isDropTarget &&
                               "ring-2 ring-primary ring-offset-1 ring-offset-background",
                             )}
@@ -206,18 +207,22 @@ function CategoryTabs({
                         </ContextMenuItem>
                       </ContextMenuContent>
                     </ContextMenu>
-                    {isActive && (
-                      <Popover>
-                        <PopoverTrigger
-                          render={
-                            <button
-                              className="ml-0.5 rounded p-0.5 text-muted-foreground/0 transition-opacity group-hover/cattab:text-muted-foreground/60 hover:text-foreground"
-                              aria-label="Category options"
-                            />
-                          }
-                        >
-                          &#x22EF;
-                        </PopoverTrigger>
+                    <Popover>
+                      <PopoverTrigger
+                        render={
+                          <button
+                            className={cn(
+                              "ml-0.5 rounded p-0.5 transition-opacity",
+                              isActive
+                                ? "text-transparent group-hover/cattab:text-hint hover:text-foreground"
+                                : "invisible",
+                            )}
+                            aria-label="Category options"
+                          />
+                        }
+                      >
+                        <Ellipsis size={14} />
+                      </PopoverTrigger>
                         <PopoverContent>
                           <button
                             className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
@@ -257,7 +262,6 @@ function CategoryTabs({
                           </button>
                         </PopoverContent>
                       </Popover>
-                    )}
                   </div>
                 )}
               </DroppableCategoryTab>
@@ -265,6 +269,11 @@ function CategoryTabs({
           </SortableCategoryTab>
         );
       })}
+      {categories.length === 0 && (
+        <span className="rounded-md px-3 py-1.5 text-sm font-medium text-ghost">
+          Personal
+        </span>
+      )}
       {adding ? (
         <form
           className="flex items-center gap-1"
@@ -292,7 +301,7 @@ function CategoryTabs({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground/40 transition-colors hover:text-muted-foreground"
+          className="rounded-md px-2.5 py-1.5 text-sm text-hint transition-colors hover:text-muted-foreground"
         >
           +
         </button>
@@ -320,20 +329,11 @@ function DoneSection({
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
       >
-        <svg
-          width={14}
-          height={14}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <ChevronRight
+          size={14}
           className="transition-transform"
           style={{ transform: open ? "rotate(90deg)" : "none" }}
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
+        />
         Done ({tasks.length})
       </button>
       {open && (
@@ -348,23 +348,23 @@ function DoneSection({
 function FirstRunState() {
   return (
     <div className="flex flex-col gap-4 py-8">
-      <div className="flex flex-col gap-1 opacity-20">
+      <div className="flex flex-col gap-1 text-ghost">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="size-4 rounded-[6px] border border-muted-foreground/40" />
+          <div className="size-4 rounded-[6px] border border-ghost" />
           <span className="font-medium">Buy milk</span>
-          <span className="ml-auto text-xs text-date">Tomorrow</span>
+          <span className="ml-auto text-xs">Tomorrow</span>
         </div>
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="size-4 rounded-[6px] border border-muted-foreground/40" />
+          <div className="size-4 rounded-[6px] border border-ghost" />
           <span className="font-medium">Weekend project</span>
-          <span className="ml-auto text-xs text-muted-foreground">2 subtasks</span>
+          <span className="ml-auto text-xs">2 subtasks</span>
         </div>
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="size-4 rounded-[6px] border border-muted-foreground/40" />
+          <div className="size-4 rounded-[6px] border border-ghost" />
           <span className="font-medium">Call the dentist</span>
         </div>
       </div>
-      <p className="text-center text-sm text-muted-foreground/40">
+      <p className="text-center text-sm text-hint">
         What needs doing?
       </p>
     </div>
@@ -473,12 +473,27 @@ function TaskListView() {
     updateCategory(id, { color });
 
   const handleDeleteCategory = (id: string) => {
-    for (const task of tasksCollection.state?.values() ?? []) {
-      if (task.categoryId === id) updateTask(task.id, { categoryId: null });
+    const cat = categories.find((c) => c.id === id);
+    const affectedTaskIds = [...(tasksCollection.state?.values() ?? [])]
+      .filter((t) => t.categoryId === id)
+      .map((t) => t.id);
+
+    for (const tid of affectedTaskIds) {
+      updateTask(tid, { categoryId: null });
     }
     deleteCategory(id);
     const remaining = categories.filter((c) => c.id !== id);
     setActiveCategoryId(remaining.length > 0 ? remaining[0].id : null);
+
+    if (cat) {
+      pushUndo("Category deleted", () => {
+        categoriesCollection.insert(cat);
+        for (const tid of affectedTaskIds) {
+          updateTask(tid, { categoryId: id });
+        }
+        setActiveCategoryId(id);
+      });
+    }
   };
 
   const handleDragEnd = useCallback(
