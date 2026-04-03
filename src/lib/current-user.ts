@@ -1,4 +1,5 @@
-import { observable } from "@legendapp/state";
+import { useSyncExternalStore } from "react";
+import { createExternalStore } from "~/lib/external-store";
 
 const ID_KEY = "newtab-todo-user-id";
 const INFO_KEY = "newtab-todo-user-info";
@@ -18,21 +19,25 @@ const loadUser = (): CurrentUser | null => {
   return id ? { id, name: "", username: "" } : null;
 };
 
-const stored = loadUser();
+const store = createExternalStore<CurrentUser | null>(loadUser());
 
-export const currentUserId$ = observable<string | null>(stored?.id ?? null);
-export const currentUser$ = observable<CurrentUser | null>(stored);
-
+export const getCurrentUserId = () => store.get()?.id ?? null;
 export const setCurrentUser = (user: CurrentUser) => {
   localStorage.setItem(ID_KEY, user.id);
   localStorage.setItem(INFO_KEY, JSON.stringify(user));
-  currentUserId$.set(user.id);
-  currentUser$.set(user);
+  store.set(user);
 };
 
-export const clearCurrentUserId = () => {
+export const clearCurrentUser = () => {
   localStorage.removeItem(ID_KEY);
   localStorage.removeItem(INFO_KEY);
-  currentUserId$.set(null);
-  currentUser$.set(null);
+  store.set(null);
 };
+
+export const useCurrentUser = store.useStore;
+
+export const useCurrentUserId = () =>
+  useSyncExternalStore(
+    store.subscribe,
+    () => store.get()?.id ?? null,
+  );
