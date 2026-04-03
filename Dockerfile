@@ -9,11 +9,8 @@ COPY patches/ patches/
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm ci
 COPY . .
-ARG SERVER_URL
-ENV SERVER_URL=${SERVER_URL}
-ENV VITE_VAPID_PUBLIC_KEY=BMqPDaTMUgZtFkfOlQdan2gbrl4SRxdO2MD6gRTC2yDcRiY60MjILnCapUQjPAm3C0xpUlH-xh1pT_eMJuFHUV4
-ENV NO_PRERENDER=1
-RUN pnpm build
+ARG SERVER_URL TURSO_DATABASE_URL TURSO_AUTH_TOKEN VITE_VAPID_PUBLIC_KEY VAPID_PRIVATE_KEY VAPID_PUBLIC_KEY VAPID_SUBJECT
+RUN pnpm build && pnpm build:ext
 
 FROM base AS runtime
 WORKDIR /app

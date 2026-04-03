@@ -12,6 +12,24 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - run: flyctl deploy --local-only
+      - run: >
+          flyctl deploy --local-only
+          --build-arg TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }}
+          --build-arg TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
+          --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          --build-arg VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
+          --build-arg VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+          --build-arg VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Extract extension artifact
+        run: |
+          id=$(docker create $(docker images -q | head -1))
+          docker cp "$id:/app/.output/extension" ./extension
+          docker rm "$id"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension
+          path: extension/
