@@ -5,7 +5,6 @@ RUN corepack enable && corepack install -g pnpm@11.0.0-beta.6
 FROM base AS build
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY patches/ patches/
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm ci
 COPY . .
