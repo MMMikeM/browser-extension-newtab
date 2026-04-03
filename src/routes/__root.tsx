@@ -8,9 +8,6 @@ import appCss from "../app.css?url";
 const SyncSettings = lazy(() =>
   import("~/components/SyncSettings").then((m) => ({ default: m.SyncSettings })),
 );
-const TanStackDevtools = lazy(() =>
-  import("@tanstack/react-devtools").then((m) => ({ default: m.TanStackDevtools })),
-);
 
 export const Route = createRootRoute({
   shellComponent: RootShell,
@@ -56,8 +53,10 @@ function RootComponent() {
   }, []);
 
   const handleAddTask = useCallback(async (title: string) => {
-    const [{ addTask }] = await Promise.all([
+    // Dynamic imports: avoids pulling stores → localStorage into the prerendered shell's module graph
+    const [{ addTask }, { activeCategoryId$ }] = await Promise.all([
       import("~/lib/add-task"),
+      import("~/lib/active-category"),
     ]);
     addTask(title, activeCategoryId$.peek());
   }, []);
@@ -76,11 +75,6 @@ function RootComponent() {
       <div className="mt-4 flex flex-col gap-4">
         <Outlet />
       </div>
-      {mounted && (
-        <Suspense>
-          <TanStackDevtools />
-        </Suspense>
-      )}
     </div>
   );
 }
