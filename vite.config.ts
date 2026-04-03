@@ -77,9 +77,7 @@ export default defineConfig(({ mode }) => {
       viteReact(),
       devServer({
         entry: "src/server/app.ts",
-        exclude: [
-          /^(?!\/api\/).+/,
-        ],
+        exclude: [/^(?!\/api\/).+/],
         injectClientScript: false,
       }),
       generateSW(),

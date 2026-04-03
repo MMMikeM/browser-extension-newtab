@@ -15,7 +15,7 @@ export const addTask = (title: string, categoryId?: string | null, parentId?: st
     return;
   }
 
-  const allTasks = [...(tasksCollection.state?.values())];
+  const allTasks = [...tasksCollection.state?.values()];
   const siblings = parentId
     ? allTasks.filter((t) => t.parentId === parentId).sort(bySortOrder)
     : allTasks.filter((t) => !t.parentId).sort(bySortOrder);

@@ -133,113 +133,113 @@ function CategoryTabs({
         return (
           <SortableCategoryTab key={cat.id} id={cat.id} index={index}>
             {(sortableRef) => (
-            <DroppableCategoryTab categoryId={cat.id} activeCategoryId={activeCategoryId}>
-              {(droppableRef, isDropTarget) => (
-            <ContextMenu>
-              <ContextMenuTrigger
-                render={
-                  <button
-                    ref={(el) => {
-                      sortableRef(el);
-                      droppableRef(el);
-                    }}
-                    onClick={() => onSelect(cat.id)}
-                    className={cn(
-                      "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                      isActive
-                        ? color
-                          ? "text-white"
-                          : "bg-primary text-primary-foreground"
-                        : color
-                          ? "hover:bg-muted"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      isDropTarget && "ring-2 ring-primary ring-offset-1 ring-offset-background",
-                    )}
-                    style={
-                      color
-                        ? isActive
-                          ? { backgroundColor: color }
-                          : { color }
-                        : undefined
-                    }
-                  />
-                }
-              >
-                {cat.name}
-              </ContextMenuTrigger>
-          <ContextMenuContent>
-            <ContextMenuItem
-              onClick={() => {
-                setRenamingId(cat.id);
-                setRenameValue(cat.name);
-              }}
-            >
-              Rename
-            </ContextMenuItem>
-            <ContextMenuSub>
-              <ContextMenuSubTrigger>Color</ContextMenuSubTrigger>
-              <ContextMenuSubContent>
-                <div className="grid grid-cols-4 gap-1 p-1">
-                  {CATEGORY_COLORS.map((c) => (
-                    <button
-                      key={c.name}
-                      onClick={() => onSetColor(cat.id, c.value)}
-                      className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
-                      style={{ backgroundColor: c.value }}
-                      title={c.name}
-                    />
-                  ))}
-                </div>
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => onSetColor(cat.id, null)}>
-                  None
-                </ContextMenuItem>
-              </ContextMenuSubContent>
-            </ContextMenuSub>
-            <ContextMenuSeparator />
-            <ContextMenuItem variant="destructive" onClick={() => onDeleteCategory(cat.id)}>
-              Delete
-            </ContextMenuItem>
-            </ContextMenuContent>
-            </ContextMenu>
-              )}
-            </DroppableCategoryTab>
+              <DroppableCategoryTab categoryId={cat.id} activeCategoryId={activeCategoryId}>
+                {(droppableRef, isDropTarget) => (
+                  <ContextMenu>
+                    <ContextMenuTrigger
+                      render={
+                        <button
+                          ref={(el) => {
+                            sortableRef(el);
+                            droppableRef(el);
+                          }}
+                          onClick={() => onSelect(cat.id)}
+                          className={cn(
+                            "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                            isActive
+                              ? color
+                                ? "text-white"
+                                : "bg-primary text-primary-foreground"
+                              : color
+                                ? "hover:bg-muted"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                            isDropTarget &&
+                              "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                          )}
+                          style={
+                            color ? (isActive ? { backgroundColor: color } : { color }) : undefined
+                          }
+                        />
+                      }
+                    >
+                      {cat.name}
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onClick={() => {
+                          setRenamingId(cat.id);
+                          setRenameValue(cat.name);
+                        }}
+                      >
+                        Rename
+                      </ContextMenuItem>
+                      <ContextMenuSub>
+                        <ContextMenuSubTrigger>Color</ContextMenuSubTrigger>
+                        <ContextMenuSubContent>
+                          <div className="grid grid-cols-4 gap-1 p-1">
+                            {CATEGORY_COLORS.map((c) => (
+                              <button
+                                key={c.name}
+                                onClick={() => onSetColor(cat.id, c.value)}
+                                className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
+                                style={{ backgroundColor: c.value }}
+                                title={c.name}
+                              />
+                            ))}
+                          </div>
+                          <ContextMenuSeparator />
+                          <ContextMenuItem onClick={() => onSetColor(cat.id, null)}>
+                            None
+                          </ContextMenuItem>
+                        </ContextMenuSubContent>
+                      </ContextMenuSub>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem
+                        variant="destructive"
+                        onClick={() => onDeleteCategory(cat.id)}
+                      >
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                )}
+              </DroppableCategoryTab>
             )}
           </SortableCategoryTab>
         );
-    })}
-    {adding ? (
-      <form
-        className="flex items-center gap-1"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const name = newName.trim();
-          if (!name) return;
-          onAdd(name);
-          setNewName("");
-          setAdding(false);
-        }}
-      >
-        <Input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Name..."
-          className="h-7 w-24 text-xs"
-          autoFocus
-          onBlur={() => {
-            if (!newName.trim()) setAdding(false);
+      })}
+      {adding ? (
+        <form
+          className="flex items-center gap-1"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const name = newName.trim();
+            if (!name) return;
+            onAdd(name);
+            setNewName("");
+            setAdding(false);
           }}
-        />
-      </form>
-    ) : (
-      <button
-        onClick={() => setAdding(true)}
-        className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground/40 transition-colors hover:text-muted-foreground"
-      >
-        +
-      </button>
-    )}
+        >
+          <Input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Name..."
+            className="h-7 w-24 text-xs"
+            autoFocus
+            onBlur={() => {
+              if (!newName.trim()) setAdding(false);
+            }}
+          />
+        </form>
+      ) : (
+        <button
+          onClick={() => setAdding(true)}
+          className="rounded-md px-2.5 py-1.5 text-sm text-muted-foreground/40 transition-colors hover:text-muted-foreground"
+        >
+          +
+        </button>
+      )}
     </div>
   );
 }
@@ -294,8 +294,7 @@ function TaskListView() {
   }, [categories, activeCategoryId]);
 
   const categoryTasks = allTasks.filter(
-    (t) =>
-      !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
+    (t) => !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
   );
 
   const activeTasks = categoryTasks.filter((t) => t.status !== "done");
@@ -305,7 +304,7 @@ function TaskListView() {
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const selectedTask = selectedTaskId
-    ? allTasks.find((t) => t.id === selectedTaskId) ?? null
+    ? (allTasks.find((t) => t.id === selectedTaskId) ?? null)
     : null;
 
   const handleToggle = (task: Task) => {
@@ -321,21 +320,16 @@ function TaskListView() {
 
   const handleDelete = (id: string) => deleteTask(id);
 
-  const handleSetDueDate = (id: string, date: string | null) =>
-    updateTask(id, { dueDate: date });
+  const handleSetDueDate = (id: string, date: string | null) => updateTask(id, { dueDate: date });
 
-  const handleAddSubtask = (title: string, parentId: string) =>
-    addTask(title, null, parentId);
+  const handleAddSubtask = (title: string, parentId: string) => addTask(title, null, parentId);
 
-  const handleReorder = useCallback(
-    (taskId: string, newIndex: number, groupTasks: Task[]) => {
-      const filtered = groupTasks.filter((t) => t.id !== taskId);
-      const prevOrder = newIndex > 0 ? filtered[newIndex - 1]?.sortOrder ?? null : null;
-      const nextOrder = filtered[newIndex]?.sortOrder ?? null;
-      updateTask(taskId, { sortOrder: generateKeyBetween(prevOrder, nextOrder) });
-    },
-    [],
-  );
+  const handleReorder = useCallback((taskId: string, newIndex: number, groupTasks: Task[]) => {
+    const filtered = groupTasks.filter((t) => t.id !== taskId);
+    const prevOrder = newIndex > 0 ? (filtered[newIndex - 1]?.sortOrder ?? null) : null;
+    const nextOrder = filtered[newIndex]?.sortOrder ?? null;
+    updateTask(taskId, { sortOrder: generateKeyBetween(prevOrder, nextOrder) });
+  }, []);
 
   const handleAddCategory = (name: string) => {
     if (!userId) return;
@@ -343,18 +337,14 @@ function TaskListView() {
     setActiveCategoryId(cat.id);
   };
 
-  const handleReorderCategory = useCallback(
-    (catId: string, newIndex: number, cats: Category[]) => {
-      const filtered = cats.filter((c) => c.id !== catId);
-      const prevOrder = newIndex > 0 ? filtered[newIndex - 1]?.sortOrder ?? null : null;
-      const nextOrder = filtered[newIndex]?.sortOrder ?? null;
-      updateCategory(catId, { sortOrder: generateKeyBetween(prevOrder, nextOrder) });
-    },
-    [],
-  );
+  const handleReorderCategory = useCallback((catId: string, newIndex: number, cats: Category[]) => {
+    const filtered = cats.filter((c) => c.id !== catId);
+    const prevOrder = newIndex > 0 ? (filtered[newIndex - 1]?.sortOrder ?? null) : null;
+    const nextOrder = filtered[newIndex]?.sortOrder ?? null;
+    updateCategory(catId, { sortOrder: generateKeyBetween(prevOrder, nextOrder) });
+  }, []);
 
-  const handleRenameCategory = (id: string, name: string) =>
-    updateCategory(id, { name });
+  const handleRenameCategory = (id: string, name: string) => updateCategory(id, { name });
 
   const handleSetCategoryColor = (id: string, color: string | null) =>
     updateCategory(id, { color });
@@ -369,7 +359,9 @@ function TaskListView() {
   };
 
   const handleDragEnd = useCallback(
-    (event: Parameters<NonNullable<React.ComponentProps<typeof DragDropProvider>["onDragEnd"]>>[0]) => {
+    (
+      event: Parameters<NonNullable<React.ComponentProps<typeof DragDropProvider>["onDragEnd"]>>[0],
+    ) => {
       if (event.canceled) return;
 
       const { target } = event.operation;

@@ -116,11 +116,7 @@ export function TaskItem({
             className={cn(
               "mt-0.5 whitespace-nowrap text-xs",
               onSetDueDate && "cursor-pointer hover:underline",
-              isDone
-                ? "text-muted-foreground"
-                : due.overdue
-                  ? "text-destructive"
-                  : "text-date",
+              isDone ? "text-muted-foreground" : due.overdue ? "text-destructive" : "text-date",
             )}
           >
             {due.label}

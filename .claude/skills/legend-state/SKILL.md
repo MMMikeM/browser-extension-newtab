@@ -109,20 +109,23 @@ export const {
 
 ### Returned hooks
 
-| Hook | Returns | Notes |
-|------|---------|-------|
-| `useList()` | `{ data: T[] }` | Reactive via `useValue`. Sorted if `sort` option provided. |
-| `useAdd()` | `{ add(fields: Partial<T>): T }` | Generates a cuid2 `id` automatically. |
-| `useUpdate()` | `{ mutate({ data: { id, ...fields } }) }` | Calls `store$[id].assign(fields)`. |
-| `useDelete()` | `{ mutate({ data: { id } }) }` | Calls `store$[id].delete()`. |
+| Hook          | Returns                                   | Notes                                                      |
+| ------------- | ----------------------------------------- | ---------------------------------------------------------- |
+| `useList()`   | `{ data: T[] }`                           | Reactive via `useValue`. Sorted if `sort` option provided. |
+| `useAdd()`    | `{ add(fields: Partial<T>): T }`          | Generates a cuid2 `id` automatically.                      |
+| `useUpdate()` | `{ mutate({ data: { id, ...fields } }) }` | Calls `store$[id].assign(fields)`.                         |
+| `useDelete()` | `{ mutate({ data: { id } }) }`            | Calls `store$[id].delete()`.                               |
 
 ### Overriding individual hooks
 
 If a model needs custom logic (e.g., tasks use a dedicated `addTask` function), destructure only the hooks you need and replace the rest:
 
 ```typescript
-const { useList: useTasks, useUpdate: useUpdateTask, useDelete: useDeleteTask } =
-  createModelHooks<Task>(tasks$, { sort: bySortOrder });
+const {
+  useList: useTasks,
+  useUpdate: useUpdateTask,
+  useDelete: useDeleteTask,
+} = createModelHooks<Task>(tasks$, { sort: bySortOrder });
 
 const useAddTask = () => ({ add: addTask }); // custom add logic
 ```

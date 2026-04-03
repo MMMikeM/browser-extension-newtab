@@ -10,7 +10,10 @@ export type NoteSelect = typeof notes.$inferSelect;
 
 export const noteSelectSchema = createSelectSchema(notes).pick({ id: true });
 export const noteResponseSchema = createSelectSchema(notes);
-export const noteInsertSchema = createInsertSchema(notes, { createdAt: isoDatetime, updatedAt: isoDatetime })
+export const noteInsertSchema = createInsertSchema(notes, {
+  createdAt: isoDatetime,
+  updatedAt: isoDatetime,
+})
   .required({ id: true, createdAt: true, updatedAt: true })
   .strict();
 export const noteUpdateSchema = createUpdateSchema(notes, { updatedAt: isoDatetime })

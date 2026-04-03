@@ -13,7 +13,11 @@ export interface CurrentUser {
 const loadUser = (): CurrentUser | null => {
   const raw = localStorage.getItem(INFO_KEY);
   if (raw) {
-    try { return JSON.parse(raw); } catch { /* fall through */ }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      /* fall through */
+    }
   }
   const id = localStorage.getItem(ID_KEY);
   return id ? { id, name: "", username: "" } : null;
@@ -37,7 +41,4 @@ export const clearCurrentUser = () => {
 export const useCurrentUser = store.useStore;
 
 export const useCurrentUserId = () =>
-  useSyncExternalStore(
-    store.subscribe,
-    () => store.get()?.id ?? null,
-  );
+  useSyncExternalStore(store.subscribe, () => store.get()?.id ?? null);

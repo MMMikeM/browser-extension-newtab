@@ -10,7 +10,10 @@ export type CategorySelect = typeof categories.$inferSelect;
 
 export const categorySelectSchema = createSelectSchema(categories).pick({ id: true });
 export const categoryResponseSchema = createSelectSchema(categories);
-export const categoryInsertSchema = createInsertSchema(categories, { createdAt: isoDatetime, updatedAt: isoDatetime })
+export const categoryInsertSchema = createInsertSchema(categories, {
+  createdAt: isoDatetime,
+  updatedAt: isoDatetime,
+})
   .required({ id: true, createdAt: true, updatedAt: true })
   .strict();
 export const categoryUpdateSchema = createUpdateSchema(categories, { updatedAt: isoDatetime })

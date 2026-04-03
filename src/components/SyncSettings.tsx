@@ -57,13 +57,22 @@ export function SyncSettings() {
       try {
         const endpoint = mode === "login" ? client.api.auth.login : client.api.auth.signup;
         const res = await endpoint.$post({
-          json: { username: value.username.trim(), password: value.password, name: value.name.trim() },
+          json: {
+            username: value.username.trim(),
+            password: value.password,
+            name: value.name.trim(),
+          },
         });
         if (!res.ok) {
-          const body = await res.json() as { error?: string };
+          const body = (await res.json()) as { error?: string };
           throw new Error(body.error ?? "Authentication failed");
         }
-        const result = await res.json() as { userId: string; token: string; name: string; username: string };
+        const result = (await res.json()) as {
+          userId: string;
+          token: string;
+          name: string;
+          username: string;
+        };
         persistToken(result.token);
         setCurrentUser({ id: result.userId, name: result.name, username: result.username });
         form.reset();
@@ -158,7 +167,11 @@ export function SyncSettings() {
                 className="h-7 w-48 text-xs"
               />
               {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
-                <span className="text-xs text-destructive">{typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}</span>
+                <span className="text-xs text-destructive">
+                  {typeof field.state.meta.errors[0] === "string"
+                    ? field.state.meta.errors[0]
+                    : field.state.meta.errors[0]?.message}
+                </span>
               )}
             </>
           )}
@@ -176,7 +189,11 @@ export function SyncSettings() {
               className="h-7 w-48 text-xs"
             />
             {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
-              <span className="text-xs text-destructive">{typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}</span>
+              <span className="text-xs text-destructive">
+                {typeof field.state.meta.errors[0] === "string"
+                  ? field.state.meta.errors[0]
+                  : field.state.meta.errors[0]?.message}
+              </span>
             )}
           </>
         )}
@@ -193,7 +210,11 @@ export function SyncSettings() {
               className="h-7 w-48 text-xs"
             />
             {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
-              <span className="text-xs text-destructive">{typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : field.state.meta.errors[0]?.message}</span>
+              <span className="text-xs text-destructive">
+                {typeof field.state.meta.errors[0] === "string"
+                  ? field.state.meta.errors[0]
+                  : field.state.meta.errors[0]?.message}
+              </span>
             )}
           </>
         )}

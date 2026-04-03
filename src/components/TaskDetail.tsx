@@ -39,11 +39,7 @@ export function TaskDetail({
           <DrawerTitle>{task.title}</DrawerTitle>
           <DrawerDescription>Task details</DrawerDescription>
         </DrawerHeader>
-        <TaskDetailContent
-          task={task}
-          onUpdate={onUpdate}
-          onDelete={onDelete}
-        />
+        <TaskDetailContent task={task} onUpdate={onUpdate} onDelete={onDelete} />
       </DrawerContent>
     </Drawer>
   );
@@ -77,9 +73,7 @@ function TaskDetailContent({
       <div className="flex items-center gap-3">
         <Checkbox
           checked={isDone}
-          onCheckedChange={() =>
-            onUpdate({ status: isDone ? "todo" : "done" })
-          }
+          onCheckedChange={() => onUpdate({ status: isDone ? "todo" : "done" })}
         />
         <input
           type="text"
@@ -133,7 +127,9 @@ function TaskDetailContent({
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
 
       {/* Sharing */}
-      {!task.parentId && <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />}
+      {!task.parentId && (
+        <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
+      )}
 
       {/* Notes */}
       <div className="flex flex-col gap-2">
@@ -220,10 +216,18 @@ function AddNoteInput({ taskId }: { taskId: string }) {
   );
 }
 
-function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; subtasks: Task["subtasks"] }) {
+function SubtaskSection({
+  taskId,
+  subtasks: rawSubtasks,
+}: {
+  taskId: string;
+  subtasks: Task["subtasks"];
+}) {
   const [value, setValue] = useState("");
 
-  const subtasks = [...rawSubtasks].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""));
+  const subtasks = [...rawSubtasks].sort((a, b) =>
+    (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""),
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -279,7 +283,15 @@ function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; sub
   );
 }
 
-function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUserId: string; shares: Task["shares"] }) {
+function ShareSection({
+  taskId,
+  taskUserId,
+  shares,
+}: {
+  taskId: string;
+  taskUserId: string;
+  shares: Task["shares"];
+}) {
   const currentUserId = getCurrentUserId();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -290,7 +302,9 @@ function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUser
       if (!trimmed) return;
       setServerError(null);
       try {
-        await client.api.tasks.share.$post({ json: { taskId, username: trimmed, permission: "edit" } });
+        await client.api.tasks.share.$post({
+          json: { taskId, username: trimmed, permission: "edit" },
+        });
         form.reset();
       } catch (err) {
         setServerError(err instanceof Error ? err.message : "Failed to share");
@@ -311,7 +325,9 @@ function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUser
           className="group/share flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
         >
           <span className="flex-1 text-sm">
-            {share.sharedWithUser ? `${share.sharedWithUser.name} (@${share.sharedWithUser.username})` : share.sharedWithUserId}
+            {share.sharedWithUser
+              ? `${share.sharedWithUser.name} (@${share.sharedWithUser.username})`
+              : share.sharedWithUserId}
           </span>
           <span className="text-xs text-muted-foreground">{share.permission}</span>
           {isOwner && (
