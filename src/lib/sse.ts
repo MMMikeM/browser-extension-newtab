@@ -20,23 +20,29 @@ const refetchAll = () => {
 };
 
 const applyMutation = (event: MutationEvent) => {
+  console.log(`[sse] received ${event.model}.${event.action}`, event.data);
   const collection = collectionMap[event.model];
   if (!collection) {
+    console.log("[sse] unknown model, refetching all");
     refetchAll();
     return;
   }
 
   switch (event.action) {
     case "insert":
+      console.log(`[sse] writeUpsert → ${event.model}`);
       collection.utils.writeUpsert(event.data as never);
       break;
     case "update":
+      console.log(`[sse] writeUpdate → ${event.model}`);
       collection.utils.writeUpdate(event.data as never);
       break;
     case "delete":
+      console.log(`[sse] writeDelete → ${event.model}`);
       collection.utils.writeDelete((event.data as { id: string }).id);
       break;
     default:
+      console.log(`[sse] unknown action ${event.action}, refetching all`);
       refetchAll();
   }
 };
