@@ -31,8 +31,10 @@ import {
   ContextMenuSeparator,
 } from "~/components/ui/context-menu";
 import { TaskDetail } from "~/components/TaskDetail";
+import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CATEGORY_COLORS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
+import { pushUndo } from "~/lib/undo";
 
 export const Route = createLazyFileRoute("/")({
   component: TaskListView,
@@ -135,73 +137,127 @@ function CategoryTabs({
             {(sortableRef) => (
               <DroppableCategoryTab categoryId={cat.id} activeCategoryId={activeCategoryId}>
                 {(droppableRef, isDropTarget) => (
-                  <ContextMenu>
-                    <ContextMenuTrigger
-                      render={
-                        <button
-                          ref={(el) => {
-                            sortableRef(el);
-                            droppableRef(el);
+                  <div className="group/cattab flex items-center">
+                    <ContextMenu>
+                      <ContextMenuTrigger
+                        render={
+                          <button
+                            ref={(el) => {
+                              sortableRef(el);
+                              droppableRef(el);
+                            }}
+                            onClick={() => onSelect(cat.id)}
+                            className={cn(
+                              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                              isActive
+                                ? color
+                                  ? "text-white"
+                                  : "bg-primary text-primary-foreground"
+                                : color
+                                  ? "hover:bg-muted"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                              isDropTarget &&
+                              "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                            )}
+                            style={
+                              color ? (isActive ? { backgroundColor: color } : { color }) : undefined
+                            }
+                          />
+                        }
+                      >
+                        {cat.name}
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        <ContextMenuItem
+                          onClick={() => {
+                            setRenamingId(cat.id);
+                            setRenameValue(cat.name);
                           }}
-                          onClick={() => onSelect(cat.id)}
-                          className={cn(
-                            "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                            isActive
-                              ? color
-                                ? "text-white"
-                                : "bg-primary text-primary-foreground"
-                              : color
-                                ? "hover:bg-muted"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                            isDropTarget &&
-                            "ring-2 ring-primary ring-offset-1 ring-offset-background",
-                          )}
-                          style={
-                            color ? (isActive ? { backgroundColor: color } : { color }) : undefined
+                        >
+                          Rename
+                        </ContextMenuItem>
+                        <ContextMenuSub>
+                          <ContextMenuSubTrigger>Color</ContextMenuSubTrigger>
+                          <ContextMenuSubContent>
+                            <div className="grid grid-cols-4 gap-1 p-1">
+                              {CATEGORY_COLORS.map((c) => (
+                                <button
+                                  key={c.name}
+                                  onClick={() => onSetColor(cat.id, c.value)}
+                                  className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
+                                  style={{ backgroundColor: c.value }}
+                                  title={c.name}
+                                />
+                              ))}
+                            </div>
+                            <ContextMenuSeparator />
+                            <ContextMenuItem onClick={() => onSetColor(cat.id, null)}>
+                              None
+                            </ContextMenuItem>
+                          </ContextMenuSubContent>
+                        </ContextMenuSub>
+                        <ContextMenuSeparator />
+                        <ContextMenuItem
+                          variant="destructive"
+                          onClick={() => onDeleteCategory(cat.id)}
+                        >
+                          Delete
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
+                    {isActive && (
+                      <Popover>
+                        <PopoverTrigger
+                          render={
+                            <button
+                              className="ml-0.5 rounded p-0.5 text-muted-foreground/0 transition-opacity group-hover/cattab:text-muted-foreground/60 hover:text-foreground"
+                              aria-label="Category options"
+                            />
                           }
-                        />
-                      }
-                    >
-                      {cat.name}
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() => {
-                          setRenamingId(cat.id);
-                          setRenameValue(cat.name);
-                        }}
-                      >
-                        Rename
-                      </ContextMenuItem>
-                      <ContextMenuSub>
-                        <ContextMenuSubTrigger>Color</ContextMenuSubTrigger>
-                        <ContextMenuSubContent>
-                          <div className="grid grid-cols-4 gap-1 p-1">
-                            {CATEGORY_COLORS.map((c) => (
-                              <button
-                                key={c.name}
-                                onClick={() => onSetColor(cat.id, c.value)}
-                                className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
-                                style={{ backgroundColor: c.value }}
-                                title={c.name}
-                              />
-                            ))}
+                        >
+                          &#x22EF;
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <button
+                            className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                            onClick={() => {
+                              setRenamingId(cat.id);
+                              setRenameValue(cat.name);
+                            }}
+                          >
+                            Rename
+                          </button>
+                          <div className="px-2 py-1.5">
+                            <span className="text-xs text-muted-foreground">Color</span>
+                            <div className="mt-1 grid grid-cols-4 gap-1">
+                              {CATEGORY_COLORS.map((c) => (
+                                <button
+                                  key={c.name}
+                                  onClick={() => onSetColor(cat.id, c.value)}
+                                  className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110"
+                                  style={{ backgroundColor: c.value }}
+                                  title={c.name}
+                                />
+                              ))}
+                            </div>
+                            <button
+                              className="mt-1 text-xs text-muted-foreground hover:text-foreground"
+                              onClick={() => onSetColor(cat.id, null)}
+                            >
+                              None
+                            </button>
                           </div>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem onClick={() => onSetColor(cat.id, null)}>
-                            None
-                          </ContextMenuItem>
-                        </ContextMenuSubContent>
-                      </ContextMenuSub>
-                      <ContextMenuSeparator />
-                      <ContextMenuItem
-                        variant="destructive"
-                        onClick={() => onDeleteCategory(cat.id)}
-                      >
-                        Delete
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
+                          <div className="my-1 h-px bg-border" />
+                          <button
+                            className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                            onClick={() => onDeleteCategory(cat.id)}
+                          >
+                            Delete
+                          </button>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
                 )}
               </DroppableCategoryTab>
             )}
@@ -288,6 +344,32 @@ function DoneSection({
   );
 }
 
+function FirstRunState() {
+  return (
+    <div className="flex flex-col gap-4 py-8">
+      <div className="flex flex-col gap-1 opacity-20">
+        <div className="flex items-center gap-2 px-2 py-2">
+          <div className="size-4 rounded-[6px] border border-muted-foreground/40" />
+          <span className="font-medium">Buy milk</span>
+          <span className="ml-auto text-xs text-date">Tomorrow</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-2">
+          <div className="size-4 rounded-[6px] border border-muted-foreground/40" />
+          <span className="font-medium">Weekend project</span>
+          <span className="ml-auto text-xs text-muted-foreground">2 subtasks</span>
+        </div>
+        <div className="flex items-center gap-2 px-2 py-2">
+          <div className="size-4 rounded-[6px] border border-muted-foreground/40" />
+          <span className="font-medium">Call the dentist</span>
+        </div>
+      </div>
+      <p className="text-center text-sm text-muted-foreground/40">
+        What needs doing?
+      </p>
+    </div>
+  );
+}
+
 function TaskListView() {
   const { data: allTasks = [] } = useTasks();
   console.log("[render] TaskListView, tasks:", allTasks.length);
@@ -332,15 +414,33 @@ function TaskListView() {
   const handleToggle = (task: Task) => {
     const newStatus = task.status === "done" ? "todo" : "done";
     updateTask(task.id, { status: newStatus });
+
     if (newStatus === "done") {
       const subtasks = allTasks.filter((t) => t.parentId === task.id && t.status !== "done");
       for (const sub of subtasks) {
         updateTask(sub.id, { status: "done" });
       }
+      pushUndo("Marked done", () => {
+        updateTask(task.id, { status: "todo" });
+        for (const sub of subtasks) {
+          updateTask(sub.id, { status: "todo" });
+        }
+      });
+    } else {
+      pushUndo("Marked incomplete", () => {
+        updateTask(task.id, { status: "done" });
+      });
     }
   };
 
-  const handleDelete = (id: string) => deleteTask(id);
+  const handleDelete = (id: string) => {
+    const task = allTasks.find((t) => t.id === id);
+    if (!task) return;
+    deleteTask(id);
+    pushUndo("Task deleted", () => {
+      tasksCollection.insert(task);
+    });
+  };
 
   const handleSetDueDate = (id: string, date: string | null) => updateTask(id, { dueDate: date });
 
@@ -440,9 +540,7 @@ function TaskListView() {
       />
       <div className="flex flex-col gap-4">
         {isEmpty ? (
-          <p className="py-16 text-center text-sm text-muted-foreground/70">
-            Nothing here yet. What's on your mind?
-          </p>
+          <FirstRunState />
         ) : (
           <>
             <TaskList
