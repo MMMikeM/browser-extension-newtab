@@ -15,7 +15,7 @@ export function SyncHint({ onSignIn }: { onSignIn: () => void }) {
   if (token || tasks.length === 0 || dismissed) return null;
 
   return (
-    <p className="mt-1 text-xs text-muted-foreground/60">
+    <p className="mt-1 text-xs text-hint">
       Saved on this device.{" "}
       <button
         onClick={onSignIn}
@@ -28,7 +28,7 @@ export function SyncHint({ onSignIn }: { onSignIn: () => void }) {
           localStorage.setItem(DISMISSED_KEY, "1");
           setDismissed(true);
         }}
-        className="text-muted-foreground/40 hover:text-muted-foreground"
+        className="text-ghost hover:text-muted-foreground"
         aria-label="Dismiss"
       >
         &times;

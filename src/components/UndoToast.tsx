@@ -44,14 +44,14 @@ export function UndoToast() {
         </button>
         <button
           onClick={dismissUndo}
-          className="text-muted-foreground/60 hover:text-muted-foreground"
+          className="text-hint hover:text-muted-foreground"
           aria-label="Dismiss"
         >
           &times;
         </button>
       </div>
       <div
-        className="absolute bottom-0 left-0 h-0.5 bg-primary/30 transition-none"
+        className="absolute bottom-0 left-0 h-0.5 bg-ghost transition-none"
         style={{ width: `${progress}%` }}
       />
     </div>

@@ -67,10 +67,10 @@ export function SyncSettings() {
             className={cn(
               "size-2 rounded-full transition-colors",
               syncState === "connected"
-                ? "bg-primary/70"
+                ? "bg-primary"
                 : syncState === "connecting"
-                  ? "bg-amber-500/70 animate-pulse"
-                  : "bg-muted-foreground/30",
+                  ? "bg-amber-500 animate-pulse"
+                  : "bg-ghost",
             )}
           />
         </button>
@@ -94,7 +94,7 @@ export function SyncSettings() {
         <span className="text-xs text-muted-foreground">
           {currentUser.name} (@{currentUser.username})
         </span>
-        <span className="text-xs text-muted-foreground/60">
+        <span className="text-xs text-hint">
           {syncState === "connected"
             ? "Syncing"
             : syncState === "connecting"

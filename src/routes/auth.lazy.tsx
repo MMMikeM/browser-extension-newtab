@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
-import { z } from "zod/v4";
+import { z } from "zod/mini";
 import { setAuthToken } from "~/lib/auth-token";
 import { setCurrentUser } from "~/lib/current-user";
 import { client } from "~/lib/api";
@@ -15,14 +15,14 @@ export const Route = createLazyFileRoute("/auth")({
 });
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  username: z.string().check(z.minLength(1, "Username is required")),
+  password: z.string().check(z.minLength(1, "Password is required")),
 });
 
 const signupSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  name: z.string().min(1, "Name is required"),
+  username: z.string().check(z.minLength(3, "Username must be at least 3 characters")),
+  password: z.string().check(z.minLength(8, "Password must be at least 8 characters")),
+  name: z.string().check(z.minLength(1, "Name is required")),
 });
 
 const persistToken = (token: string) => {
@@ -75,7 +75,7 @@ function AuthView() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="w-full max-w-xs">
-        <h1 className="font-heading mb-1 text-center text-lg font-medium tracking-widest text-foreground/50 uppercase">
+        <h1 className="font-heading mb-1 text-center text-lg font-medium tracking-widest text-hint uppercase">
           Jot
         </h1>
         <p className="mb-8 text-center text-sm text-muted-foreground">
