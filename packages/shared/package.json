@@ -2,13 +2,13 @@
   "name": "@newtab-todo/shared",
   "private": true,
   "type": "module",
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
   "exports": {
     ".": "./src/index.ts",
     "./constants": "./src/constants.ts",
     "./iso": "./src/iso.ts"
+  },
+  "scripts": {
+    "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
     "zod": "^4.3.6"

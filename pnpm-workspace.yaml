@@ -5,3 +5,6 @@ allowBuilds:
   "@journeyapps/wa-sqlite": true
   esbuild: true
   msw: true
+overrides:
+  serialize-javascript@<7.0.5: ">=7.0.5"
+  serialize-javascript@<=7.0.2: ">=7.0.3"
