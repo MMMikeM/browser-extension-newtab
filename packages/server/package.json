@@ -4,7 +4,9 @@
   "type": "module",
   "exports": {
     "./app": "./src/app.ts",
-    "./db/*": "./src/db/*"
+    "./db/task.repo": "./src/db/task.repo.ts",
+    "./db/category.repo": "./src/db/category.repo.ts",
+    "./db/note.repo": "./src/db/note.repo.ts"
   },
   "scripts": {
     "start": "tsx src/index.ts",
