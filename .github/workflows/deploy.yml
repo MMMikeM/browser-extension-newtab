@@ -37,7 +37,7 @@ jobs:
             --build-arg VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }} \
             .
           id=$(docker create hearth-build)
-          docker cp "$id:/app/.output/extension" ./extension
+          docker cp "$id:/app/dist/extension" ./extension
           docker rm "$id"
 
       - uses: actions/upload-artifact@v4

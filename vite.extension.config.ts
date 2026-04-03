@@ -1,20 +1,19 @@
 /**
- * Extension build: bundles background.ts + assembles .output/extension/.
+ * Extension build: bundles background.ts + assembles dist/extension/.
  *
- * Runs after the main build so .output/public/ has all client assets
- * including prerendered HTML.
+ * Runs after the main build so dist/client/ has all client assets.
  *
  * SERVER_URL controls the remote server for background SSE + task sync.
  *
  * Usage: vite build && vite build -c vite.extension.config.ts
  */
 import { defineConfig, loadEnv } from "vite";
-import { readFileSync, writeFileSync, cpSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, cpSync, rmSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname);
-const OUTPUT_PUBLIC = join(ROOT, ".output", "public");
-const EXT_OUT = join(ROOT, ".output", "extension");
+const OUTPUT_PUBLIC = join(ROOT, "dist", "client");
+const EXT_OUT = join(ROOT, "dist", "extension");
 
 const EXTENSION_MANIFEST = {
   manifest_version: 2,
@@ -54,18 +53,8 @@ const assembleExtension = () => {
     if (attrs.includes("src=")) return match;
     if (!content.trim()) return match;
 
-    // Patch TSR manifest: convert inline import() to src attribute
-    const patchedContent = content.replace(
-      /,async:(!0|true)\},children:"import\(\\"([^"]+)\\"\)"\}/g,
-      (_m, asyncVal, importPath) => `,async:${asyncVal},src:"${importPath}"}}`,
-    );
-
-    if (patchedContent !== content) {
-      console.log("  Patched TSR manifest: converted inline import() to src attribute");
-    }
-
     const filename = `_inline-${scriptIndex++}.js`;
-    writeFileSync(join(EXT_OUT, filename), patchedContent);
+    writeFileSync(join(EXT_OUT, filename), content);
 
     const typeMatch = attrs.match(/type="([^"]*)"/);
     const typeAttr = typeMatch ? ` type="${typeMatch[1]}"` : "";
@@ -76,6 +65,16 @@ const assembleExtension = () => {
 
   writeFileSync(join(EXT_OUT, "index.html"), html);
   console.log(`Extension assembled: ${scriptIndex} inline script(s) extracted`);
+
+  // Copy OPFS worker for TanStackDB SQLite WASM persistence
+  const opfsSrc = join(ROOT, "node_modules/@tanstack/browser-db-sqlite-persistence/dist/assets");
+  const opfsDest = join(EXT_OUT, "assets");
+  const workers = readdirSync(opfsSrc).filter((f) => f.startsWith("opfs-worker-") && f.endsWith(".js"));
+  for (const worker of workers) {
+    cpSync(join(opfsSrc, worker), join(opfsDest, worker));
+    console.log(`  Copied OPFS worker: ${worker}`);
+  }
+
   console.log(`Extension built to ${EXT_OUT}`);
 };
 
