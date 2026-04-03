@@ -1,30 +1,27 @@
-import { createMiddleware } from "hono/factory";
+import type { Context } from "hono";
 import { notifyOtherDevices } from "./push";
+import type { MutationEvent, ModelName } from "~/lib/constants";
 
-type SSEWriter = { write: (event: string) => void; close: () => void };
+export type { MutationEvent };
+
+type SSEWriter = { write: (event: string, data: string) => void; close: () => void };
 
 export const sseClients = new Set<SSEWriter>();
 
-const broadcastChange = () => {
+export const notifyMutation = (event: MutationEvent) => {
+  const payload = JSON.stringify(event);
   for (const client of sseClients) {
-    client.write("data-changed");
+    client.write("data-changed", payload);
   }
-};
-
-/** Broadcast to SSE clients + send web push to offline devices. */
-export const notifyAll = () => {
-  broadcastChange();
   notifyOtherDevices().catch(() => {});
 };
 
-const SKIP_NOTIFY = ["/api/auth/", "/api/push/", "/api/events/"];
-
-/** Middleware: calls notifyAll() after successful mutations (POST/PUT/DELETE).
- *  Skips auth, push, and events routes. */
-export const autoNotify = createMiddleware(async (c, next) => {
-  await next();
-  if (SKIP_NOTIFY.some((p) => c.req.path.startsWith(p))) return;
-  if (c.req.method !== "GET" && c.res.status < 300) {
-    notifyAll();
-  }
-});
+/** Broadcast a mutation event, extracting sourceClientId from the request. */
+export const broadcast = (
+  c: Context,
+  model: ModelName,
+  action: MutationEvent["action"],
+  data: object,
+) => {
+  notifyMutation({ model, action, data, sourceClientId: c.req.header("x-client-id") });
+};

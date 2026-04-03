@@ -13,3 +13,13 @@ export const CATEGORY_COLORS = [
 export const EVENTS_PATH = "/api/events";
 export const SSE_DATA_CHANGED = "data-changed";
 export const MSG_TOKEN_CHANGED = "TOKEN_CHANGED";
+
+export const MODEL_NAMES = ["tasks", "categories", "notes"] as const;
+export type ModelName = (typeof MODEL_NAMES)[number];
+
+export type MutationEvent = {
+  model: ModelName;
+  action: "insert" | "update" | "delete";
+  data: object;
+  sourceClientId?: string;
+};

@@ -6,6 +6,7 @@ import noteRepo, {
   noteResponseSchema,
 } from "../db/note.repo";
 import { authed } from "../middleware";
+import { broadcast } from "../broadcast";
 import { jsonBody, jsonContent, withAuth } from "./crud";
 
 export const noteRoutes = authed()
@@ -24,7 +25,11 @@ export const noteRoutes = authed()
       request: jsonBody(noteInsertSchema),
       responses: withAuth({ 200: jsonContent(noteResponseSchema) }),
     }),
-    async (c) => c.json(await noteRepo.insert(c.req.valid("json")), 200),
+    async (c) => {
+      const result = await noteRepo.insert(c.req.valid("json"));
+      broadcast(c, "notes", "insert", result);
+      return c.json(result, 200);
+    },
   )
   .openapi(
     createRoute({
@@ -35,7 +40,9 @@ export const noteRoutes = authed()
     }),
     async (c) => {
       const { id, updatedAt, ...fields } = c.req.valid("json");
-      return c.json(await noteRepo.update(id, updatedAt, fields), 200);
+      const result = await noteRepo.update(id, updatedAt, fields);
+      broadcast(c, "notes", "update", result);
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -45,5 +52,9 @@ export const noteRoutes = authed()
       request: jsonBody(noteSelectSchema),
       responses: withAuth({ 200: jsonContent(noteResponseSchema) }),
     }),
-    async (c) => c.json(await noteRepo.remove(c.req.valid("json").id), 200),
+    async (c) => {
+      const result = await noteRepo.remove(c.req.valid("json").id);
+      broadcast(c, "notes", "delete", { id: result.id });
+      return c.json(result, 200);
+    },
   );

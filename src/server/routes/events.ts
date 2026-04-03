@@ -14,8 +14,8 @@ export const eventsRoute = new Hono().get("/", async (c) => {
 
   return streamSSE(c, async (stream) => {
     const writer = {
-      write: (event: string) => {
-        stream.writeSSE({ event, data: "" }).catch(() => {});
+      write: (event: string, data: string) => {
+        stream.writeSSE({ event, data }).catch(() => {});
       },
       close: () => stream.close(),
     };

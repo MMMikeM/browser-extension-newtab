@@ -1,19 +1,11 @@
-import { TOKEN_KEY, EVENTS_PATH, SSE_DATA_CHANGED, MSG_TOKEN_CHANGED } from "~/lib/constants";
+import { TOKEN_KEY, EVENTS_PATH, SSE_DATA_CHANGED, MSG_TOKEN_CHANGED, MODEL_NAMES } from "~/lib/constants";
 
 declare const __SERVER_URL__: string;
 
-const MODELS = ["tasks", "categories", "notes"] as const;
-
-let syncTimer: ReturnType<typeof setTimeout> | null = null;
-
-const debouncedNotifyTabs = () => {
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    syncTimer = null;
-    for (const model of MODELS) {
-      browser.runtime.sendMessage({ type: `SYNC_${model.toUpperCase()}` }).catch(() => {});
-    }
-  }, 300);
+const notifyTabsFallback = () => {
+  for (const model of MODEL_NAMES) {
+    browser.runtime.sendMessage({ type: `SYNC_${model.toUpperCase()}` }).catch(() => {});
+  }
 };
 
 let eventSource: EventSource | null = null;
@@ -33,14 +25,23 @@ const connect = async () => {
   console.log("[bg-sse] connecting...");
   eventSource = new EventSource(url);
 
-  eventSource.addEventListener(SSE_DATA_CHANGED, () => {
+  eventSource.addEventListener(SSE_DATA_CHANGED, (e: MessageEvent) => {
     console.log("[bg-sse] data-changed event received");
-    debouncedNotifyTabs();
+    if (e.data) {
+      try {
+        const payload = JSON.parse(e.data);
+        browser.runtime.sendMessage({ type: "SSE_MUTATION", payload }).catch(() => {});
+        return;
+      } catch {
+        // fall through to generic notify
+      }
+    }
+    notifyTabsFallback();
   });
 
   eventSource.addEventListener("open", () => {
     console.log("[bg-sse] connected");
-    debouncedNotifyTabs();
+    notifyTabsFallback();
   });
 
   eventSource.onerror = () => {

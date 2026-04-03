@@ -11,6 +11,7 @@ import taskRepo, {
 } from "../db/task.repo";
 import userRepo from "../db/user.repo";
 import { authed } from "../middleware";
+import { broadcast } from "../broadcast";
 import { errorSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent, withAuth } from "./crud";
 
@@ -46,7 +47,10 @@ export const taskRoutes = authed()
         if (parent.parentId)
           return c.json({ error: "Cannot nest subtasks more than one level" }, 400);
       }
-      return c.json(await taskRepo.insert(data), 200);
+      const result = await taskRepo.insert(data);
+      const taskWithRelations = { ...result, subtasks: [], shares: [] };
+      broadcast(c, "tasks", "insert", taskWithRelations);
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -58,7 +62,9 @@ export const taskRoutes = authed()
     }),
     async (c) => {
       const { id, updatedAt, ...fields } = c.req.valid("json");
-      return c.json(await taskRepo.update(id, updatedAt, fields), 200);
+      const result = await taskRepo.update(id, updatedAt, fields);
+      broadcast(c, "tasks", "update", result);
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -68,7 +74,11 @@ export const taskRoutes = authed()
       request: jsonBody(taskSelectSchema),
       responses: withAuth({ 200: jsonContent(taskResponseSchema) }),
     }),
-    async (c) => c.json(await taskRepo.remove(c.req.valid("json").id), 200),
+    async (c) => {
+      const result = await taskRepo.remove(c.req.valid("json").id);
+      broadcast(c, "tasks", "delete", { id: result.id });
+      return c.json(result, 200);
+    },
   )
   .openapi(
     createRoute({
@@ -91,15 +101,14 @@ export const taskRoutes = authed()
       if (task.userId !== userId) return c.json({ error: "Not authorized" }, 403);
       if (targetUser.id === userId) return c.json({ error: "Cannot share with yourself" }, 400);
 
-      return c.json(
-        await taskRepo.insertShare({
-          id: createId(),
-          taskId: data.taskId,
-          sharedWithUserId: targetUser.id,
-          permission: data.permission,
-        }),
-        200,
-      );
+      const result = await taskRepo.insertShare({
+        id: createId(),
+        taskId: data.taskId,
+        sharedWithUserId: targetUser.id,
+        permission: data.permission,
+      });
+      broadcast(c, "tasks", "update", { id: data.taskId });
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -109,5 +118,9 @@ export const taskRoutes = authed()
       request: jsonBody(taskShareSelectSchema),
       responses: withAuth({ 200: jsonContent(taskShareResponseSchema) }),
     }),
-    async (c) => c.json(await taskRepo.removeShare(c.req.valid("json").id), 200),
+    async (c) => {
+      const result = await taskRepo.removeShare(c.req.valid("json").id);
+      broadcast(c, "tasks", "update", { id: result.taskId });
+      return c.json(result, 200);
+    },
   );

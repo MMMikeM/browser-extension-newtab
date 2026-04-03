@@ -6,6 +6,7 @@ import categoryRepo, {
   categoryResponseSchema,
 } from "../db/category.repo";
 import { authed } from "../middleware";
+import { broadcast } from "../broadcast";
 import { jsonBody, jsonContent, withAuth } from "./crud";
 
 export const categoryRoutes = authed()
@@ -24,7 +25,11 @@ export const categoryRoutes = authed()
       request: jsonBody(categoryInsertSchema),
       responses: withAuth({ 200: jsonContent(categoryResponseSchema) }),
     }),
-    async (c) => c.json(await categoryRepo.insert(c.req.valid("json")), 200),
+    async (c) => {
+      const result = await categoryRepo.insert(c.req.valid("json"));
+      broadcast(c, "categories", "insert", result);
+      return c.json(result, 200);
+    },
   )
   .openapi(
     createRoute({
@@ -35,7 +40,9 @@ export const categoryRoutes = authed()
     }),
     async (c) => {
       const { id, updatedAt, ...fields } = c.req.valid("json");
-      return c.json(await categoryRepo.update(id, updatedAt, fields), 200);
+      const result = await categoryRepo.update(id, updatedAt, fields);
+      broadcast(c, "categories", "update", result);
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -45,5 +52,9 @@ export const categoryRoutes = authed()
       request: jsonBody(categorySelectSchema),
       responses: withAuth({ 200: jsonContent(categoryResponseSchema) }),
     }),
-    async (c) => c.json(await categoryRepo.remove(c.req.valid("json").id), 200),
+    async (c) => {
+      const result = await categoryRepo.remove(c.req.valid("json").id);
+      broadcast(c, "categories", "delete", { id: result.id });
+      return c.json(result, 200);
+    },
   );
