@@ -1,0 +1,34 @@
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+
+import { cn } from "~/lib/utils";
+
+function Popover(props: PopoverPrimitive.Root.Props) {
+  return <PopoverPrimitive.Root {...props} />;
+}
+
+function PopoverTrigger(props: PopoverPrimitive.Trigger.Props) {
+  return <PopoverPrimitive.Trigger {...props} />;
+}
+
+function PopoverContent({
+  className,
+  sideOffset = 4,
+  ...props
+}: PopoverPrimitive.Popup.Props & { sideOffset?: number }) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Positioner sideOffset={sideOffset}>
+        <PopoverPrimitive.Popup
+          className={cn(
+            "z-50 min-w-[8rem] rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none",
+            "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity",
+            className,
+          )}
+          {...props}
+        />
+      </PopoverPrimitive.Positioner>
+    </PopoverPrimitive.Portal>
+  );
+}
+
+export { Popover, PopoverTrigger, PopoverContent };
