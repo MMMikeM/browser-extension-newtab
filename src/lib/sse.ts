@@ -2,7 +2,6 @@ import { getAuthToken, subscribeAuthToken } from "~/lib/auth-token";
 import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/collections";
 import { ensurePushRegistered } from "~/lib/push";
 import { getBuildTarget } from "~/lib/build-target";
-import { clientId } from "~/lib/client-id";
 import { SSE_DATA_CHANGED, EVENTS_PATH } from "~/lib/constants";
 import type { MutationEvent } from "~/lib/constants";
 
@@ -21,8 +20,6 @@ const refetchAll = () => {
 };
 
 const applyMutation = (event: MutationEvent) => {
-  if (event.sourceClientId === clientId) return;
-
   const collection = collectionMap[event.model];
   if (!collection) {
     refetchAll();
@@ -31,7 +28,7 @@ const applyMutation = (event: MutationEvent) => {
 
   switch (event.action) {
     case "insert":
-      collection.utils.writeInsert(event.data as never);
+      collection.utils.writeUpsert(event.data as never);
       break;
     case "update":
       collection.utils.writeUpdate(event.data as never);

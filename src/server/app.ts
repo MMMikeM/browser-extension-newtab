@@ -27,7 +27,7 @@ app.use("*", async (c, next) => {
   c.header("Access-Control-Expose-Headers", "*");
 });
 
-app.options("*", () => new Response(null, { status: 204 }));
+app.options("*", (c) => c.body(null, 204));
 
 const api = app
   .route("/api/auth", authRoutes)
