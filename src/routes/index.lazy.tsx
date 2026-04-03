@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { ComponentProps, ReactNode, RefCallback, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createLazyFileRoute } from "@tanstack/react-router";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
@@ -34,7 +34,7 @@ import { TaskDetail } from "~/components/TaskDetail";
 import { CATEGORY_COLORS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
 
-export const Route = createFileRoute("/")({
+export const Route = createLazyFileRoute("/")({
   component: TaskListView,
 });
 
@@ -47,7 +47,7 @@ function SortableCategoryTab({
 }: {
   id: string;
   index: number;
-  children: (ref: React.RefCallback<HTMLElement>) => React.ReactNode;
+  children: (ref: RefCallback<HTMLElement>) => ReactNode;
 }) {
   const { ref } = useSortable({ id, index, type: "category" });
   return <>{children(ref)}</>;
@@ -60,7 +60,7 @@ function DroppableCategoryTab({
 }: {
   categoryId: string;
   activeCategoryId: string | null;
-  children: (ref: React.RefCallback<HTMLElement>, isDropTarget: boolean) => React.ReactNode;
+  children: (ref: RefCallback<HTMLElement>, isDropTarget: boolean) => ReactNode;
 }) {
   const { ref, isDropTarget } = useDroppable({
     id: `${CATEGORY_DROP_PREFIX}${categoryId}`,
@@ -154,7 +154,7 @@ function CategoryTabs({
                                 ? "hover:bg-muted"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
                             isDropTarget &&
-                              "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                            "ring-2 ring-primary ring-offset-1 ring-offset-background",
                           )}
                           style={
                             color ? (isActive ? { backgroundColor: color } : { color }) : undefined
@@ -282,7 +282,12 @@ function DoneSection({
 
 function TaskListView() {
   const { data: allTasks = [] } = useTasks();
-  const { data: categories = [] } = useCategories();
+  console.log("[render] TaskListView, tasks:", allTasks.length);
+  const { data: rawCategories = [] } = useCategories();
+  const categories = useMemo(
+    () => [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "")),
+    [rawCategories],
+  );
   const activeCategoryId = useActiveCategoryId();
   const userId = useCurrentUserId();
 
@@ -293,12 +298,21 @@ function TaskListView() {
     }
   }, [categories, activeCategoryId]);
 
-  const categoryTasks = allTasks.filter(
-    (t) => !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
+  const categoryTasks = useMemo(
+    () => allTasks.filter(
+      (t) => !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
+    ),
+    [allTasks, activeCategoryId],
   );
 
-  const activeTasks = categoryTasks.filter((t) => t.status !== "done");
-  const doneTasks = categoryTasks.filter((t) => t.status === "done");
+  const activeTasks = useMemo(
+    () => categoryTasks.filter((t) => t.status !== "done").sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "")),
+    [categoryTasks],
+  );
+  const doneTasks = useMemo(
+    () => categoryTasks.filter((t) => t.status === "done"),
+    [categoryTasks],
+  );
 
   const isEmpty = activeTasks.length === 0 && doneTasks.length === 0;
 
@@ -360,8 +374,18 @@ function TaskListView() {
 
   const handleDragEnd = useCallback(
     (
-      event: Parameters<NonNullable<React.ComponentProps<typeof DragDropProvider>["onDragEnd"]>>[0],
+      event: Parameters<NonNullable<ComponentProps<typeof DragDropProvider>["onDragEnd"]>>[0],
     ) => {
+      console.log("[dnd] dragEnd", {
+        canceled: event.canceled,
+        sourceId: event.operation.source?.id,
+        sourceType: event.operation.source?.type,
+        sourceIndex: (event.operation.source as any)?.index,
+        sourceInitialIndex: (event.operation.source as any)?.initialIndex,
+        targetId: event.operation.target?.id,
+        isSortable: isSortableOperation(event.operation),
+      });
+
       if (event.canceled) return;
 
       const { target } = event.operation;
@@ -377,11 +401,18 @@ function TaskListView() {
 
       if (isSortableOperation(event.operation)) {
         const { source } = event.operation;
-        if (!source || source.initialIndex === source.index) return;
+        if (!source) return;
+        const targetId = String(event.operation.target?.id ?? "");
         if (source.type === "category") {
-          handleReorderCategory(String(source.id), source.index, categories);
+          const newIndex = categories.findIndex((c) => c.id === targetId);
+          if (newIndex !== -1 && String(source.id) !== targetId) {
+            handleReorderCategory(String(source.id), newIndex, categories);
+          }
         } else {
-          handleReorder(String(source.id), source.index, activeTasks);
+          const newIndex = activeTasks.findIndex((t) => t.id === targetId);
+          if (newIndex !== -1 && String(source.id) !== targetId) {
+            handleReorder(String(source.id), newIndex, activeTasks);
+          }
         }
       }
     },
