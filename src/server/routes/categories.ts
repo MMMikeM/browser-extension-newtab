@@ -6,6 +6,7 @@ import categoryRepo, {
   categoryResponseSchema,
 } from "../db/category.repo";
 import { authed } from "../middleware";
+import { unauthorizedResponse } from "./openapi-schemas";
 
 const listCategories = createRoute({
   method: "get",
@@ -15,6 +16,7 @@ const listCategories = createRoute({
       description: "List all categories",
       content: { "application/json": { schema: z.array(categoryResponseSchema) } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -27,6 +29,7 @@ const createCategory = createRoute({
       description: "Created category",
       content: { "application/json": { schema: categoryResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -39,6 +42,7 @@ const updateCategory = createRoute({
       description: "Updated category",
       content: { "application/json": { schema: categoryResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -51,6 +55,7 @@ const deleteCategory = createRoute({
       description: "Deleted category",
       content: { "application/json": { schema: categoryResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 

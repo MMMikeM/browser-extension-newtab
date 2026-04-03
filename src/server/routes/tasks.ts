@@ -7,10 +7,11 @@ import taskRepo, {
   taskShareSelectSchema,
   taskResponseSchema,
   taskShareResponseSchema,
+  taskListItemSchema,
 } from "../db/task.repo";
 import userRepo from "../db/user.repo";
 import { authed } from "../middleware";
-import { errorSchema } from "./openapi-schemas";
+import { errorSchema, unauthorizedResponse } from "./openapi-schemas";
 
 const listTasks = createRoute({
   method: "get",
@@ -18,8 +19,9 @@ const listTasks = createRoute({
   responses: {
     200: {
       description: "List all tasks with relations",
-      content: { "application/json": { schema: z.array(z.any()) } },
+      content: { "application/json": { schema: z.array(taskListItemSchema) } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -36,6 +38,7 @@ const createTask = createRoute({
       description: "Validation error",
       content: { "application/json": { schema: errorSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -48,6 +51,7 @@ const updateTask = createRoute({
       description: "Updated task",
       content: { "application/json": { schema: taskResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -60,6 +64,7 @@ const deleteTask = createRoute({
       description: "Deleted task",
       content: { "application/json": { schema: taskResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -82,6 +87,7 @@ const shareTask = createRoute({
       description: "Bad request",
       content: { "application/json": { schema: errorSchema } },
     },
+    401: unauthorizedResponse,
     403: {
       description: "Not authorized",
       content: { "application/json": { schema: errorSchema } },
@@ -98,6 +104,7 @@ const unshareTask = createRoute({
       description: "Unshared task",
       content: { "application/json": { schema: taskShareResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -110,7 +117,8 @@ export const taskRoutes = authed()
     const data = c.req.valid("json");
     if (data.parentId) {
       const parent = await taskRepo.findById(data.parentId);
-      if (parent.parentId) return c.json({ error: "Cannot nest subtasks more than one level" }, 400);
+      if (parent.parentId)
+        return c.json({ error: "Cannot nest subtasks more than one level" }, 400);
     }
     const result = await taskRepo.insert(data);
     return c.json(result, 200);

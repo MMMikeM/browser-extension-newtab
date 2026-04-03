@@ -6,6 +6,7 @@ import noteRepo, {
   noteResponseSchema,
 } from "../db/note.repo";
 import { authed } from "../middleware";
+import { unauthorizedResponse } from "./openapi-schemas";
 
 const listNotes = createRoute({
   method: "get",
@@ -15,6 +16,7 @@ const listNotes = createRoute({
       description: "List all notes",
       content: { "application/json": { schema: z.array(noteResponseSchema) } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -27,6 +29,7 @@ const createNote = createRoute({
       description: "Created note",
       content: { "application/json": { schema: noteResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -39,6 +42,7 @@ const updateNote = createRoute({
       description: "Updated note",
       content: { "application/json": { schema: noteResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -51,6 +55,7 @@ const deleteNote = createRoute({
       description: "Deleted note",
       content: { "application/json": { schema: noteResponseSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 

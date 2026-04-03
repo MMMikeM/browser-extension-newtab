@@ -4,7 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { db } from "../db/client";
 import { pushSubscriptions } from "../db/schema";
 import { authed } from "../middleware";
-import { okSchema } from "./openapi-schemas";
+import { okSchema, unauthorizedResponse } from "./openapi-schemas";
 
 const subscriptionSchema = z.object({
   endpoint: z.url(),
@@ -21,6 +21,7 @@ const subscribePush = createRoute({
       description: "Subscribed",
       content: { "application/json": { schema: okSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 
@@ -35,6 +36,7 @@ const unsubscribePush = createRoute({
       description: "Unsubscribed",
       content: { "application/json": { schema: okSchema } },
     },
+    401: unauthorizedResponse,
   },
 });
 

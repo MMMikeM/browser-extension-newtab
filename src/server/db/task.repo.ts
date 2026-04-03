@@ -1,7 +1,8 @@
 import { and, eq, lt } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
+import { z } from "@hono/zod-openapi";
 import { db } from "./client";
-import { tasks, taskShares } from "./schema";
+import { tasks, taskShares, users } from "./schema";
 import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
 import { isoDatetime } from "~/lib/utils";
 
@@ -14,7 +15,26 @@ export type TaskInsert = typeof tasks.$inferInsert;
 
 export const taskSelectSchema = createSelectSchema(tasks).pick({ id: true });
 export const taskResponseSchema = createSelectSchema(tasks);
-export const taskInsertSchema = createInsertSchema(tasks, { createdAt: isoDatetime, updatedAt: isoDatetime })
+
+const sharedWithUserSchema = createSelectSchema(users).pick({
+  id: true,
+  name: true,
+  username: true,
+});
+
+/** Response schema for task list — includes subtasks and shares with user info. */
+export const taskListItemSchema = taskResponseSchema.extend({
+  subtasks: z.array(taskResponseSchema),
+  shares: z.array(
+    taskShareResponseSchema.extend({
+      sharedWithUser: sharedWithUserSchema.nullable(),
+    }),
+  ),
+});
+export const taskInsertSchema = createInsertSchema(tasks, {
+  createdAt: isoDatetime,
+  updatedAt: isoDatetime,
+})
   .required({ id: true, createdAt: true, updatedAt: true })
   .strict();
 export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDatetime })
@@ -25,10 +45,7 @@ export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDateti
 const list = async (userId: string) =>
   db.query.tasks.findMany({
     where: {
-      OR: [
-        { userId },
-        { shares: { sharedWithUserId: userId } },
-      ],
+      OR: [{ userId }, { shares: { sharedWithUserId: userId } }],
     },
     with: {
       subtasks: true,
@@ -43,7 +60,7 @@ const list = async (userId: string) =>
 
 const findById = async (id: string) => {
   const row = await db.query.tasks.findFirst({
-    where: { id }
+    where: { id },
   });
   if (!row) throw new NotFoundError("task", id);
   return row;
