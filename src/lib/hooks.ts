@@ -10,7 +10,9 @@ export const useNotes = () => useLiveQuery(notesCollection);
 
 export const updateTask = (id: string, fields: Partial<Task>) => {
   const tx = offline.createOfflineTransaction({ mutationFnName: "syncTasks" });
-  tx.mutate(() => tasksCollection.update(id, (draft) => Object.assign(draft, fields)));
+  tx.mutate(() =>
+    tasksCollection.update(id, (draft) => Object.assign(draft, { ...fields, updatedAt: now() })),
+  );
 };
 
 export const deleteTask = (id: string) => {
@@ -29,7 +31,11 @@ export const addCategory = (fields: Omit<Category, "id" | "createdAt" | "updated
 
 export const updateCategory = (id: string, fields: Partial<Category>) => {
   const tx = offline.createOfflineTransaction({ mutationFnName: "syncCategories" });
-  tx.mutate(() => categoriesCollection.update(id, (draft) => Object.assign(draft, fields)));
+  tx.mutate(() =>
+    categoriesCollection.update(id, (draft) =>
+      Object.assign(draft, { ...fields, updatedAt: now() }),
+    ),
+  );
 };
 
 export const deleteCategory = (id: string) => {
@@ -46,7 +52,9 @@ export const addNote = (fields: Omit<Note, "id" | "createdAt" | "updatedAt">) =>
 
 export const updateNote = (id: string, fields: Partial<Note>) => {
   const tx = offline.createOfflineTransaction({ mutationFnName: "syncNotes" });
-  tx.mutate(() => notesCollection.update(id, (draft) => Object.assign(draft, fields)));
+  tx.mutate(() =>
+    notesCollection.update(id, (draft) => Object.assign(draft, { ...fields, updatedAt: now() })),
+  );
 };
 
 export const deleteNote = (id: string) => {

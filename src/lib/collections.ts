@@ -5,7 +5,12 @@ import { queryClient } from "~/lib/query-client";
 import { persistence } from "~/lib/persistence";
 import { client } from "~/lib/api";
 import type { Task, Category, Note } from "~/lib/types";
-import { now } from "~/lib/utils";
+
+// Transaction mutation payloads (m.modified, m.changes) are untyped records.
+// The data originates from typed collection inserts/updates, so the shape is
+// correct at runtime -- the cast bridges the gap.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyJson = any;
 
 export const tasksCollection = createCollection(
   persistedCollectionOptions<Task, string>({
@@ -24,12 +29,12 @@ export const tasksCollection = createCollection(
       onInsert: async ({ transaction }) => {
         for (const m of transaction.mutations) {
           const { subtasks: _subtasks, shares: _shares, ...row } = m.modified;
-          await client.api.tasks.$post({ json: { ...row, createdAt: now(), updatedAt: now() } });
+          await client.api.tasks.$post({ json: row as AnyJson });
         }
       },
       onUpdate: async ({ transaction }) => {
         for (const m of transaction.mutations) {
-          await client.api.tasks.$put({ json: { ...m.changes, id: m.key, updatedAt: now() } });
+          await client.api.tasks.$put({ json: { ...m.changes, id: m.key } as AnyJson });
         }
       },
       onDelete: async ({ transaction }) => {
@@ -57,12 +62,12 @@ export const categoriesCollection = createCollection(
       getKey: (item) => item.id,
       onInsert: async ({ transaction }) => {
         for (const m of transaction.mutations) {
-          await client.api.categories.$post({ json: { ...m.modified, createdAt: now(), updatedAt: now() } });
+          await client.api.categories.$post({ json: m.modified as AnyJson });
         }
       },
       onUpdate: async ({ transaction }) => {
         for (const m of transaction.mutations) {
-          await client.api.categories.$put({ json: { ...m.changes, id: m.key, updatedAt: now() } });
+          await client.api.categories.$put({ json: { ...m.changes, id: m.key } as AnyJson });
         }
       },
       onDelete: async ({ transaction }) => {
@@ -90,12 +95,12 @@ export const notesCollection = createCollection(
       getKey: (item) => item.id,
       onInsert: async ({ transaction }) => {
         for (const m of transaction.mutations) {
-          await client.api.notes.$post({ json: { ...m.modified, createdAt: now(), updatedAt: now() } });
+          await client.api.notes.$post({ json: m.modified as AnyJson });
         }
       },
       onUpdate: async ({ transaction }) => {
         for (const m of transaction.mutations) {
-          await client.api.notes.$put({ json: { ...m.changes, id: m.key, updatedAt: now() } });
+          await client.api.notes.$put({ json: { ...m.changes, id: m.key } as AnyJson });
         }
       },
       onDelete: async ({ transaction }) => {
