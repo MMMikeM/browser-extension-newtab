@@ -9,5 +9,5 @@ app.use("*", serveStatic({ root: "./dist/client" }));
 app.get("*", serveStatic({ root: "./dist/client", path: "index.html" }));
 
 const port = Number(process.env.PORT || 3000);
-console.log(`Server listening on http://localhost:${port}`);
-serve({ fetch: app.fetch, port });
+console.log(`Server listening on http://0.0.0.0:${port}`);
+serve({ fetch: app.fetch, port, hostname: "0.0.0.0" });
