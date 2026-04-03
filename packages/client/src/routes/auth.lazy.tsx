@@ -10,10 +10,6 @@ import { Button } from "~/components/ui/button";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
-export const Route = createLazyFileRoute("/auth")({
-  component: AuthView,
-});
-
 const loginSchema = z.object({
   username: z.string().check(z.minLength(1, "Username is required")),
   password: z.string().check(z.minLength(1, "Password is required")),
@@ -28,13 +24,13 @@ const signupSchema = z.object({
 const persistToken = (token: string) => {
   setAuthToken(token);
   if (getBuildTarget() === "extension") {
-    browser.storage.local.set({ [TOKEN_KEY]: token }).then(() =>
-      browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}),
-    );
+    browser.storage.local
+      .set({ [TOKEN_KEY]: token })
+      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}));
   }
 };
 
-function AuthView() {
+const AuthView = () => {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [serverError, setServerError] = useState<string | null>(null);
@@ -75,7 +71,7 @@ function AuthView() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="w-full max-w-xs">
-        <h1 className="font-heading mb-1 text-center text-lg font-medium tracking-widest text-hint uppercase">
+        <h1 className="font-display mb-1 text-center text-2xl tracking-[0.28em] text-foreground uppercase">
           Jot
         </h1>
         <p className="mb-8 text-center text-sm text-muted-foreground">
@@ -156,7 +152,7 @@ function AuthView() {
           </form.Field>
           {serverError && <span className="text-xs text-destructive">{serverError}</span>}
           <div className="flex flex-col gap-2">
-            <Button type="submit" className="w-full" disabled={form.state.isSubmitting}>
+            <Button type="submit" variant="outline" className="w-full" disabled={form.state.isSubmitting}>
               {mode === "login" ? "Sign in" : "Create account"}
             </Button>
             <div className="flex items-center justify-between">
@@ -184,4 +180,8 @@ function AuthView() {
       </div>
     </div>
   );
-}
+};
+
+export const Route = createLazyFileRoute("/auth")({
+  component: AuthView,
+});
