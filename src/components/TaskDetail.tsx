@@ -1,11 +1,10 @@
 import { useRef, useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import type { Task } from "~/rpc/tasks";
-import type { Note } from "~/rpc/notes";
-import { useUpdateTask, useDeleteTask, useNotes, useAddNote, useUpdateNote, useDeleteNote } from "~/lib/hooks";
-import { shareTask, deleteTaskShare } from "~/rpc/tasks";
+import type { Task, Note } from "~/lib/types";
+import { useNotes, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/hooks";
+import { client } from "~/lib/api";
 import { addTask } from "~/lib/add-task";
-import { currentUserId$ } from "~/lib/current-user";
+import { getCurrentUserId } from "~/lib/current-user";
 import {
   Drawer,
   DrawerContent,
@@ -156,9 +155,6 @@ function TaskDetailContent({
 function NoteItem({ note }: { note: Note }) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(note.content ?? "");
-  const updateNote = useUpdateNote();
-  const deleteNote = useDeleteNote();
-
   if (editing) {
     return (
       <div className="flex items-start gap-2">
@@ -167,7 +163,7 @@ function NoteItem({ note }: { note: Note }) {
           onChange={(e) => setContent(e.target.value)}
           onBlur={() => {
             const val = content.trim();
-            if (val) updateNote.mutate({ data: { id: note.id, content: val } });
+            if (val) updateNote(note.id, { content: val });
             setEditing(false);
           }}
           autoFocus
@@ -189,7 +185,7 @@ function NoteItem({ note }: { note: Note }) {
           edit
         </button>
         <button
-          onClick={() => deleteNote.mutate({ data: { id: note.id } })}
+          onClick={() => deleteNote(note.id)}
           className="text-xs text-destructive hover:underline"
         >
           delete
@@ -201,15 +197,13 @@ function NoteItem({ note }: { note: Note }) {
 
 function AddNoteInput({ taskId }: { taskId: string }) {
   const [value, setValue] = useState("");
-  const { add: addNote } = useAddNote();
-
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         const content = value.trim();
         if (!content) return;
-        const userId = currentUserId$.peek();
+        const userId = getCurrentUserId();
         if (!userId) return;
         addNote({ userId, taskId, title: content, content });
         setValue("");
@@ -227,8 +221,6 @@ function AddNoteInput({ taskId }: { taskId: string }) {
 }
 
 function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; subtasks: Task["subtasks"] }) {
-  const updateTask = useUpdateTask();
-  const deleteTask = useDeleteTask();
   const [value, setValue] = useState("");
 
   const subtasks = [...rawSubtasks].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""));
@@ -246,9 +238,7 @@ function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; sub
           <Checkbox
             checked={sub.status === "done"}
             onCheckedChange={() =>
-              updateTask.mutate({
-                data: { id: sub.id, status: sub.status === "done" ? "todo" : "done" },
-              })
+              updateTask(sub.id, { status: sub.status === "done" ? "todo" : "done" })
             }
             className="size-3.5"
           />
@@ -261,7 +251,7 @@ function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; sub
             {sub.title}
           </span>
           <button
-            onClick={() => deleteTask.mutate({ data: { id: sub.id } })}
+            onClick={() => deleteTask(sub.id)}
             className="text-xs text-destructive opacity-0 hover:underline group-hover/sub:opacity-100"
           >
             delete
@@ -290,7 +280,7 @@ function SubtaskSection({ taskId, subtasks: rawSubtasks }: { taskId: string; sub
 }
 
 function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUserId: string; shares: Task["shares"] }) {
-  const currentUserId = currentUserId$.peek();
+  const currentUserId = getCurrentUserId();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm({
@@ -300,7 +290,7 @@ function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUser
       if (!trimmed) return;
       setServerError(null);
       try {
-        await shareTask({ data: { taskId, username: trimmed, permission: "edit" } });
+        await client.api.tasks.share.$post({ json: { taskId, username: trimmed, permission: "edit" } });
         form.reset();
       } catch (err) {
         setServerError(err instanceof Error ? err.message : "Failed to share");
@@ -326,7 +316,7 @@ function ShareSection({ taskId, taskUserId, shares }: { taskId: string; taskUser
           <span className="text-xs text-muted-foreground">{share.permission}</span>
           {isOwner && (
             <button
-              onClick={() => deleteTaskShare({ data: { id: share.id } })}
+              onClick={() => client.api.tasks.share.$delete({ json: { id: share.id } })}
               className="text-xs text-destructive opacity-0 hover:underline group-hover/share:opacity-100"
             >
               remove

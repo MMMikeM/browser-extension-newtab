@@ -4,22 +4,20 @@ import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
 import { generateKeyBetween } from "fractional-indexing";
-import { useValue } from "@legendapp/state/react";
 import {
   useTasks,
-  useUpdateTask,
-  useDeleteTask,
+  updateTask,
+  deleteTask,
   useCategories,
-  useAddCategory,
-  useUpdateCategory,
-  useDeleteCategory,
+  addCategory,
+  updateCategory,
+  deleteCategory,
 } from "~/lib/hooks";
-import { tasks$ } from "~/lib/stores";
+import { tasksCollection } from "~/lib/collections";
 import { addTask } from "~/lib/add-task";
-import { activeCategoryId$, setActiveCategoryId } from "~/lib/active-category";
-import { currentUserId$ } from "~/lib/current-user";
-import type { Task } from "~/rpc/tasks";
-import type { Category } from "~/rpc/categories";
+import { useActiveCategoryId, setActiveCategoryId } from "~/lib/active-category";
+import { useCurrentUserId } from "~/lib/current-user";
+import type { Task, Category } from "~/lib/types";
 import { TaskList } from "~/components/TaskList";
 import { Input } from "~/components/ui/input";
 import {
@@ -285,13 +283,8 @@ function DoneSection({
 function TaskListView() {
   const { data: allTasks = [] } = useTasks();
   const { data: categories = [] } = useCategories();
-  const updateTask = useUpdateTask();
-  const deleteTask = useDeleteTask();
-  const { add: addCategory } = useAddCategory();
-  const updateCategory = useUpdateCategory();
-  const deleteCategoryHook = useDeleteCategory();
-  const activeCategoryId = useValue(activeCategoryId$);
-  const userId = useValue(currentUserId$);
+  const activeCategoryId = useActiveCategoryId();
+  const userId = useCurrentUserId();
 
   // Auto-select first category if none active
   useEffect(() => {
@@ -317,19 +310,19 @@ function TaskListView() {
 
   const handleToggle = (task: Task) => {
     const newStatus = task.status === "done" ? "todo" : "done";
-    updateTask.mutate({ data: { id: task.id, status: newStatus } });
+    updateTask(task.id, { status: newStatus });
     if (newStatus === "done") {
       const subtasks = allTasks.filter((t) => t.parentId === task.id && t.status !== "done");
       for (const sub of subtasks) {
-        updateTask.mutate({ data: { id: sub.id, status: "done" } });
+        updateTask(sub.id, { status: "done" });
       }
     }
   };
 
-  const handleDelete = (id: string) => deleteTask.mutate({ data: { id } });
+  const handleDelete = (id: string) => deleteTask(id);
 
   const handleSetDueDate = (id: string, date: string | null) =>
-    updateTask.mutate({ data: { id, dueDate: date } });
+    updateTask(id, { dueDate: date });
 
   const handleAddSubtask = (title: string, parentId: string) =>
     addTask(title, null, parentId);
@@ -339,10 +332,9 @@ function TaskListView() {
       const filtered = groupTasks.filter((t) => t.id !== taskId);
       const prevOrder = newIndex > 0 ? filtered[newIndex - 1]?.sortOrder ?? null : null;
       const nextOrder = filtered[newIndex]?.sortOrder ?? null;
-      const newSortOrder = generateKeyBetween(prevOrder, nextOrder);
-      updateTask.mutate({ data: { id: taskId, sortOrder: newSortOrder } });
+      updateTask(taskId, { sortOrder: generateKeyBetween(prevOrder, nextOrder) });
     },
-    [updateTask],
+    [],
   );
 
   const handleAddCategory = (name: string) => {
@@ -356,28 +348,22 @@ function TaskListView() {
       const filtered = cats.filter((c) => c.id !== catId);
       const prevOrder = newIndex > 0 ? filtered[newIndex - 1]?.sortOrder ?? null : null;
       const nextOrder = filtered[newIndex]?.sortOrder ?? null;
-      const newSortOrder = generateKeyBetween(prevOrder, nextOrder);
-      updateCategory.mutate({ data: { id: catId, sortOrder: newSortOrder } });
+      updateCategory(catId, { sortOrder: generateKeyBetween(prevOrder, nextOrder) });
     },
-    [updateCategory],
+    [],
   );
 
   const handleRenameCategory = (id: string, name: string) =>
-    updateCategory.mutate({ data: { id, name } });
+    updateCategory(id, { name });
 
   const handleSetCategoryColor = (id: string, color: string | null) =>
-    updateCategory.mutate({ data: { id, color } });
+    updateCategory(id, { color });
 
   const handleDeleteCategory = (id: string) => {
-    const tasksMap = tasks$.peek() ?? {};
-    for (const [taskId, task] of Object.entries(tasksMap)) {
-      if ((task as Task).categoryId === id) {
-        (tasks$ as any)[taskId].assign({ categoryId: null });
-      }
+    for (const task of tasksCollection.state?.values() ?? []) {
+      if (task.categoryId === id) updateTask(task.id, { categoryId: null });
     }
-
-    deleteCategoryHook.mutate({ data: { id } });
-
+    deleteCategory(id);
     const remaining = categories.filter((c) => c.id !== id);
     setActiveCategoryId(remaining.length > 0 ? remaining[0].id : null);
   };
@@ -388,17 +374,15 @@ function TaskListView() {
 
       const { target } = event.operation;
 
-      // Task dropped on a category tab
       if (target && typeof target.id === "string" && target.id.startsWith(CATEGORY_DROP_PREFIX)) {
         const targetCategoryId = target.id.slice(CATEGORY_DROP_PREFIX.length);
         const taskId = String(event.operation.source?.id);
         if (targetCategoryId !== activeCategoryId) {
-          updateTask.mutate({ data: { id: taskId, categoryId: targetCategoryId } });
+          updateTask(taskId, { categoryId: targetCategoryId });
         }
         return;
       }
 
-      // Sortable reorder (tasks or categories)
       if (isSortableOperation(event.operation)) {
         const { source } = event.operation;
         if (!source || source.initialIndex === source.index) return;
@@ -409,7 +393,7 @@ function TaskListView() {
         }
       }
     },
-    [activeCategoryId, activeTasks, categories, updateTask, handleReorder, handleReorderCategory],
+    [activeCategoryId, activeTasks, categories, handleReorder, handleReorderCategory],
   );
 
   return (
@@ -456,11 +440,11 @@ function TaskListView() {
         open={!!selectedTask}
         onClose={() => setSelectedTaskId(null)}
         onUpdate={(fields) => {
-          if (selectedTaskId) updateTask.mutate({ data: { id: selectedTaskId, ...fields } });
+          if (selectedTaskId) updateTask(selectedTaskId, fields);
         }}
         onDelete={() => {
           if (selectedTaskId) {
-            handleDelete(selectedTaskId);
+            deleteTask(selectedTaskId);
             setSelectedTaskId(null);
           }
         }}

@@ -1,40 +1,49 @@
 import { useEffect, useState } from "react";
-import { useValue } from "@legendapp/state/react";
 import { useForm } from "@tanstack/react-form";
-import { authToken$ } from "~/lib/auth-token";
-import { currentUser$, setCurrentUser, clearCurrentUserId } from "~/lib/current-user";
+import { z } from "zod/v4";
+import { useAuthToken, setAuthToken } from "~/lib/auth-token";
+import { useCurrentUser, setCurrentUser, clearCurrentUser } from "~/lib/current-user";
 import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
+import { client } from "~/lib/api";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { loginFn, signupFn, logoutFn, loginSchema, signupSchema } from "~/rpc/auth";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+const signupSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(1, "Name is required"),
+});
+
 const persistToken = (token: string) => {
-  localStorage.setItem(TOKEN_KEY, token);
-  authToken$.set(token);
+  setAuthToken(token);
   if (getBuildTarget() === "extension") {
     browser.storage.local.set({ [TOKEN_KEY]: token });
-    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => { });
+    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
   }
 };
 
 const clearAuth = () => {
-  localStorage.removeItem(TOKEN_KEY);
-  authToken$.set(null);
-  clearCurrentUserId();
+  setAuthToken(null);
+  clearCurrentUser();
   if (getBuildTarget() === "extension") {
     browser.storage.local.remove(TOKEN_KEY);
-    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => { });
+    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
   }
   unregisterPushSubscription();
 };
 
 export function SyncSettings() {
-  const token = useValue(authToken$);
-  const currentUser = useValue(currentUser$);
+  const token = useAuthToken();
+  const currentUser = useCurrentUser();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [serverError, setServerError] = useState<string | null>(null);
@@ -46,10 +55,15 @@ export function SyncSettings() {
     onSubmit: async ({ value }) => {
       setServerError(null);
       try {
-        const result =
-          mode === "login"
-            ? await loginFn({ data: { username: value.username.trim(), password: value.password, name: "" } })
-            : await signupFn({ data: { username: value.username.trim(), password: value.password, name: value.name.trim() } });
+        const endpoint = mode === "login" ? client.api.auth.login : client.api.auth.signup;
+        const res = await endpoint.$post({
+          json: { username: value.username.trim(), password: value.password, name: value.name.trim() },
+        });
+        if (!res.ok) {
+          const body = await res.json() as { error?: string };
+          throw new Error(body.error ?? "Authentication failed");
+        }
+        const result = await res.json() as { userId: string; token: string; name: string; username: string };
         persistToken(result.token);
         setCurrentUser({ id: result.userId, name: result.name, username: result.username });
         form.reset();
@@ -76,7 +90,7 @@ export function SyncSettings() {
 
   const handleLogout = async () => {
     try {
-      await logoutFn();
+      await client.api.auth.logout.$post();
     } catch {
       // Still clear local state even if server call fails
     }
@@ -92,7 +106,7 @@ export function SyncSettings() {
         className="text-muted-foreground transition-colors hover:text-foreground"
         aria-label="Sync settings"
       >
-        ⚙
+        &#x2699;
       </button>
     );
   }
@@ -132,7 +146,7 @@ export function SyncSettings() {
       className="flex flex-col gap-2"
     >
       {mode === "signup" && (
-        <form.Field name="name" validators={{ onChange: schema.shape.name }}>
+        <form.Field name="name" validators={{ onChange: signupSchema.shape.name }}>
           {(field) => (
             <>
               <Input

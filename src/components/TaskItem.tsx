@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { Task } from "~/rpc/tasks";
+import type { Task } from "~/lib/types";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
