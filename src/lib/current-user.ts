@@ -1,8 +1,19 @@
 import { useSyncExternalStore } from "react";
+import { nanoid } from "nanoid";
 import { createExternalStore } from "~/lib/external-store";
 
 const ID_KEY = "newtab-todo-user-id";
 const INFO_KEY = "newtab-todo-user-info";
+const DEVICE_ID_KEY = "newtab-todo-device-id";
+
+const getOrCreateDeviceId = (): string => {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = `device-${nanoid()}`;
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+};
 
 export interface CurrentUser {
   id: string;
@@ -25,7 +36,7 @@ const loadUser = (): CurrentUser | null => {
 
 const store = createExternalStore<CurrentUser | null>(loadUser());
 
-export const getCurrentUserId = () => store.get()?.id ?? null;
+export const getCurrentUserId = () => store.get()?.id ?? getOrCreateDeviceId();
 export const setCurrentUser = (user: CurrentUser) => {
   localStorage.setItem(ID_KEY, user.id);
   localStorage.setItem(INFO_KEY, JSON.stringify(user));

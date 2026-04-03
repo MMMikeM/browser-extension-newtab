@@ -1,4 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
+import { nanoid } from "nanoid";
 import { generateKeyBetween } from "fractional-indexing";
 import { getCurrentUserId } from "~/lib/current-user";
 import { now } from "~/lib/utils";
@@ -10,10 +10,6 @@ const bySortOrder = (a: Task, b: Task) => (a.sortOrder ?? "").localeCompare(b.so
 
 export const addTask = (title: string, categoryId?: string | null, parentId?: string | null) => {
   const userId = getCurrentUserId();
-  if (!userId) {
-    alert("Set up your user in settings first");
-    return;
-  }
 
   const allTasks = [...tasksCollection.state?.values()];
   const siblings = parentId
@@ -26,7 +22,7 @@ export const addTask = (title: string, categoryId?: string | null, parentId?: st
   const tx = offline.createOfflineTransaction({ mutationFnName: "syncTasks" });
   tx.mutate(() =>
     tasksCollection.insert({
-      id: createId(),
+      id: nanoid(),
       userId,
       categoryId: parentId ? null : (categoryId ?? null),
       parentId: parentId ?? null,
