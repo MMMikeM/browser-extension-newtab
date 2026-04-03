@@ -3,10 +3,13 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/figtree";
 @import "@fontsource-variable/inter";
+@import "@fontsource/dm-serif-display";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant touch (@media (pointer: coarse));
 
 @theme inline {
+  --font-display: "DM Serif Display", serif;
   --font-heading: "Figtree Variable", sans-serif;
   --font-sans: "Figtree Variable", "Inter Variable", sans-serif;
   --color-date: var(--date);
@@ -89,26 +92,26 @@
 
 .dark {
   --background: oklch(0.155 0.012 55);
-  --foreground: oklch(0.93 0.01 75);
+  --foreground: oklch(0.95 0.015 75);
   --card: oklch(0.205 0.015 50);
-  --card-foreground: oklch(0.93 0.01 75);
-  --popover: oklch(0.205 0.015 50);
-  --popover-foreground: oklch(0.93 0.01 75);
-  --primary: oklch(0.55 0.12 115);
-  --primary-foreground: oklch(0.95 0.02 100);
+  --card-foreground: oklch(0.95 0.015 75);
+  --popover: oklch(0.27 0.018 50);
+  --popover-foreground: oklch(0.95 0.015 75);
+  --primary: oklch(0.6 0.18 118);
+  --primary-foreground: oklch(0.97 0.03 105);
   --secondary: oklch(0.274 0.012 50);
-  --secondary-foreground: oklch(0.93 0.01 75);
+  --secondary-foreground: oklch(0.95 0.015 75);
   --muted: oklch(0.245 0.014 50);
-  --muted-foreground: oklch(0.65 0.02 55);
+  --muted-foreground: oklch(0.68 0.022 58);
   --accent: oklch(0.245 0.014 50);
-  --accent-foreground: oklch(0.93 0.01 75);
+  --accent-foreground: oklch(0.95 0.015 75);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 8%);
+  --border: oklch(1 0 0 / 13%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.6 0.04 60);
   --date: oklch(0.78 0.06 70);
-  --hint: oklch(0.45 0.015 55);
-  --ghost: oklch(0.35 0.012 55);
+  --hint: oklch(0.52 0.018 58);
+  --ghost: oklch(0.38 0.014 55);
   --chart-1: oklch(0.868 0.007 39.5);
   --chart-2: oklch(0.547 0.021 43.1);
   --chart-3: oklch(0.438 0.017 39.3);
@@ -130,13 +133,38 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: radial-gradient(
-      ellipse 60% 50% at 50% 0%,
-      oklch(0.2 0.02 55 / 60%),
-      transparent
-    );
+    /* Gradients only — noise is handled by body::before with soft-light blending */
+    background-image:
+      linear-gradient(in oklch to bottom, transparent 45%, oklch(0.11 0.01 50 / 65%) 100%),
+      radial-gradient(
+        in oklch ellipse 80% 55% at 50% 0%,
+        oklch(0.22 0.025 55 / 80%) 0%,
+        oklch(0.185 0.018 55 / 50%) 45%,
+        oklch(0.172 0.016 53 / 35%) 57%,
+        oklch(0.16 0.014 52 / 20%) 70%,
+        transparent 100%
+      );
     background-attachment: fixed;
+    background-size: cover;
+    /* GPU compositing — helps some 8-bit panels render gradients at higher precision */
+    transform: translateZ(0);
   }
+
+  /* Noise dithering via soft-light blend — composites against the fully-rendered
+     gradient rather than stacking flat, breaking banding specifically in midtones.
+     pointer-events: none ensures it never blocks interaction. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 300px 300px;
+    mix-blend-mode: soft-light;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
   html {
     @apply font-sans antialiased;
   }
