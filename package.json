@@ -24,7 +24,6 @@
     "@hono/node-server": "^1.19.12",
     "@hono/vite-dev-server": "^0.25.1",
     "@hono/zod-openapi": "^1.2.4",
-    "@hono/zod-validator": "^0.7.6",
     "@hugeicons/core-free-icons": "^4.1.1",
     "@hugeicons/react": "^1.1.6",
     "@libsql/client": "^0.17.2",
