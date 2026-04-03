@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useAuthToken, setAuthToken } from "~/lib/auth-token";
 import { useCurrentUser, clearCurrentUser } from "~/lib/current-user";
 import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
 import { client } from "~/lib/api";
-import { Button } from "~/components/ui/button";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState } from "~/lib/sse";
@@ -14,24 +13,39 @@ const clearAuth = () => {
   setAuthToken(null);
   clearCurrentUser();
   if (getBuildTarget() === "extension") {
-    browser.storage.local.remove(TOKEN_KEY).then(() =>
-      browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}),
-    );
+    browser.storage.local
+      .remove(TOKEN_KEY)
+      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}));
   }
   unregisterPushSubscription();
 };
 
-export function SyncSettings() {
+const SYNC_LABELS = { connecting: "Syncing…", disconnected: "Offline", connected: "Sync" } as const;
+
+export const SyncSettings = () => {
   const token = useAuthToken();
   const currentUser = useCurrentUser();
   const syncState = useSyncState();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     isPushSubscribed().then(setPushEnabled);
   }, []);
+
+  // Close on click-outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
   const handleTogglePush = async () => {
     const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
@@ -55,73 +69,68 @@ export function SyncSettings() {
     setOpen(false);
   };
 
-  if (!open) {
-    if (token) {
-      return (
-        <button
-          onClick={() => setOpen(true)}
-          className="group relative flex items-center"
-          aria-label="Sync settings"
-        >
-          <span
-            className={cn(
-              "size-2 rounded-full transition-colors",
-              syncState === "connected"
-                ? "bg-primary"
-                : syncState === "connecting"
-                  ? "bg-amber-500 animate-pulse"
-                  : "bg-ghost",
-            )}
-          />
-        </button>
-      );
-    }
-
+  if (!token) {
     return (
       <button
         onClick={() => router.navigate({ to: "/auth" })}
-        className="text-muted-foreground transition-colors hover:text-foreground"
-        aria-label="Sign in"
+        className="rounded-md px-2 py-1 text-xs text-hint transition-colors hover:bg-muted hover:text-muted-foreground"
       >
-        &#x2699;
+        Sign in
       </button>
     );
   }
 
-  if (token && currentUser) {
-    return (
-      <div className="flex flex-col gap-2">
-        <span className="text-xs text-muted-foreground">
-          {currentUser.name} (@{currentUser.username})
-        </span>
-        <span className="text-xs text-hint">
-          {syncState === "connected"
-            ? "Syncing"
-            : syncState === "connecting"
-              ? "Connecting..."
-              : "Offline"}
-        </span>
-        {getBuildTarget() === "browser" && (
-          <button
-            onClick={handleTogglePush}
-            className="text-left text-xs text-muted-foreground hover:text-foreground"
-          >
-            {pushEnabled ? "\u2713 Background sync enabled" : "Enable background sync"}
-          </button>
+  return (
+    // relative wrapper — keeps header height stable regardless of panel state
+    <div ref={containerRef} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
+          open
+            ? "bg-muted text-muted-foreground"
+            : "text-hint hover:bg-muted hover:text-muted-foreground",
         )}
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleLogout}>
-            Log out
-          </Button>
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setOpen(false)}>
-            Close
-          </Button>
-        </div>
-      </div>
-    );
-  }
+        aria-label="Sync settings"
+        aria-expanded={open}
+      >
+        <span
+          className={cn(
+            "size-1.5 shrink-0 rounded-full transition-colors",
+            syncState === "connected"
+              ? "bg-primary"
+              : syncState === "connecting"
+                ? "animate-pulse bg-amber-500"
+                : "bg-ghost",
+          )}
+        />
+        <span>{SYNC_LABELS[syncState]}</span>
+      </button>
 
-  // Edge case: token exists but no user info — send to auth page
-  router.navigate({ to: "/auth" });
-  return null;
-}
+      {open && currentUser && (
+        // Absolutely positioned — does NOT affect header height
+        <div className="absolute right-0 top-full z-50 mt-2 flex min-w-[180px] flex-col gap-3 rounded-lg border border-border bg-popover p-3 shadow-lg">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-medium text-foreground">{currentUser.name}</span>
+            <span className="text-xs text-hint">@{currentUser.username}</span>
+          </div>
+          <div className="h-px bg-border" />
+          {getBuildTarget() === "browser" && (
+            <button
+              onClick={handleTogglePush}
+              className="text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {pushEnabled ? "✓ Background sync on" : "Enable background sync"}
+            </button>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-left text-xs text-muted-foreground transition-colors hover:text-destructive"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
