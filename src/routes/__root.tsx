@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { createRootRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { createRootRoute, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { registerServiceWorker } from "~/lib/register-sw";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { SyncSettings } from "~/components/SyncSettings";
@@ -31,10 +31,22 @@ function RootComponent() {
     addTask(title, getActiveCategoryId());
   });
 
+  const { location } = useRouterState();
+  const isAuthRoute = location.pathname === "/auth";
+
+  if (isAuthRoute) {
+    return (
+      <>
+        <Outlet />
+        {mounted && <UndoToast />}
+      </>
+    );
+  }
+
   return (
     <div className="mx-auto min-h-screen max-w-lg px-6 pt-12 pb-8">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-heading text-lg font-medium tracking-widest text-foreground/50 uppercase">
+        <h1 className="font-heading text-lg font-medium tracking-widest text-hint uppercase">
           Jot
         </h1>
         {mounted && (
