@@ -36,10 +36,7 @@ export function UndoToast() {
     >
       <div className="flex items-center gap-3 text-sm">
         <span className="text-muted-foreground">{entry?.message}</span>
-        <button
-          onClick={executeUndo}
-          className="font-medium text-primary hover:underline"
-        >
+        <button onClick={executeUndo} className="font-medium text-primary hover:underline">
           Undo
         </button>
         <button
@@ -51,8 +48,8 @@ export function UndoToast() {
         </button>
       </div>
       <div
-        className="absolute bottom-0 left-0 h-0.5 bg-ghost transition-none"
-        style={{ width: `${progress}%` }}
+        className="absolute bottom-0 left-0 h-0.5 w-full origin-left bg-ghost transition-none"
+        style={{ transform: `scaleX(${progress / 100})` }}
       />
     </div>
   );
