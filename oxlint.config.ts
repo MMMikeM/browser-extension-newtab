@@ -4,15 +4,21 @@ export default defineConfig({
   plugins: ["eslint", "typescript", "unicorn", "oxc", "react", "import", "jsx-a11y"],
   ignorePatterns: ["src/routeTree.gen.ts"],
   rules: {
-    "func-style": ["error", "expression"],
     "@typescript-eslint/no-explicit-any": ["error"],
-  },
-  overrides: [
-    {
-      files: ["**/*.tsx"],
-      rules: {
-        "func-style": ["error", "expression", { overrides: { namedExports: "declaration" } }],
+    "no-unused-vars": ["error"],
+    "no-unsafe-optional-chaining": ["error"],
+    "no-restricted-imports": [
+      "error",
+      {
+        paths: [
+          {
+            name: "react",
+            importNames: ["useMemo", "useCallback", "memo"],
+            message:
+              "React Compiler handles memoization automatically. Remove manual useMemo/useCallback/memo.",
+          },
+        ],
       },
-    },
-  ],
+    ],
+  },
 });
