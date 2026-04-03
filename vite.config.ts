@@ -1,18 +1,20 @@
 import { defineConfig, loadEnv, type PluginOption } from "vite";
 import devServer from "@hono/vite-dev-server";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
-import viteReact from "@vitejs/plugin-react";
+import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
 import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
 import { generateSW } from "./plugins/generate-sw";
+import babel from '@rolldown/plugin-babel'
+import { visualizer } from "rollup-plugin-visualizer";
+import { globSync } from "node:fs";
 
 const OPFS_WORKER_SRC = resolve(
   import.meta.dirname,
   "node_modules/@tanstack/browser-db-sqlite-persistence/dist/assets",
 );
 
-import { globSync } from "node:fs";
 const WA_SQLITE_WASM = globSync(
   resolve(import.meta.dirname, "node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
 )[0]!;
@@ -69,7 +71,7 @@ export default defineConfig(({ mode }) => {
       cors: { origin: true },
     },
     resolve: {
-      alias: { "~": resolve(import.meta.dirname, "src") },
+      tsconfigPaths: true
     },
     define: {
       "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
@@ -78,19 +80,80 @@ export default defineConfig(({ mode }) => {
       opfsWorker(),
       tailwindcss(),
       tanstackRouter({
+        autoCodeSplitting: true,
         routesDirectory: "src/routes",
         generatedRouteTree: "src/routeTree.gen.ts",
       }),
-      viteReact(),
+      viteReact({}),
       devServer({
         entry: "src/server/app.ts",
         exclude: [/^(?!\/api\/).+/],
         injectClientScript: false,
       }),
       generateSW(),
+      babel({
+        presets: [reactCompilerPreset()]
+      }),
+      visualizer()
     ],
     build: {
       outDir: "dist/client",
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+            // 1. React Core (Priority: Highest)
+            // Rarely changes. Cache this practically forever.
+            {
+              name: 'react-core',
+              test: /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
+              priority: 50,
+            },
+
+            // 2. Local-First Database & Storage (Priority: High)
+            // Your visualizer shows @tanstack/db, wa-sqlite, fractional-indexing, etc. 
+            // This is a massive piece of code. Isolating it ensures UI updates don't bust this cache.
+            {
+              name: 'tanstack-db',
+              test: /node_modules[\\/](@tanstack[\\/](db|db-ivm|offline-transactions|browser-db-sqlite-persistence|query-db-collection)|@journeyapps|fractional-indexing|bignumber\.js|@noble)[\\/]/,
+              priority: 40,
+            },
+
+            // 3. TanStack Routing & Data Fetching
+            // Groups Router, Query, and Form together.
+            {
+              name: 'tanstack-core',
+              test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
+              priority: 35,
+            },
+
+            // 4. UI Primitives & Styling
+            // Groups all headless UI and tailwind utilities.
+            {
+              name: 'ui-primitives',
+              test: /node_modules[\\/](@base-ui|@radix-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
+              priority: 30,
+            },
+
+            // 5. Drag and Drop Engine
+            // Only needed on pages with lists. 
+            {
+              name: 'dnd-kit',
+              test: /node_modules[\\/]@dnd-kit[\\/]/,
+              priority: 25,
+            },
+
+            // 6. Catch-all Vendor
+            // Anything else in node_modules falls in here.
+            {
+              name: 'vendor',
+              test: /node_modules[\\/]/,
+              priority: 10,
+            },
+          ]},
+        }
+      }
     },
+
   };
 });
