@@ -11,3 +11,8 @@ src/routeTree.gen.ts
 screenshot.png
 public/assets/opfs-worker-*.js
 .tanstack/
+.playwright-mcp/
+screenshot-*.png
+har.json
+stats.html
+docs/superpowers/
