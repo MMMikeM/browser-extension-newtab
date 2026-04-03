@@ -1,6 +1,8 @@
 {
-  "name": "New Tab Todo",
-  "short_name": "Todo",
+  "id": "/",
+  "name": "hearth",
+  "short_name": "hearth",
+  "description": "A fast, offline-ready task manager",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1c1917",

@@ -57,7 +57,7 @@ export const generateSW = (): PluginOption => {
         swDest,
         injectionPoint: '"__WB_MANIFEST__"',
         globDirectory: outputPublic,
-        globPatterns: ["**/*.{js,css,html,woff2,png,svg,webmanifest}"],
+        globPatterns: ["**/*.{js,css,html,woff2,wasm,png,svg,webmanifest}"],
         globIgnores: ["sw.js"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       });
