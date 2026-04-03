@@ -1,76 +1,96 @@
 import { defineConfig, loadEnv, type PluginOption } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import devServer from "@hono/vite-dev-server";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { nitro } from "nitro/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
+import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
 import { generateSW } from "./plugins/generate-sw";
 
+const OPFS_WORKER_SRC = resolve(
+  import.meta.dirname,
+  "node_modules/@tanstack/browser-db-sqlite-persistence/dist/assets",
+);
+
+import { globSync } from "node:fs";
+const WA_SQLITE_WASM = globSync(
+  resolve(import.meta.dirname, "node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
+)[0]!;
+
 /**
- * Rewrites server function URLs in the client bundle to point at the remote
- * Fly.io server. Needed because the extension runs from `moz-extension://`
- * where there is no local server — without this, `/_serverFn/` calls would
- * resolve against the extension origin and fail.
+ * Handles the TanStackDB OPFS worker that the library loads via
+ * `new Worker("/assets/opfs-worker-*.js")`.
  *
- * Only applies to production builds; in dev, Vite's dev server proxies
- * server functions on the same origin.
+ * - Dev: serves the file from node_modules via middleware.
+ * - Build: copies the worker into dist/client/assets/ at closeBundle.
  */
-function remoteServerFnBase(serverUrl: string): PluginOption {
-  const base = JSON.stringify(`${serverUrl}/_serverFn/`);
-  return {
-    name: "remote-server-fn-base",
-    config(_, { command }) {
-      if (command !== "build") return;
-      return {
-        environments: {
-          client: {
-            define: {
-              "process.env.TSS_SERVER_FN_BASE": base,
-              "import.meta.env.TSS_SERVER_FN_BASE": base,
-              "import.meta.env.SSE_URL": JSON.stringify(serverUrl),
-            },
-          },
-        },
-      };
-    },
-    enforce: "post",
-  };
-}
+const opfsWorker = (): PluginOption => ({
+  name: "opfs-worker",
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (req.url?.startsWith("/assets/opfs-worker-")) {
+        try {
+          res.setHeader("Content-Type", "application/javascript");
+          res.end(readFileSync(resolve(OPFS_WORKER_SRC, req.url.split("/").pop()!)));
+        } catch { next(); }
+        return;
+      }
+      if (req.url === "/assets/wa-sqlite.wasm") {
+        try {
+          res.setHeader("Content-Type", "application/wasm");
+          res.end(readFileSync(WA_SQLITE_WASM));
+        } catch { next(); }
+        return;
+      }
+      next();
+    });
+  },
+  closeBundle() {
+    if (this.environment?.name !== "client") return;
+
+    const outDir = resolve(import.meta.dirname, "dist/client/assets");
+    mkdirSync(outDir, { recursive: true });
+
+    for (const f of readdirSync(OPFS_WORKER_SRC)) {
+      if (f.startsWith("opfs-worker-") && f.endsWith(".js")) {
+        cpSync(resolve(OPFS_WORKER_SRC, f), resolve(outDir, f));
+      }
+    }
+    cpSync(WA_SQLITE_WASM, resolve(outDir, "wa-sqlite.wasm"));
+  },
+});
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, resolve(import.meta.dirname), "");
   const serverUrl = env.SERVER_URL || "http://localhost:3000";
 
   return {
-    resolve: {
-      tsconfigPaths: true,
+    server: {
+      cors: { origin: true },
     },
-    preview: {
-      host: "127.0.0.1"
+    resolve: {
+      alias: { "~": resolve(import.meta.dirname, "src") },
+    },
+    define: {
+      "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
     },
     plugins: [
+      opfsWorker(),
       tailwindcss(),
-      tanstackStart({
-        spa: {
-          enabled: true,
-          prerender: {
-            outputPath: "/index.html",
-          }
-        },
-        importProtection: {
-          client: {
-            files: ["**/*.server.*", "**/server/**"],
-          },
-        },
+      tanstackRouter({
+        routesDirectory: "src/routes",
+        generatedRouteTree: "src/routeTree.gen.ts",
       }),
       viteReact(),
-      generateSW(),
-      nitro({
-        serverDir: "./src/server",
-        apiBaseURL: "/api",
-        apiDir: "api",
+      devServer({
+        entry: "src/server/app.ts",
+        exclude: [/^(?!\/api\/).+/],
+        injectClientScript: false,
       }),
-      remoteServerFnBase(serverUrl),
+      generateSW(),
     ],
+    build: {
+      outDir: "dist/client",
+    },
   };
 });

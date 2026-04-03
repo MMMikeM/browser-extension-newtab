@@ -9,3 +9,5 @@ dist/
 .data/
 src/routeTree.gen.ts
 screenshot.png
+public/assets/opfs-worker-*.js
+.tanstack/

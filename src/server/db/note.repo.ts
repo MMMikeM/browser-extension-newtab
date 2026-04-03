@@ -9,9 +9,12 @@ export type NoteInsert = typeof notes.$inferInsert;
 export type NoteSelect = typeof notes.$inferSelect;
 
 export const noteSelectSchema = createSelectSchema(notes).pick({ id: true });
-export const noteInsertSchema = createInsertSchema(notes, { createdAt: isoDatetime })
-  .omit({ updatedAt: true })
-  .required({ id: true, createdAt: true })
+export const noteResponseSchema = createSelectSchema(notes);
+export const noteInsertSchema = createInsertSchema(notes, {
+  createdAt: isoDatetime,
+  updatedAt: isoDatetime,
+})
+  .required({ id: true, createdAt: true, updatedAt: true })
   .strict();
 export const noteUpdateSchema = createUpdateSchema(notes, { updatedAt: isoDatetime })
   .required({ id: true, updatedAt: true })

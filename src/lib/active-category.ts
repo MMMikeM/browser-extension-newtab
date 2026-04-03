@@ -1,14 +1,14 @@
-import { observable } from "@legendapp/state";
+import { createExternalStore } from "~/lib/external-store";
 
 const KEY = "newtab-todo-active-category";
+const store = createExternalStore<string | null>(localStorage.getItem(KEY));
 
-export const activeCategoryId$ = observable<string | null>(localStorage.getItem(KEY));
+export const getActiveCategoryId = store.get;
 
 export const setActiveCategoryId = (id: string | null) => {
-  if (id) {
-    localStorage.setItem(KEY, id);
-  } else {
-    localStorage.removeItem(KEY);
-  }
-  activeCategoryId$.set(id);
+  if (id) localStorage.setItem(KEY, id);
+  else localStorage.removeItem(KEY);
+  store.set(id);
 };
+
+export const useActiveCategoryId = store.useStore;

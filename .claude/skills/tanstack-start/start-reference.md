@@ -357,11 +357,11 @@ Every static import from a route file must be **transitively pure** -- no module
 
 ### Three strategies
 
-| Strategy | When to use | Example |
-| --- | --- | --- |
-| **Static import** | Component is pure -- no store deps, no browser globals in its import chain | `import { AddTaskInput } from '~/components/AddTaskInput'` |
-| **`lazy()` + Suspense** | Component pulls in stores or browser-only code, but is rendered as a React element | `const SyncSettings = lazy(() => import('~/components/SyncSettings').then(...))` |
-| **Dynamic `import()` in callback** | Store/browser code needed imperatively (not rendered), e.g., inside an event handler | `const { addTask } = await import('~/lib/add-task')` |
+| Strategy                           | When to use                                                                          | Example                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| **Static import**                  | Component is pure -- no store deps, no browser globals in its import chain           | `import { AddTaskInput } from '~/components/AddTaskInput'`                       |
+| **`lazy()` + Suspense**            | Component pulls in stores or browser-only code, but is rendered as a React element   | `const SyncSettings = lazy(() => import('~/components/SyncSettings').then(...))` |
+| **Dynamic `import()` in callback** | Store/browser code needed imperatively (not rendered), e.g., inside an event handler | `const { addTask } = await import('~/lib/add-task')`                             |
 
 ### Guarding lazy components
 

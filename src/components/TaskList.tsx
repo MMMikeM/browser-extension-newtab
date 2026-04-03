@@ -1,5 +1,5 @@
 import { useSortable } from "@dnd-kit/react/sortable";
-import type { Task } from "~/rpc/tasks";
+import type { Task } from "~/lib/types";
 import { TaskItem } from "./TaskItem";
 
 function SortableTaskItem({

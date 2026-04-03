@@ -4,12 +4,6 @@ import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 import { NetworkFirst, CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
-import { observable, syncState } from "@legendapp/state";
-import { synced } from "@legendapp/state/sync";
-import { observablePersistIndexedDB } from "@legendapp/state/persist-plugins/indexeddb";
-import { keyById } from "~/lib/utils";
-import { MODELS, IDB_CONFIG } from "~/lib/sync/registry";
-import type { SyncModel } from "~/lib/sync/types";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -60,42 +54,20 @@ registerRoute(
   }),
 );
 
-// /_serverFn/* is NOT registered — Legend State handles sync/retry via IDB
-
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event: ExtendableEvent) =>
   event.waitUntil(self.clients.claim()),
 );
 
-const idbPlugin = observablePersistIndexedDB(IDB_CONFIG);
-
-const syncModel = async (model: SyncModel) => {
-  const store$ = observable(
-    synced({
-      get: async () => {
-        const res = await fetch(model.apiPath, { credentials: "include" });
-        if (!res.ok) return {};
-        const items = await res.json();
-        return keyById(items);
-      },
-      persist: {
-        name: model.name,
-        plugin: idbPlugin,
-      },
-      mode: "set",
-    }),
-  );
-
-  await syncState(store$).sync();
-};
-
-const backgroundSync = async () => {
-  await Promise.allSettled(Object.values(MODELS).map(syncModel));
-};
-
-// Silent push: always sync to IDB (open tabs use SSE for real-time updates)
+// Push: notify all open clients to invalidate their React Query cache
 self.addEventListener("push", (event: PushEvent) => {
   const data = event.data?.json();
   if (data?.title !== "sync") return;
-  event.waitUntil(backgroundSync());
+  event.waitUntil(
+    self.clients.matchAll().then((clients) => {
+      for (const client of clients) {
+        client.postMessage({ type: "SYNC_ALL" });
+      }
+    }),
+  );
 });

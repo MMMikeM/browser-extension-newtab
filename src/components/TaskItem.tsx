@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { Task } from "~/rpc/tasks";
+import type { Task } from "~/lib/types";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -116,11 +116,7 @@ export function TaskItem({
             className={cn(
               "mt-0.5 whitespace-nowrap text-xs",
               onSetDueDate && "cursor-pointer hover:underline",
-              isDone
-                ? "text-muted-foreground"
-                : due.overdue
-                  ? "text-destructive"
-                  : "text-date",
+              isDone ? "text-muted-foreground" : due.overdue ? "text-destructive" : "text-date",
             )}
           >
             {due.label}

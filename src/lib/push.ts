@@ -1,4 +1,4 @@
-import { subscribePush, unsubscribePush } from "~/rpc/push";
+import { client } from "~/lib/api";
 
 const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -39,8 +39,8 @@ export const registerPushSubscription = async (vapidPublicKey: string): Promise<
     const json = subscription.toJSON();
     console.log("[push] subscribed, sending to server...");
 
-    await subscribePush({
-      data: {
+    await client.api.push.subscribe.$post({
+      json: {
         endpoint: json.endpoint!,
         p256dh: json.keys!.p256dh!,
         auth: json.keys!.auth!,
@@ -65,7 +65,7 @@ export const unregisterPushSubscription = async (): Promise<void> => {
 
     const endpoint = subscription.endpoint;
     await subscription.unsubscribe();
-    await unsubscribePush({ data: { endpoint } });
+    await client.api.push.unsubscribe.$post({ json: { endpoint } });
     console.log("[push] unregistered");
   } catch (err) {
     console.error("[push] unregister failed:", err);
@@ -79,10 +79,6 @@ export const isPushSubscribed = async (): Promise<boolean> => {
   return !!subscription;
 };
 
-/**
- * Auto-register push when called. Use in store initialization
- * or when auth token is set — no manual button click needed.
- */
 export const ensurePushRegistered = async (): Promise<void> => {
   const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
   if (!vapidKey) {

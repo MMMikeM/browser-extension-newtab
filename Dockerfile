@@ -14,6 +14,11 @@ RUN pnpm build && pnpm build:ext
 
 FROM base AS runtime
 WORKDIR /app
-COPY --from=build /app/.output ./.output
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/src/server ./src/server
+COPY --from=build /app/src/lib ./src/lib
+COPY --from=build /app/tsconfig.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
 EXPOSE 3000
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "--import", "tsx/esm", "src/server/index.ts"]

@@ -1,3 +1,4 @@
+import { HTTPException } from "hono/http-exception";
 import sessionRepo from "./db/session.repo";
 
 /**
@@ -25,6 +26,6 @@ export const extractToken = (request: Request, url?: URL): string | null => {
  */
 export const validateSession = async (token: string): Promise<string> => {
   const session = await sessionRepo.findValid(token);
-  if (!session) throw new Error("Unauthorized");
+  if (!session) throw new HTTPException(401, { message: "Unauthorized" });
   return session.userId;
 };

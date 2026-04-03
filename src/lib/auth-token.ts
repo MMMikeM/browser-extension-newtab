@@ -1,23 +1,26 @@
-import { observable, observe } from "@legendapp/state";
 import { TOKEN_KEY } from "~/lib/constants";
 import { getBuildTarget } from "~/lib/build-target";
-import { ensurePushRegistered } from "~/lib/push";
+import { createExternalStore } from "~/lib/external-store";
 
-export const authToken$ = observable<string | null>(localStorage.getItem(TOKEN_KEY));
+const store = createExternalStore<string | null>(localStorage.getItem(TOKEN_KEY));
 
+export const getAuthToken = store.get;
+
+export const setAuthToken = (value: string | null) => {
+  if (value) localStorage.setItem(TOKEN_KEY, value);
+  else localStorage.removeItem(TOKEN_KEY);
+
+  if (getBuildTarget() === "extension" && value) {
+    browser.storage.local.set({ [TOKEN_KEY]: value });
+  }
+
+  store.set(value);
+};
+
+// Sync across tabs
 window.addEventListener("storage", (e) => {
-  if (e.key === TOKEN_KEY) authToken$.set(e.newValue);
+  if (e.key === TOKEN_KEY) store.set(e.newValue);
 });
 
-const target = getBuildTarget();
-
-if (target === "browser") {
-  observe(() => {
-    if (authToken$.get()) ensurePushRegistered();
-  });
-}
-
-if (target === "extension") {
-  const token = authToken$.peek();
-  if (token) browser.storage.local.set({ [TOKEN_KEY]: token });
-}
+export const subscribeAuthToken = store.subscribe;
+export const useAuthToken = store.useStore;
