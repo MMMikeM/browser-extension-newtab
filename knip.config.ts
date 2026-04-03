@@ -1,30 +1,36 @@
 import type { KnipConfig } from "knip";
 
 export default {
-  entry: [
-    "src/main.tsx",
-    "src/server/app.ts",
-    "src/background.ts",
-    "src/sw.ts",
-    "src/routes/**/*.tsx",
-  ],
-  project: ["src/**/*.{ts,tsx}"],
+  workspaces: {
+    "packages/client": {
+      entry: ["src/main.tsx", "src/background.ts", "src/sw.ts", "src/routes/**/*.tsx"],
+      project: ["src/**/*.{ts,tsx}"],
+    },
+    "packages/server": {
+      project: ["src/**/*.{ts,tsx}"],
+    },
+    "packages/shared": {
+      project: ["src/**/*.{ts,tsx}"],
+    },
+  },
   vite: false,
   vitest: false,
   ignoreExportsUsedInFile: true,
-  ignore: ["src/components/ui/**", "src/server/db/columns.ts"],
   ignoreDependencies: [
+    // CSS @import — knip doesn't detect these as dependency usage
     "tw-animate-css",
     "@fontsource-variable/figtree",
     "@fontsource-variable/inter",
+    "@fontsource/dm-serif-display",
     "shadcn",
+    // Vite plugins / build tools — used in config files, not detectable as normal imports
     "@tanstack/router-plugin",
-    "@hono/vite-dev-server",
     "@tailwindcss/vite",
     "@vitejs/plugin-react",
     "@rolldown/plugin-babel",
     "babel-plugin-react-compiler",
     "workbox-build",
     "idb-keyval",
+    "rollup-plugin-visualizer",
   ],
 } satisfies KnipConfig;
