@@ -12,9 +12,8 @@ export const taskShareSelectSchema = createSelectSchema(taskShares).pick({ id: t
 export type TaskInsert = typeof tasks.$inferInsert;
 
 export const taskSelectSchema = createSelectSchema(tasks).pick({ id: true });
-export const taskInsertSchema = createInsertSchema(tasks, { createdAt: isoDatetime })
-  .omit({ updatedAt: true })
-  .required({ id: true, createdAt: true })
+export const taskInsertSchema = createInsertSchema(tasks, { createdAt: isoDatetime, updatedAt: isoDatetime })
+  .required({ id: true, createdAt: true, updatedAt: true })
   .strict();
 export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDatetime })
   .required({ id: true, updatedAt: true })
