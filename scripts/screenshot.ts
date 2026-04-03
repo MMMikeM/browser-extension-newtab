@@ -8,7 +8,9 @@ const browser = await chromium.launch();
 
 const screenshot = async (
   name: string,
-  setup: (page: Awaited<ReturnType<typeof browser.newContext>>["pages"] extends (infer P)[] ? P : never) => Promise<void>,
+  setup: (
+    page: Awaited<ReturnType<typeof browser.newContext>>["pages"] extends (infer P)[] ? P : never,
+  ) => Promise<void>,
 ) => {
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 900 },
