@@ -1,12 +1,11 @@
-import { defineConfig, loadEnv, type PluginOption } from "vite";
-import devServer from "@hono/vite-dev-server";
+import { defineConfig, loadEnv, searchForWorkspaceRoot, type PluginOption } from "vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
 import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
 import { generateSW } from "./plugins/generate-sw";
-import babel from '@rolldown/plugin-babel'
+import babel from "@rolldown/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
 import { globSync } from "node:fs";
 
@@ -15,11 +14,19 @@ const OPFS_WORKER_SRC = resolve(
   "node_modules/@tanstack/browser-db-sqlite-persistence/dist/assets",
 );
 
-const WA_SQLITE_WASM = globSync(
-  resolve(import.meta.dirname, "node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
-)[0] ?? globSync(
-  resolve(import.meta.dirname, "../../node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
-)[0]!;
+const WA_SQLITE_WASM =
+  globSync(
+    resolve(
+      import.meta.dirname,
+      "node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm",
+    ),
+  )[0] ??
+  globSync(
+    resolve(
+      import.meta.dirname,
+      "../../node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm",
+    ),
+  )[0]!;
 
 /**
  * Handles the TanStackDB OPFS worker that the library loads via
@@ -36,14 +43,18 @@ const opfsWorker = (): PluginOption => ({
         try {
           res.setHeader("Content-Type", "application/javascript");
           res.end(readFileSync(resolve(OPFS_WORKER_SRC, req.url.split("/").pop()!)));
-        } catch { next(); }
+        } catch {
+          next();
+        }
         return;
       }
       if (req.url === "/assets/wa-sqlite.wasm") {
         try {
           res.setHeader("Content-Type", "application/wasm");
           res.end(readFileSync(WA_SQLITE_WASM));
-        } catch { next(); }
+        } catch {
+          next();
+        }
         return;
       }
       next();
@@ -65,14 +76,21 @@ const opfsWorker = (): PluginOption => ({
 });
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, resolve(import.meta.dirname), "");
+  const env = loadEnv(mode, searchForWorkspaceRoot(process.cwd()), "");
+
   const serverUrl = env.SERVER_URL || "http://localhost:3000";
 
   return {
     server: {
       cors: { origin: true },
       fs: {
-        allow: [resolve(import.meta.dirname, "../server")],
+        allow: [searchForWorkspaceRoot(process.cwd())],
+      },
+      proxy: {
+        "/api": serverUrl,
+      },
+      warmup: {
+        clientFiles: ["./src/main.tsx", "./src/routes/**/*.tsx"],
       },
     },
     resolve: {
@@ -90,16 +108,11 @@ export default defineConfig(({ mode }) => {
         generatedRouteTree: "src/routeTree.gen.ts",
       }),
       viteReact({}),
-      devServer({
-        entry: resolve(import.meta.dirname, "../server/src/app.ts"),
-        exclude: [/^(?!\/api\/).+/],
-        injectClientScript: false,
-      }),
       generateSW(),
       babel({
-        presets: [reactCompilerPreset()]
+        presets: [reactCompilerPreset()],
       }),
-      visualizer()
+      visualizer(),
     ],
     build: {
       outDir: "dist",
@@ -107,51 +120,51 @@ export default defineConfig(({ mode }) => {
         output: {
           codeSplitting: {
             groups: [
-            // 1. React Core (Priority: Highest)
-            {
-              name: 'react-core',
-              test: /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
-              priority: 50,
-            },
+              // 1. React Core (Priority: Highest)
+              {
+                name: "react-core",
+                test: /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
+                priority: 50,
+              },
 
-            // 2. Local-First Database & Storage (Priority: High)
-            {
-              name: 'tanstack-db',
-              test: /node_modules[\\/](@tanstack[\\/](db|db-ivm|offline-transactions|browser-db-sqlite-persistence|query-db-collection)|@journeyapps|fractional-indexing|bignumber\.js|@noble)[\\/]/,
-              priority: 40,
-            },
+              // 2. Local-First Database & Storage (Priority: High)
+              {
+                name: "tanstack-db",
+                test: /node_modules[\\/](@tanstack[\\/](db|db-ivm|offline-transactions|browser-db-sqlite-persistence|query-db-collection)|@journeyapps|fractional-indexing|bignumber\.js|@noble)[\\/]/,
+                priority: 40,
+              },
 
-            // 3. TanStack Routing & Data Fetching
-            {
-              name: 'tanstack-core',
-              test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
-              priority: 35,
-            },
+              // 3. TanStack Routing & Data Fetching
+              {
+                name: "tanstack-core",
+                test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
+                priority: 35,
+              },
 
-            // 4. UI Primitives & Styling
-            {
-              name: 'ui-primitives',
-              test: /node_modules[\\/](@base-ui|@radix-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
-              priority: 30,
-            },
+              // 4. UI Primitives & Styling
+              {
+                name: "ui-primitives",
+                test: /node_modules[\\/](@base-ui|@radix-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
+                priority: 30,
+              },
 
-            // 5. Drag and Drop Engine
-            {
-              name: 'dnd-kit',
-              test: /node_modules[\\/]@dnd-kit[\\/]/,
-              priority: 25,
-            },
+              // 5. Drag and Drop Engine
+              {
+                name: "dnd-kit",
+                test: /node_modules[\\/]@dnd-kit[\\/]/,
+                priority: 25,
+              },
 
-            // 6. Catch-all Vendor
-            {
-              name: 'vendor',
-              test: /node_modules[\\/]/,
-              priority: 10,
-            },
-          ]},
-        }
-      }
+              // 6. Catch-all Vendor
+              {
+                name: "vendor",
+                test: /node_modules[\\/]/,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
     },
-
   };
 });

@@ -1,7 +1,7 @@
 /**
  * Extension build: bundles background.ts + assembles dist/extension/.
  *
- * Runs after the main build so dist/client/ has all client assets.
+ * Runs after the main build so dist/ has all client assets.
  *
  * SERVER_URL controls the remote server for background SSE + task sync.
  *
@@ -12,8 +12,9 @@ import { readFileSync, writeFileSync, cpSync, rmSync, readdirSync } from "node:f
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname);
-const OUTPUT_PUBLIC = join(ROOT, "dist");
-const EXT_OUT = join(ROOT, "dist", "extension");
+const CLIENT_DIST = join(ROOT, "dist");
+const EXT_OUT = join(ROOT, "dist-extension");
+const BG_TMP = join(ROOT, ".bg-tmp");
 
 const buildExtensionManifest = (serverUrl: string) => ({
   manifest_version: 2,
@@ -25,7 +26,8 @@ const buildExtensionManifest = (serverUrl: string) => ({
   chrome_url_overrides: {
     newtab: "index.html",
   },
-  content_security_policy: `script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src 'self' https: ${serverUrl.startsWith("http:") ? serverUrl : ""}`.trim(),
+  content_security_policy:
+    `script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src 'self' https: ${serverUrl.startsWith("http:") ? serverUrl : ""}`.trim(),
   permissions: ["storage"],
   background: {
     scripts: ["background.js"],
@@ -36,8 +38,14 @@ const buildExtensionManifest = (serverUrl: string) => ({
 const assembleExtension = (serverUrl: string) => {
   console.log(`  SERVER_URL: ${serverUrl}`);
 
-  cpSync(OUTPUT_PUBLIC, EXT_OUT, { recursive: true });
-  console.log(`  Copied ${OUTPUT_PUBLIC} → ${EXT_OUT}`);
+  // Copy client dist to extension output
+  rmSync(EXT_OUT, { recursive: true, force: true });
+  cpSync(CLIENT_DIST, EXT_OUT, { recursive: true });
+  console.log(`  Copied ${CLIENT_DIST} → ${EXT_OUT}`);
+
+  // Copy background.js from temp build
+  cpSync(join(BG_TMP, "background.js"), join(EXT_OUT, "background.js"));
+  rmSync(BG_TMP, { recursive: true, force: true });
 
   const manifest = buildExtensionManifest(serverUrl);
   writeFileSync(join(EXT_OUT, "manifest.json"), JSON.stringify(manifest, null, 2));
@@ -72,7 +80,7 @@ const assembleExtension = (serverUrl: string) => {
   // Inline WASM in the OPFS worker. Firefox extension Web Workers can't
   // fetch() cross-origin or moz-extension:// resources. Embedding the WASM
   // bytes directly skips the fetch — Emscripten checks `wasmBinary` first.
-  const wasmPath = join(OUTPUT_PUBLIC, "assets", "wa-sqlite.wasm");
+  const wasmPath = join(EXT_OUT, "assets", "wa-sqlite.wasm");
   const wasmBase64 = readFileSync(wasmPath).toString("base64");
   for (const f of readdirSync(join(EXT_OUT, "assets"))) {
     if (!f.startsWith("opfs-worker-") || !f.endsWith(".js")) continue;
@@ -82,7 +90,9 @@ const assembleExtension = (serverUrl: string) => {
     const patched = src.replace("var wasmBinary;", `var wasmBinary = ${wasmBytes};`);
     if (patched === src) throw new Error("Failed to patch wasmBinary in OPFS worker");
     writeFileSync(path, patched);
-    console.log(`  Inlined WASM in OPFS worker (${(wasmBase64.length / 1024).toFixed(0)} KB base64)`);
+    console.log(
+      `  Inlined WASM in OPFS worker (${(wasmBase64.length / 1024).toFixed(0)} KB base64)`,
+    );
   }
 
   console.log(`  Output: ${EXT_OUT}`);
@@ -107,7 +117,7 @@ export default defineConfig(({ mode }) => {
         name: "background",
         fileName: () => "background.js",
       },
-      outDir: EXT_OUT,
+      outDir: BG_TMP,
       emptyOutDir: true,
       minify: false,
       rollupOptions: { output: { entryFileNames: "background.js" } },
