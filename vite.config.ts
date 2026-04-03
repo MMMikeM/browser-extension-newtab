@@ -12,6 +12,11 @@ const OPFS_WORKER_SRC = resolve(
   "node_modules/@tanstack/browser-db-sqlite-persistence/dist/assets",
 );
 
+import { globSync } from "node:fs";
+const WA_SQLITE_WASM = globSync(
+  resolve(import.meta.dirname, "node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
+)[0]!;
+
 /**
  * Handles the TanStackDB OPFS worker that the library loads via
  * `new Worker("/assets/opfs-worker-*.js")`.
@@ -24,17 +29,17 @@ const opfsWorker = (): PluginOption => ({
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
       if (req.url?.startsWith("/assets/opfs-worker-")) {
-        const file = resolve(
-          OPFS_WORKER_SRC,
-          "..",
-          req.url.slice(1), // strip leading /
-        );
         try {
           res.setHeader("Content-Type", "application/javascript");
-          res.end(readFileSync(file));
-        } catch {
-          next();
-        }
+          res.end(readFileSync(resolve(OPFS_WORKER_SRC, req.url.split("/").pop()!)));
+        } catch { next(); }
+        return;
+      }
+      if (req.url === "/assets/wa-sqlite.wasm") {
+        try {
+          res.setHeader("Content-Type", "application/wasm");
+          res.end(readFileSync(WA_SQLITE_WASM));
+        } catch { next(); }
         return;
       }
       next();
@@ -46,13 +51,12 @@ const opfsWorker = (): PluginOption => ({
     const outDir = resolve(import.meta.dirname, "dist/client/assets");
     mkdirSync(outDir, { recursive: true });
 
-    const workers = readdirSync(OPFS_WORKER_SRC).filter(
-      (f) => f.startsWith("opfs-worker-") && f.endsWith(".js"),
-    );
-    for (const worker of workers) {
-      cpSync(resolve(OPFS_WORKER_SRC, worker), resolve(outDir, worker));
-      console.log(`Copied OPFS worker: ${worker}`);
+    for (const f of readdirSync(OPFS_WORKER_SRC)) {
+      if (f.startsWith("opfs-worker-") && f.endsWith(".js")) {
+        cpSync(resolve(OPFS_WORKER_SRC, f), resolve(outDir, f));
+      }
     }
+    cpSync(WA_SQLITE_WASM, resolve(outDir, "wa-sqlite.wasm"));
   },
 });
 
@@ -61,6 +65,9 @@ export default defineConfig(({ mode }) => {
   const serverUrl = env.SERVER_URL || "http://localhost:3000";
 
   return {
+    server: {
+      cors: { origin: true },
+    },
     resolve: {
       alias: { "~": resolve(import.meta.dirname, "src") },
     },
