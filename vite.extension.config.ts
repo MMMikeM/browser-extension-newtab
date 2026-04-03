@@ -26,7 +26,7 @@ const EXTENSION_MANIFEST = {
   chrome_url_overrides: {
     newtab: "index.html",
   },
-  content_security_policy: "script-src 'self'; object-src 'self'; connect-src 'self' https:",
+  content_security_policy: "script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src 'self' https:",
   permissions: ["storage"],
   background: {
     scripts: ["background.js"],

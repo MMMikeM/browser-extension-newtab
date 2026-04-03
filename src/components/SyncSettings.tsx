@@ -186,7 +186,7 @@ export function SyncSettings() {
       </form.Field>
       {serverError && <span className="text-xs text-destructive">{serverError}</span>}
       <div className="flex items-center gap-2">
-        <Button size="sm" className="h-7 text-xs" disabled={form.state.isSubmitting || !form.state.canSubmit}>
+        <Button type="submit" size="sm" className="h-7 text-xs">
           {mode === "login" ? "Log in" : "Sign up"}
         </Button>
         <button
