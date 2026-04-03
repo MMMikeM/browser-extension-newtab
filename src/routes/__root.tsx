@@ -1,14 +1,21 @@
-import { Suspense, useEffect, useState } from "react";
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { createRootRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { registerServiceWorker } from "~/lib/register-sw";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { SyncSettings } from "~/components/SyncSettings";
+import { UndoToast } from "~/components/UndoToast";
+
+// Dynamic import: SyncHint pulls in auth-token → localStorage at module init, which crashes prerender
+const SyncHint = lazy(() =>
+  import("~/components/SyncHint").then((m) => ({ default: m.SyncHint })),
+);
 
 export const Route = createRootRoute({
   component: RootComponent,
 });
 
 function RootComponent() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -37,9 +44,15 @@ function RootComponent() {
         )}
       </div>
       <AddTaskInput onAdd={handleAddTask} />
+      {mounted && (
+        <Suspense fallback={null}>
+          <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
+        </Suspense>
+      )}
       <div className="mt-4 flex flex-col gap-4">
         <Outlet />
       </div>
+      {mounted && <UndoToast />}
     </div>
   );
 }

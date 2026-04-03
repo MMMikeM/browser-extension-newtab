@@ -1,4 +1,4 @@
-import { ComponentProps, ReactNode, RefCallback, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ComponentProps, lazy, ReactNode, RefCallback, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
@@ -30,7 +30,8 @@ import {
   ContextMenuSubContent,
   ContextMenuSeparator,
 } from "~/components/ui/context-menu";
-import { TaskDetail } from "~/components/TaskDetail";
+// Lazy-load: defers vaul (55KB), @radix-ui (45KB), @tanstack/react-form (69KB)
+const TaskDetail = lazy(() => import("~/components/TaskDetail").then((m) => ({ default: m.TaskDetail })));
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CATEGORY_COLORS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
@@ -564,20 +565,24 @@ function TaskListView() {
           </>
         )}
       </div>
-      <TaskDetail
-        task={selectedTask}
-        open={!!selectedTask}
-        onClose={() => setSelectedTaskId(null)}
-        onUpdate={(fields) => {
-          if (selectedTaskId) updateTask(selectedTaskId, fields);
-        }}
-        onDelete={() => {
-          if (selectedTaskId) {
-            deleteTask(selectedTaskId);
-            setSelectedTaskId(null);
-          }
-        }}
-      />
+      {selectedTask && (
+        <Suspense>
+          <TaskDetail
+            task={selectedTask}
+            open
+            onClose={() => setSelectedTaskId(null)}
+            onUpdate={(fields) => {
+              if (selectedTaskId) updateTask(selectedTaskId, fields);
+            }}
+            onDelete={() => {
+              if (selectedTaskId) {
+                deleteTask(selectedTaskId);
+                setSelectedTaskId(null);
+              }
+            }}
+          />
+        </Suspense>
+      )}
     </DragDropProvider>
   );
 }
