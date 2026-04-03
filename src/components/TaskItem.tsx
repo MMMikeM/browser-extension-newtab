@@ -147,7 +147,7 @@ export function TaskItem({
         </button>
       </div>
       {subtasks && subtasks.length > 0 && (
-        <div className="ml-6 border-l border-border pl-2">
+        <div className="ml-6 border-l border-foreground/10 pl-2">
           {subtasks.map((sub) => (
             <TaskItem
               key={sub.id}

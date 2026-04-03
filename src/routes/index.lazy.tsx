@@ -263,12 +263,20 @@ function DoneSection({
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
       >
-        <span
-          className="inline-block transition-transform"
+        <svg
+          width={14}
+          height={14}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="transition-transform"
           style={{ transform: open ? "rotate(90deg)" : "none" }}
         >
-          ▸
-        </span>
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
         Done ({tasks.length})
       </button>
       {open && (
