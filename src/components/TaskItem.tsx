@@ -2,8 +2,6 @@ import { useRef, useState } from "react";
 import type { Task } from "~/lib/types";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { DragDropVerticalIcon, Cancel01Icon, Add01Icon } from "@hugeicons/core-free-icons";
 import { cn } from "~/lib/utils";
 
 const formatDueDate = (dateStr: string) => {
@@ -78,7 +76,7 @@ export function TaskItem({
       >
         {!isSubtask && (
           <span className="mt-0.5 flex cursor-grab items-center text-muted-foreground/0 transition-colors group-hover/task:text-muted-foreground/50 active:cursor-grabbing">
-            <HugeiconsIcon icon={DragDropVerticalIcon} size={14} />
+            <div />
           </span>
         )}
         {isSubtask && <span className="w-3.5" />}
@@ -138,14 +136,14 @@ export function TaskItem({
             className="mt-1 text-muted-foreground/0 transition-colors hover:text-foreground group-hover/task:text-muted-foreground/40"
             title="Add subtask"
           >
-            <HugeiconsIcon icon={Add01Icon} size={14} />
+            <div />
           </button>
         )}
         <button
           onClick={onDelete}
           className="mt-1 text-muted-foreground/0 transition-colors hover:text-destructive group-hover/task:text-muted-foreground/40"
         >
-          <HugeiconsIcon icon={Cancel01Icon} size={14} />
+          <div />
         </button>
       </div>
       {subtasks && subtasks.length > 0 && (
