@@ -37,14 +37,12 @@ const buttonVariants = tv({
 
 type ButtonProps = StyledProps<ButtonPrimitive.Props, typeof buttonVariants>;
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
-  return (
-    <ButtonPrimitive
-      data-slot="button"
-      className={buttonVariants({ variant, size, class: className })}
-      {...props}
-    />
-  );
-}
+const Button = ({ className, variant, size, ...props }: ButtonProps) => (
+  <ButtonPrimitive
+    data-slot="button"
+    className={buttonVariants({ variant, size, class: className })}
+    {...props}
+  />
+);
 
 export { Button, buttonVariants };

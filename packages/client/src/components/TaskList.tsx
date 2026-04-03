@@ -50,7 +50,7 @@ function SortableTaskItem({
   );
 }
 
-export function TaskList({
+export const TaskList = ({
   tasks,
   allTasks,
   onToggle,
@@ -70,7 +70,7 @@ export function TaskList({
   onAddSubtask?: (title: string, parentId: string) => void;
   onReorder?: (taskId: string, newIndex: number, tasks: Task[]) => void;
   hideDate?: boolean;
-}) {
+}) => {
   if (tasks.length === 0) return null;
 
   const getSubtasks = (parentId: string) =>
@@ -122,4 +122,4 @@ export function TaskList({
       ))}
     </ul>
   );
-}
+};

@@ -1,4 +1,10 @@
-import { TOKEN_KEY, EVENTS_PATH, SSE_DATA_CHANGED, MSG_TOKEN_CHANGED, MODEL_NAMES } from "~/lib/constants";
+import {
+  TOKEN_KEY,
+  EVENTS_PATH,
+  SSE_DATA_CHANGED,
+  MSG_TOKEN_CHANGED,
+  MODEL_NAMES,
+} from "~/lib/constants";
 
 declare const __SERVER_URL__: string;
 

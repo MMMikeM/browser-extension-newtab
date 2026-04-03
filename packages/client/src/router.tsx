@@ -10,8 +10,9 @@ const createHistory = () => {
   return createBrowserHistory();
 };
 
-export const getRouter = () => createRouter({
-  routeTree,
-  history: createHistory(),
-  defaultNotFoundComponent: () => <p>Page not found</p>,
-})
+export const getRouter = () =>
+  createRouter({
+    routeTree,
+    history: createHistory(),
+    defaultNotFoundComponent: () => <p>Page not found</p>,
+  });

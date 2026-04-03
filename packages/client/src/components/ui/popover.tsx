@@ -2,19 +2,19 @@ import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 
 import { cn } from "~/lib/utils";
 
-function Popover(props: PopoverPrimitive.Root.Props) {
+const Popover = (props: PopoverPrimitive.Root.Props) => {
   return <PopoverPrimitive.Root {...props} />;
-}
+};
 
-function PopoverTrigger(props: PopoverPrimitive.Trigger.Props) {
+const PopoverTrigger = (props: PopoverPrimitive.Trigger.Props) => {
   return <PopoverPrimitive.Trigger {...props} />;
-}
+};
 
-function PopoverContent({
+const PopoverContent = ({
   className,
   sideOffset = 4,
   ...props
-}: PopoverPrimitive.Popup.Props & { sideOffset?: number }) {
+}: PopoverPrimitive.Popup.Props & { sideOffset?: number }) => {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner sideOffset={sideOffset}>
@@ -29,6 +29,6 @@ function PopoverContent({
       </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
   );
-}
+};
 
 export { Popover, PopoverTrigger, PopoverContent };

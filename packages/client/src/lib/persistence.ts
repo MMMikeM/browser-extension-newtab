@@ -8,4 +8,4 @@ const database = await openBrowserWASQLiteOPFSDatabase({
 });
 
 // Untyped — each collection narrows T and TKey via persistedCollectionOptions
-export const persistence = createBrowserWASQLitePersistence({ database }) as any;
+export const persistence = createBrowserWASQLitePersistence({ database });

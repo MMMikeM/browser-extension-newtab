@@ -45,7 +45,7 @@ export function TaskDetail({
   );
 }
 
-function TaskDetailContent({
+const TaskDetailContent = ({
   task,
   onUpdate,
   onDelete,
@@ -53,7 +53,7 @@ function TaskDetailContent({
   task: Task;
   onUpdate: (fields: Partial<Task>) => void;
   onDelete: () => void;
-}) {
+}) => {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const isDone = task.status === "done";
@@ -146,9 +146,9 @@ function TaskDetailContent({
       </Button>
     </div>
   );
-}
+};
 
-function NoteItem({ note }: { note: Note }) {
+const NoteItem = ({ note }: { note: Note }) => {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(note.content ?? "");
   if (editing) {
@@ -189,9 +189,9 @@ function NoteItem({ note }: { note: Note }) {
       </div>
     </div>
   );
-}
+};
 
-function AddNoteInput({ taskId }: { taskId: string }) {
+const AddNoteInput = ({ taskId }: { taskId: string }) => {
   const [value, setValue] = useState("");
   return (
     <form
@@ -214,15 +214,15 @@ function AddNoteInput({ taskId }: { taskId: string }) {
       />
     </form>
   );
-}
+};
 
-function SubtaskSection({
+const SubtaskSection = ({
   taskId,
   subtasks: rawSubtasks,
 }: {
   taskId: string;
   subtasks: Task["subtasks"];
-}) {
+}) => {
   const [value, setValue] = useState("");
 
   const subtasks = [...rawSubtasks].sort((a, b) =>
@@ -281,9 +281,9 @@ function SubtaskSection({
       </form>
     </div>
   );
-}
+};
 
-function ShareSection({
+const ShareSection = ({
   taskId,
   taskUserId,
   shares,
@@ -291,7 +291,7 @@ function ShareSection({
   taskId: string;
   taskUserId: string;
   shares: Task["shares"];
-}) {
+}) => {
   const currentUserId = getCurrentUserId();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -368,4 +368,6 @@ function ShareSection({
       {serverError && <span className="text-xs text-destructive">{serverError}</span>}
     </div>
   );
-}
+};
+
+export default TaskDetail;

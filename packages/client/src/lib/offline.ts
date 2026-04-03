@@ -22,7 +22,7 @@ const createSyncFn =
   (
     name: string,
     endpoint: ResourceEndpoint,
-    collection: Collection<any, any, any>,
+    collection: Collection<any, any, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
     stripKeys: string[] = [],
   ) =>
   async ({
@@ -62,7 +62,9 @@ const createSyncFn =
         collection.utils.writeDelete(m.key as never);
       }
 
-      console.log(`[sync:${name}] ${m.type} complete — synced store updated before optimistic removal`);
+      console.log(
+        `[sync:${name}] ${m.type} complete — synced store updated before optimistic removal`,
+      );
     }
   };
 

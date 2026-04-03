@@ -13,7 +13,7 @@ const vapid: VapidConfig = {
  * Send a silent sync push to all devices except the one that made the change.
  * Expired/invalid subscriptions (410 Gone) are cleaned up automatically.
  */
-export async function notifyOtherDevices(excludeEndpoint?: string) {
+export const notifyOtherDevices = async (excludeEndpoint?: string) => {
   const subs = await db.query.pushSubscriptions.findMany(
     excludeEndpoint ? { where: { NOT: { endpoint: excludeEndpoint } } } : undefined,
   );
@@ -38,4 +38,4 @@ export async function notifyOtherDevices(excludeEndpoint?: string) {
   if (results.length > 0) {
     console.log(`Push: ${sent}/${results.length} delivered`);
   }
-}
+};
