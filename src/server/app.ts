@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { autoNotify } from "./broadcast";
 import { authRoutes } from "./routes/auth";
 import { taskRoutes } from "./routes/tasks";
@@ -7,7 +7,7 @@ import { noteRoutes } from "./routes/notes";
 import { pushRoutes } from "./routes/push";
 import { eventsRoute } from "./routes/events";
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
 // CORS — needed for extension context (moz-extension:// origin)
 app.use("*", async (c, next) => {
@@ -30,6 +30,11 @@ const api = app
   .route("/api/notes", noteRoutes)
   .route("/api/push", pushRoutes)
   .route("/api/events", eventsRoute);
+
+app.doc("/api/openapi.json", {
+  openapi: "3.0.0",
+  info: { title: "NewTab Todo API", version: "1.0.0" },
+});
 
 export type AppType = typeof api;
 export default app;

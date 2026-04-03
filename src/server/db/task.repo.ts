@@ -8,10 +8,12 @@ import { isoDatetime } from "~/lib/utils";
 export type TaskShareInsert = typeof taskShares.$inferInsert;
 
 export const taskShareSelectSchema = createSelectSchema(taskShares).pick({ id: true });
+export const taskShareResponseSchema = createSelectSchema(taskShares);
 
 export type TaskInsert = typeof tasks.$inferInsert;
 
 export const taskSelectSchema = createSelectSchema(tasks).pick({ id: true });
+export const taskResponseSchema = createSelectSchema(tasks);
 export const taskInsertSchema = createInsertSchema(tasks, { createdAt: isoDatetime, updatedAt: isoDatetime })
   .required({ id: true, createdAt: true, updatedAt: true })
   .strict();

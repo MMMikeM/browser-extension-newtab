@@ -9,6 +9,7 @@ export type CategoryInsert = typeof categories.$inferInsert;
 export type CategorySelect = typeof categories.$inferSelect;
 
 export const categorySelectSchema = createSelectSchema(categories).pick({ id: true });
+export const categoryResponseSchema = createSelectSchema(categories);
 export const categoryInsertSchema = createInsertSchema(categories, { createdAt: isoDatetime, updatedAt: isoDatetime })
   .required({ id: true, createdAt: true, updatedAt: true })
   .strict();
