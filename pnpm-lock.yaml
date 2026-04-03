@@ -234,6 +234,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.3)
+      '@tanstack/browser-db-sqlite-persistence':
+        specifier: ^0.1.5
+        version: 0.1.5(@journeyapps/wa-sqlite@1.5.0)(typescript@6.0.2)
       '@tanstack/db':
         specifier: ^0.6.1
         version: 0.6.1(typescript@6.0.2)
@@ -243,9 +246,6 @@ importers:
       '@tanstack/offline-transactions':
         specifier: ^1.0.26
         version: 1.0.26(typescript@6.0.2)
-      '@tanstack/query-async-storage-persister':
-        specifier: ^5.96.1
-        version: 5.96.1
       '@tanstack/query-db-collection':
         specifier: ^1.0.32
         version: 1.0.32(@tanstack/query-core@5.96.1)(typescript@6.0.2)
@@ -258,9 +258,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.96.1
         version: 5.96.1(react@19.2.4)
-      '@tanstack/react-query-persist-client':
-        specifier: ^5.96.1
-        version: 5.96.1(@tanstack/react-query@5.96.1(react@19.2.4))(react@19.2.4)
       '@tanstack/react-router':
         specifier: ^1.168.10
         version: 1.168.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1462,6 +1459,9 @@ packages:
   '@isaacs/cliui@9.0.0':
     resolution: {integrity: sha512-AokJm4tuBHillT+FpMtxQ60n8ObyXBatq7jD2/JA9dxbDDokKQm8KMht5ibGzLVU9IJDIKK4TPKgMHEYMn3lMg==}
     engines: {node: '>=18'}
+
+  '@journeyapps/wa-sqlite@1.5.0':
+    resolution: {integrity: sha512-oASXW/9Ktbhn6kJjxCJzRKxNnlOyj7GKBLF/59dkz1kbOLw7kAXBTwWTUvqfT97OEshtrK/J8bJUYbpggdCZ9Q==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -2809,8 +2809,19 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@tanstack/browser-db-sqlite-persistence@0.1.5':
+    resolution: {integrity: sha512-c5rBVsvJ0UWGEfLkoYeXqrazzJiUfmVrbEsPcxFfNRzM0zjh01zpkyjz5PqA/tBKLk1cKAdDILjBq95MVEhqPQ==}
+    peerDependencies:
+      '@journeyapps/wa-sqlite': ^1.4.1
+      typescript: '>=4.7'
+
   '@tanstack/db-ivm@0.1.18':
     resolution: {integrity: sha512-+pZJiRKdoKRM5Epq9T7otD9ZJl82pRFauo7LKuJGrarjVKQ7r+QQlPe3kGdN9LEKSnuNGIWjX9OOY4M8kH4eLw==}
+    peerDependencies:
+      typescript: '>=4.7'
+
+  '@tanstack/db-sqlite-persistence-core@0.1.5':
+    resolution: {integrity: sha512-hfeLkZB3BOIKoEG6XaT2I6nIqchUsgf3Xz3kErzv59AKUU+iYSVTdSXL9gT9AA87f5fxlEWbO+wEeVOYqZpUlw==}
     peerDependencies:
       typescript: '>=4.7'
 
@@ -2850,9 +2861,6 @@ packages:
     resolution: {integrity: sha512-3PouiFjR4B6x1c969/Pl4ZIJleof1M0n6fNX8NRiC9Sqv1g06CVDlEaXUR4212ycGFyfq4q+t8Gi37Xy+z34iQ==}
     engines: {node: '>=18'}
 
-  '@tanstack/query-async-storage-persister@5.96.1':
-    resolution: {integrity: sha512-5+Log708EqBHe6bPIZvNkJvbLQ4vK7AOCOT303lWytst48ylqlkDpzMWYeR+zZLaKCsyt7X6qx5VhMWH6IOy9w==}
-
   '@tanstack/query-core@5.96.1':
     resolution: {integrity: sha512-u1yBgtavSy+N8wgtW3PiER6UpxcplMje65yXnnVgiHTqiMwLlxiw4WvQDrXyn+UD6lnn8kHaxmerJUzQcV/MMg==}
 
@@ -2861,9 +2869,6 @@ packages:
     peerDependencies:
       '@tanstack/query-core': ^5.0.0
       typescript: '>=4.7'
-
-  '@tanstack/query-persist-client-core@5.96.1':
-    resolution: {integrity: sha512-61jJdGjhBaAJiQ6TRt4uFI8EoAPyf7bJjbtc59AxZwMyid9kV9FlUEtNs2TkEzYHPTYvDZzz0qOvvkn1YD/VEg==}
 
   '@tanstack/react-db@0.1.79':
     resolution: {integrity: sha512-xjJbSjlQCWBQYLQBEopAsq+riz9Ci1QauTQ8W1M5D40cOe0Su2Y50XeyF2qnT6CWhFTvlrhwdCBmV5irefpIgw==}
@@ -2878,12 +2883,6 @@ packages:
     peerDependenciesMeta:
       '@tanstack/react-start':
         optional: true
-
-  '@tanstack/react-query-persist-client@5.96.1':
-    resolution: {integrity: sha512-HkYAI7T2uc12gvVR8P1D7dHgA/AdGDhqDN1HeaNP561OFa0H425qk61ykWtpF8Vnv82ElX6ao0nuNr1oPh89Uw==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.96.1
-      react: ^18 || ^19
 
   '@tanstack/react-query@5.96.1':
     resolution: {integrity: sha512-2X7KYK5KKWUKGeWCVcqxXAkYefJtrKB7tSKWgeG++b0H6BRHxQaLSSi8AxcgjmUnnosHuh9WsFZqvE16P1WCzA==}
@@ -7025,6 +7024,8 @@ snapshots:
 
   '@isaacs/cliui@9.0.0': {}
 
+  '@journeyapps/wa-sqlite@1.5.0': {}
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -7987,10 +7988,22 @@ snapshots:
       tailwindcss: 4.2.2
       vite: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.0)(@vitejs/devtools@0.1.13)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
 
+  '@tanstack/browser-db-sqlite-persistence@0.1.5(@journeyapps/wa-sqlite@1.5.0)(typescript@6.0.2)':
+    dependencies:
+      '@journeyapps/wa-sqlite': 1.5.0
+      '@tanstack/db-sqlite-persistence-core': 0.1.5(typescript@6.0.2)
+      typescript: 6.0.2
+
   '@tanstack/db-ivm@0.1.18(typescript@6.0.2)':
     dependencies:
       fractional-indexing: 3.2.0
       sorted-btree: 1.8.1
+      typescript: 6.0.2
+
+  '@tanstack/db-sqlite-persistence-core@0.1.5(typescript@6.0.2)':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      '@tanstack/db': 0.6.1(typescript@6.0.2)
       typescript: 6.0.2
 
   '@tanstack/db@0.6.1(typescript@6.0.2)':
@@ -8020,11 +8033,6 @@ snapshots:
 
   '@tanstack/pacer-lite@0.2.1': {}
 
-  '@tanstack/query-async-storage-persister@5.96.1':
-    dependencies:
-      '@tanstack/query-core': 5.96.1
-      '@tanstack/query-persist-client-core': 5.96.1
-
   '@tanstack/query-core@5.96.1': {}
 
   '@tanstack/query-db-collection@1.0.32(@tanstack/query-core@5.96.1)(typescript@6.0.2)':
@@ -8033,10 +8041,6 @@ snapshots:
       '@tanstack/db': 0.6.1(typescript@6.0.2)
       '@tanstack/query-core': 5.96.1
       typescript: 6.0.2
-
-  '@tanstack/query-persist-client-core@5.96.1':
-    dependencies:
-      '@tanstack/query-core': 5.96.1
 
   '@tanstack/react-db@0.1.79(react@19.2.4)(typescript@6.0.2)':
     dependencies:
@@ -8053,12 +8057,6 @@ snapshots:
       react: 19.2.4
     transitivePeerDependencies:
       - react-dom
-
-  '@tanstack/react-query-persist-client@5.96.1(@tanstack/react-query@5.96.1(react@19.2.4))(react@19.2.4)':
-    dependencies:
-      '@tanstack/query-persist-client-core': 5.96.1
-      '@tanstack/react-query': 5.96.1(react@19.2.4)
-      react: 19.2.4
 
   '@tanstack/react-query@5.96.1(react@19.2.4)':
     dependencies:

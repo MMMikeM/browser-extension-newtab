@@ -42,11 +42,18 @@ const listenExtensionMessages = () => {
   });
 };
 
+const listenSwMessages = () => {
+  navigator.serviceWorker?.addEventListener("message", (event) => {
+    if (event.data?.type === "SYNC_ALL") refetchAll();
+  });
+};
+
 export const initSync = () => {
   const target = getBuildTarget();
   if (target === "browser") {
     if (!es && getAuthToken()) connectSSE();
     subscribeAuthToken(reconnect);
+    listenSwMessages();
   } else if (target === "extension") {
     listenExtensionMessages();
   }
