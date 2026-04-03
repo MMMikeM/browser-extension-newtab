@@ -11,7 +11,7 @@ const bySortOrder = (a: Task, b: Task) => (a.sortOrder ?? "").localeCompare(b.so
 export const addTask = (title: string, categoryId?: string | null, parentId?: string | null) => {
   const userId = getCurrentUserId();
 
-  const allTasks = [...tasksCollection.state?.values()];
+  const allTasks = [...(tasksCollection.state?.values() ?? [])];
   const siblings = parentId
     ? allTasks.filter((t) => t.parentId === parentId).sort(bySortOrder)
     : allTasks.filter((t) => !t.parentId).sort(bySortOrder);
