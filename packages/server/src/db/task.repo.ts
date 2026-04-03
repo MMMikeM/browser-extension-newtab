@@ -4,7 +4,7 @@ import { z } from "@hono/zod-openapi";
 import { db } from "./client";
 import { tasks, taskShares, users } from "./schema";
 import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
-import { isoDatetime } from "./iso";
+import { isoDatetime } from "@newtab-todo/shared/iso";
 
 export type TaskShareInsert = typeof taskShares.$inferInsert;
 

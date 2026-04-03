@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync, cpSync, rmSync, readdirSync } from "node:f
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname);
-const OUTPUT_PUBLIC = join(ROOT, "dist", "client");
+const OUTPUT_PUBLIC = join(ROOT, "dist");
 const EXT_OUT = join(ROOT, "dist", "extension");
 
 const buildExtensionManifest = (serverUrl: string) => ({

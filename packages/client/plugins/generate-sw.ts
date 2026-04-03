@@ -12,7 +12,7 @@ import type { PluginOption } from "vite";
  */
 export const generateSW = (): PluginOption => {
   const root = resolve(import.meta.dirname, "..");
-  const outputPublic = join(root, "dist", "client");
+  const outputPublic = join(root, "dist");
   const swSrc = join(root, "src", "sw.ts");
   const manifestSrc = join(root, "public", "manifest.webmanifest");
 

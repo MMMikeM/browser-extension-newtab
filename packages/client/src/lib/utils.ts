@@ -1,5 +1,5 @@
 import type { VariantProps } from "tailwind-variants";
-import { ISODateString } from "~/server/db/iso";
+import type { ISODateString } from "@newtab-todo/shared/iso";
 export { cn } from "tailwind-variants";
 
 

@@ -188,6 +188,33 @@ settings:
 importers:
 
   .:
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.59.1
+        version: 1.59.1
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      knip:
+        specifier: ^6.3.0
+        version: 6.3.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)
+      oxfmt:
+        specifier: ^0.43.0
+        version: 0.43.0
+      oxlint:
+        specifier: ^1.58.0
+        version: 1.58.0
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      turbo:
+        specifier: ^2.5.4
+        version: 2.9.3
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+
+  packages/client:
     dependencies:
       '@base-ui/react':
         specifier: ^1.3.0
@@ -201,27 +228,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
-      '@hono/node-server':
-        specifier: ^1.19.12
-        version: 1.19.12(hono@4.12.10)
-      '@hono/vite-dev-server':
-        specifier: ^0.25.1
-        version: 0.25.1(hono@4.12.10)
-      '@hono/zod-openapi':
-        specifier: ^1.2.4
-        version: 1.2.4(hono@4.12.10)(zod@4.3.6)
-      '@libsql/client':
-        specifier: ^0.17.2
-        version: 0.17.2
-      '@mmmike/web-push':
-        specifier: ^0.1.0
-        version: 0.1.0
-      '@node-rs/argon2':
-        specifier: ^2.0.2
-        version: 2.0.2
-      '@paralleldrive/cuid2':
-        specifier: ^3.3.0
-        version: 3.3.0
+      '@newtab-todo/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tanstack/browser-db-sqlite-persistence':
         specifier: ^0.1.5
         version: 0.1.5(@journeyapps/wa-sqlite@1.5.0)(typescript@6.0.2)
@@ -249,9 +258,6 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.168.10
         version: 1.168.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      drizzle-orm:
-        specifier: 1.0.0-beta.19
-        version: 1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)
       fractional-indexing:
         specifier: ^3.2.0
         version: 3.2.0
@@ -273,9 +279,6 @@ importers:
       react-dom:
         specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
-      rollup-plugin-visualizer:
-        specifier: ^7.0.1
-        version: 7.0.1(rolldown@1.0.0-rc.13)(rollup@2.80.0)
       shadcn:
         specifier: ^4.1.2
         version: 4.1.2(@types/node@25.5.0)(typescript@6.0.2)
@@ -295,9 +298,12 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
-      '@playwright/test':
-        specifier: ^1.59.1
-        version: 1.59.1
+      '@hono/vite-dev-server':
+        specifier: ^0.25.1
+        version: 0.25.1(hono@4.12.10)
+      '@newtab-todo/server':
+        specifier: workspace:*
+        version: link:../server
       '@rolldown/plugin-babel':
         specifier: ^0.2.2
         version: 0.2.2(@babel/core@7.29.0)(@babel/runtime@7.29.2)(rolldown@1.0.0-rc.13)(vite@8.0.3)
@@ -310,9 +316,6 @@ importers:
       '@types/firefox-webext-browser':
         specifier: ^143.0.0
         version: 143.0.0
-      '@types/node':
-        specifier: ^25.5.0
-        version: 25.5.0
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -321,34 +324,19 @@ importers:
         version: 19.2.3(@types/react@19.2.14)
       '@vitejs/devtools':
         specifier: ^0.1.13
-        version: 0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)
+        version: 0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)
       '@vitejs/plugin-react':
         specifier: ^6.0.1
         version: 6.0.1(@rolldown/plugin-babel@0.2.2(@babel/core@7.29.0)(@babel/runtime@7.29.2)(rolldown@1.0.0-rc.13)(vite@8.0.3))(babel-plugin-react-compiler@1.0.0)(vite@8.0.3)
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
-      drizzle-kit:
-        specifier: 1.0.0-beta.19
-        version: 1.0.0-beta.19
-      knip:
-        specifier: ^6.3.0
-        version: 6.3.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)
-      oxfmt:
-        specifier: ^0.43.0
-        version: 0.43.0
-      oxlint:
-        specifier: ^1.58.0
-        version: 1.58.0
+      rollup-plugin-visualizer:
+        specifier: ^7.0.1
+        version: 7.0.1(rolldown@1.0.0-rc.13)(rollup@2.80.0)
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
-      typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
       vite:
         specifier: ^8.0.3
         version: 8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.0)(@vitejs/devtools@0.1.13)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
@@ -367,6 +355,52 @@ importers:
       workbox-strategies:
         specifier: ^7.4.0
         version: 7.4.0
+
+  packages/server:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.12
+        version: 1.19.12(hono@4.12.10)
+      '@hono/zod-openapi':
+        specifier: ^1.2.4
+        version: 1.2.4(hono@4.12.10)(zod@4.3.6)
+      '@libsql/client':
+        specifier: ^0.17.2
+        version: 0.17.2
+      '@mmmike/web-push':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@newtab-todo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@node-rs/argon2':
+        specifier: ^2.0.2
+        version: 2.0.2
+      '@paralleldrive/cuid2':
+        specifier: ^3.3.0
+        version: 3.3.0
+      drizzle-orm:
+        specifier: 1.0.0-beta.19
+        version: 1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)
+      hono:
+        specifier: ^4.12.10
+        version: 4.12.10
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      drizzle-kit:
+        specifier: 1.0.0-beta.19
+        version: 1.0.0-beta.19
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+
+  packages/shared:
+    dependencies:
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
 
 packages:
 
@@ -2943,6 +2977,36 @@ packages:
   '@ts-morph/common@0.27.0':
     resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==}
 
+  '@turbo/darwin-64@2.9.3':
+    resolution: {integrity: sha512-P8foouaP+y/p+hhEGBoZpzMbpVvUMwPjDpcy6wN7EYfvvyISD1USuV27qWkczecihwuPJzQ1lDBuL8ERcavTyg==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@turbo/darwin-arm64@2.9.3':
+    resolution: {integrity: sha512-SIzEkvtNdzdI50FJDaIQ6kQGqgSSdFPcdn0wqmmONN6iGKjy6hsT+EH99GP65FsfV7DLZTh2NmtTIRl2kdoz5Q==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@turbo/linux-64@2.9.3':
+    resolution: {integrity: sha512-pLRwFmcHHNBvsCySLS6OFabr/07kDT2pxEt/k6eBf/3asiVQZKJ7Rk88AafQx2aYA641qek4RsXvYO3JYpiBug==}
+    cpu: [x64]
+    os: [linux]
+
+  '@turbo/linux-arm64@2.9.3':
+    resolution: {integrity: sha512-gy6ApUroC2Nzv+qjGtE/uPNkhHAFU4c8God+zd5Aiv9L9uBgHlxVJpHT3XWl5xwlJZ2KWuMrlHTaS5kmNB+q1Q==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@turbo/windows-64@2.9.3':
+    resolution: {integrity: sha512-d0YelTX6hAsB7kIEtGB3PzIzSfAg3yDoUlHwuwJc3adBXUsyUIs0YLG+1NNtuhcDOUGnWQeKUoJ2pGWvbpRj7w==}
+    cpu: [x64]
+    os: [win32]
+
+  '@turbo/windows-arm64@2.9.3':
+    resolution: {integrity: sha512-/08CwpKJl3oRY8nOlh2YgilZVJDHsr60XTNxRhuDeuFXONpUZ5X+Nv65izbG/xBew9qxcJFbDX9/sAmAX+ITcQ==}
+    cpu: [arm64]
+    os: [win32]
+
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
 
@@ -5391,6 +5455,10 @@ packages:
   tsx@4.21.0:
     resolution: {integrity: sha512-5C1sg4USs1lfG0GFb2RLXsdpXqBSEhAaA/0kPL01wxzpMqLILNxIxIOKiILz+cdg/pLnOUxFYOR5yhHU666wbw==}
     engines: {node: '>=18.0.0'}
+    hasBin: true
+
+  turbo@2.9.3:
+    resolution: {integrity: sha512-J/VUvsGRykPb9R8Kh8dHVBOqioDexLk9BhLCU/ZybRR+HN9UR3cURdazFvNgMDt9zPP8TF6K73Z+tplfmi0PqQ==}
     hasBin: true
 
   tw-animate-css@1.4.0:
@@ -8175,6 +8243,24 @@ snapshots:
       minimatch: 10.2.5
       path-browserify: 1.0.1
 
+  '@turbo/darwin-64@2.9.3':
+    optional: true
+
+  '@turbo/darwin-arm64@2.9.3':
+    optional: true
+
+  '@turbo/linux-64@2.9.3':
+    optional: true
+
+  '@turbo/linux-arm64@2.9.3':
+    optional: true
+
+  '@turbo/windows-64@2.9.3':
+    optional: true
+
+  '@turbo/windows-arm64@2.9.3':
+    optional: true
+
   '@tybys/wasm-util@0.10.1':
     dependencies:
       tslib: 2.8.1
@@ -8241,7 +8327,7 @@ snapshots:
       - typescript
       - ws
 
-  '@vitejs/devtools-rolldown@0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)(vue@3.5.32(typescript@6.0.2))':
+  '@vitejs/devtools-rolldown@0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)(vue@3.5.32(typescript@6.0.2))':
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@pnpm/read-project-manifest': 1001.2.6(@pnpm/logger@1001.0.1)
@@ -8266,7 +8352,7 @@ snapshots:
       structured-clone-es: 2.0.0
       tinyglobby: 0.2.15
       unconfig: 7.5.0
-      unstorage: 1.17.5(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2)
+      unstorage: 1.17.5(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2)
       vue-virtual-scroller: 2.0.0(vue@3.5.32(typescript@6.0.2))
       ws: 8.20.0
     transitivePeerDependencies:
@@ -8308,10 +8394,10 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@vitejs/devtools@0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)':
+  '@vitejs/devtools@0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)':
     dependencies:
       '@vitejs/devtools-kit': 0.1.13(typescript@6.0.2)(vite@8.0.3)(ws@8.20.0)
-      '@vitejs/devtools-rolldown': 0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)(vue@3.5.32(typescript@6.0.2))
+      '@vitejs/devtools-rolldown': 0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)(vue@3.5.32(typescript@6.0.2))
       '@vitejs/devtools-rpc': 0.1.13(typescript@6.0.2)(ws@8.20.0)
       birpc: 4.0.0
       cac: 7.0.0
@@ -8764,10 +8850,9 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
-  db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)):
+  db0@0.3.4(@libsql/client@0.17.2):
     optionalDependencies:
       '@libsql/client': 0.17.2
-      drizzle-orm: 1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)
     optional: true
 
   debug@4.4.3:
@@ -10856,6 +10941,15 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  turbo@2.9.3:
+    optionalDependencies:
+      '@turbo/darwin-64': 2.9.3
+      '@turbo/darwin-arm64': 2.9.3
+      '@turbo/linux-64': 2.9.3
+      '@turbo/linux-arm64': 2.9.3
+      '@turbo/windows-64': 2.9.3
+      '@turbo/windows-arm64': 2.9.3
+
   tw-animate-css@1.4.0: {}
 
   type-fest@0.16.0: {}
@@ -10961,7 +11055,7 @@ snapshots:
       picomatch: 4.0.4
       webpack-virtual-modules: 0.6.2
 
-  unstorage@1.17.5(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2):
+  unstorage@1.17.5(@azure/identity@4.13.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2):
     dependencies:
       anymatch: 3.1.3
       chokidar: 5.0.0
@@ -10973,7 +11067,7 @@ snapshots:
       ufo: 1.6.3
     optionalDependencies:
       '@azure/identity': 4.13.1
-      db0: 0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6))
+      db0: 0.3.4(@libsql/client@0.17.2)
       idb-keyval: 6.2.2
 
   until-async@3.0.2: {}
@@ -11035,7 +11129,7 @@ snapshots:
       tinyglobby: 0.2.15
     optionalDependencies:
       '@types/node': 25.5.0
-      '@vitejs/devtools': 0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2)(drizzle-orm@1.0.0-beta.19(@libsql/client@0.17.2)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(valibot@1.3.1(typescript@6.0.2))(zod@4.3.6)))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)
+      '@vitejs/devtools': 0.1.13(@azure/identity@4.13.1)(@pnpm/logger@1001.0.1)(db0@0.3.4(@libsql/client@0.17.2))(idb-keyval@6.2.2)(typescript@6.0.2)(vite@8.0.3)
       esbuild: 0.27.7
       fsevents: 2.3.3
       jiti: 2.6.1

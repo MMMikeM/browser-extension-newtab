@@ -1,8 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { AnySQLiteColumn, SQLiteColumn } from "drizzle-orm/sqlite-core";
 import { integer, text } from "drizzle-orm/sqlite-core";
-import { z } from "zod";
-
 // Primary key (text for cuid2 IDs)
 export const pk = (name = "id") => text(name).primaryKey();
 

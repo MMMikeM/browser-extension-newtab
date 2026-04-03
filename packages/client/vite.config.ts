@@ -17,6 +17,8 @@ const OPFS_WORKER_SRC = resolve(
 
 const WA_SQLITE_WASM = globSync(
   resolve(import.meta.dirname, "node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
+)[0] ?? globSync(
+  resolve(import.meta.dirname, "../../node_modules/.pnpm/@journeyapps+wa-sqlite*/node_modules/@journeyapps/wa-sqlite/dist/wa-sqlite.wasm"),
 )[0]!;
 
 /**
@@ -24,7 +26,7 @@ const WA_SQLITE_WASM = globSync(
  * `new Worker("/assets/opfs-worker-*.js")`.
  *
  * - Dev: serves the file from node_modules via middleware.
- * - Build: copies the worker into dist/client/assets/ at closeBundle.
+ * - Build: copies the worker into dist/assets/ at closeBundle.
  */
 const opfsWorker = (): PluginOption => ({
   name: "opfs-worker",
@@ -50,7 +52,7 @@ const opfsWorker = (): PluginOption => ({
   closeBundle() {
     if (this.environment?.name !== "client") return;
 
-    const outDir = resolve(import.meta.dirname, "dist/client/assets");
+    const outDir = resolve(import.meta.dirname, "dist/assets");
     mkdirSync(outDir, { recursive: true });
 
     for (const f of readdirSync(OPFS_WORKER_SRC)) {
@@ -69,9 +71,12 @@ export default defineConfig(({ mode }) => {
   return {
     server: {
       cors: { origin: true },
+      fs: {
+        allow: [resolve(import.meta.dirname, "../server")],
+      },
     },
     resolve: {
-      tsconfigPaths: true
+      tsconfigPaths: true,
     },
     define: {
       "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
@@ -86,7 +91,7 @@ export default defineConfig(({ mode }) => {
       }),
       viteReact({}),
       devServer({
-        entry: "src/server/app.ts",
+        entry: resolve(import.meta.dirname, "../server/src/app.ts"),
         exclude: [/^(?!\/api\/).+/],
         injectClientScript: false,
       }),
@@ -97,13 +102,12 @@ export default defineConfig(({ mode }) => {
       visualizer()
     ],
     build: {
-      outDir: "dist/client",
+      outDir: "dist",
       rolldownOptions: {
         output: {
           codeSplitting: {
             groups: [
             // 1. React Core (Priority: Highest)
-            // Rarely changes. Cache this practically forever.
             {
               name: 'react-core',
               test: /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
@@ -111,8 +115,6 @@ export default defineConfig(({ mode }) => {
             },
 
             // 2. Local-First Database & Storage (Priority: High)
-            // Your visualizer shows @tanstack/db, wa-sqlite, fractional-indexing, etc. 
-            // This is a massive piece of code. Isolating it ensures UI updates don't bust this cache.
             {
               name: 'tanstack-db',
               test: /node_modules[\\/](@tanstack[\\/](db|db-ivm|offline-transactions|browser-db-sqlite-persistence|query-db-collection)|@journeyapps|fractional-indexing|bignumber\.js|@noble)[\\/]/,
@@ -120,7 +122,6 @@ export default defineConfig(({ mode }) => {
             },
 
             // 3. TanStack Routing & Data Fetching
-            // Groups Router, Query, and Form together.
             {
               name: 'tanstack-core',
               test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
@@ -128,7 +129,6 @@ export default defineConfig(({ mode }) => {
             },
 
             // 4. UI Primitives & Styling
-            // Groups all headless UI and tailwind utilities.
             {
               name: 'ui-primitives',
               test: /node_modules[\\/](@base-ui|@radix-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
@@ -136,7 +136,6 @@ export default defineConfig(({ mode }) => {
             },
 
             // 5. Drag and Drop Engine
-            // Only needed on pages with lists. 
             {
               name: 'dnd-kit',
               test: /node_modules[\\/]@dnd-kit[\\/]/,
@@ -144,7 +143,6 @@ export default defineConfig(({ mode }) => {
             },
 
             // 6. Catch-all Vendor
-            // Anything else in node_modules falls in here.
             {
               name: 'vendor',
               test: /node_modules[\\/]/,

@@ -1,4 +1,4 @@
-import type { AppType } from "~/server/app";
+import type { AppType } from "@newtab-todo/server/app";
 import { hc } from "hono/client";
 import { getAuthToken } from "~/lib/auth-token";
 import { clientId } from "~/lib/client-id";

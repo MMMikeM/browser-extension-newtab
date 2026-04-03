@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import { notifyOtherDevices } from "./push";
-import type { MutationEvent, ModelName } from "~/lib/constants";
+import type { MutationEvent, ModelName } from "@newtab-todo/shared";
 
 export type { MutationEvent };
 

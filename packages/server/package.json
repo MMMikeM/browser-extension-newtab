@@ -1,0 +1,31 @@
+{
+  "name": "@newtab-todo/server",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./app": "./src/app.ts",
+    "./db/*": "./src/db/*"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@newtab-todo/shared": "workspace:*",
+    "@hono/node-server": "^1.19.12",
+    "@hono/zod-openapi": "^1.2.4",
+    "@libsql/client": "^0.17.2",
+    "@mmmike/web-push": "^0.1.0",
+    "@node-rs/argon2": "^2.0.2",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "drizzle-orm": "1.0.0-beta.19",
+    "hono": "^4.12.10",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "drizzle-kit": "1.0.0-beta.19",
+    "tsx": "^4.21.0"
+  }
+}

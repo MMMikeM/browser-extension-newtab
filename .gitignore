@@ -7,9 +7,10 @@ dist/
 .env.*
 !.env.example
 .data/
-src/routeTree.gen.ts
+**/routeTree.gen.ts
 screenshot.png
-public/assets/opfs-worker-*.js
+**/opfs-worker-*.js
+.turbo/
 .tanstack/
 .playwright-mcp/
 screenshot-*.png

@@ -4,7 +4,10 @@ RUN corepack enable && corepack install -g pnpm@11.0.0-beta.6
 
 FROM base AS build
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/server/package.json packages/server/
+COPY packages/client/package.json packages/client/
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm ci
 COPY . .
@@ -13,11 +16,15 @@ RUN pnpm build && pnpm build:ext
 
 FROM base AS runtime
 WORKDIR /app
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/src/server ./src/server
-COPY --from=build /app/src/lib ./src/lib
-COPY --from=build /app/tsconfig.json ./
+COPY --from=build /app/packages/server/src ./packages/server/src
+COPY --from=build /app/packages/server/package.json ./packages/server/
+COPY --from=build /app/packages/server/tsconfig.json ./packages/server/
+COPY --from=build /app/packages/shared/src ./packages/shared/src
+COPY --from=build /app/packages/shared/package.json ./packages/shared/
+COPY --from=build /app/packages/client/dist ./packages/client/dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./
+COPY --from=build /app/tsconfig.base.json ./
 EXPOSE 3000
-CMD ["node", "--import", "tsx/esm", "src/server/index.ts"]
+WORKDIR /app/packages/server
+CMD ["node", "--import", "tsx/esm", "src/index.ts"]
