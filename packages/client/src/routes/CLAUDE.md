@@ -16,3 +16,8 @@ The `mounted` state + `useEffect` pattern gates lazy components to prevent hydra
 ## Layout
 
 Layout, heading, input, and settings live in the root `component` — they're shared chrome, not route-specific. Route components render into `<Outlet />`.
+
+## Component conventions
+
+- **One exported component per file.** Don't co-export multiple components from the same file. Helper components that are only used internally (e.g. DnD wrappers) may live in the same file but must not be exported.
+- **Exported React components must be function declarations, not arrow expressions.** Use `export function Foo()` not `export const Foo = () =>`. This applies to all exported components only.

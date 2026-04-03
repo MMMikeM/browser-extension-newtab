@@ -2,7 +2,7 @@
 
 ## Rules
 
-- **Never commit without explicit user permission.** Always ask before committing.
+- **Never commit without explicit user permission.** Always ask before committing. This applies to subagents too — when dispatching subagents, explicitly tell them NOT to commit. Strip or ignore commit steps from any plan template.
 - **Always invoke the relevant skill before writing code that touches its domain.** Don't write Drizzle queries without invoking the drizzle skill. Don't write Legend State code without invoking the legend-state skill. No exceptions — read the reference first, then write code.
 - **Use static imports by default.** Dynamic `import()` is only acceptable when explicitly needed (e.g., breaking circular deps, lazy-loading heavy modules). Always add a comment explaining why.
 
@@ -41,6 +41,10 @@ Cross-package imports use `@newtab-todo/shared` and `@newtab-todo/server` (type-
 
 - `pnpm dev` / `pnpm build` / `pnpm build:ext` / `pnpm start`
 - `pnpm lint` / `pnpm fmt` — oxlint / oxfmt
-- `pnpm typecheck` — tsc --noEmit (via turbo)
+- `pnpm typecheck` — tsgo --noEmit (via turbo)
 - `pnpm check` — typecheck + lint + fmt + knip (CI gate)
 - `pnpm --filter @newtab-todo/server db:push` — push schema to Turso
+
+## CLAUDE.md hygiene
+
+- Don't reference memory files (e.g. `feedback_*.md`) in CLAUDE.md entries — they're internal and go stale.
