@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { HTTPException } from "hono/http-exception";
 import { login, signup } from "../auth-service";
 import sessionRepo from "../db/session.repo";
 import { extractToken, validateSession } from "../auth";
@@ -43,13 +44,9 @@ export const authRoutes = new OpenAPIHono()
     }),
     async (c) => {
       const data = c.req.valid("json");
-      try {
-        const result = await login(data.username, data.password);
-        setAuthCookie(c, result.token);
-        return c.json(result, 200);
-      } catch (e) {
-        return c.json({ error: e instanceof Error ? e.message : "Login failed" }, 401);
-      }
+      const result = await login(data.username, data.password);
+      setAuthCookie(c, result.token);
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -64,13 +61,9 @@ export const authRoutes = new OpenAPIHono()
     }),
     async (c) => {
       const data = c.req.valid("json");
-      try {
-        const result = await signup(data.username, data.password, data.name);
-        setAuthCookie(c, result.token);
-        return c.json(result, 200);
-      } catch (e) {
-        return c.json({ error: e instanceof Error ? e.message : "Signup failed" }, 409);
-      }
+      const result = await signup(data.username, data.password, data.name);
+      setAuthCookie(c, result.token);
+      return c.json(result, 200);
     },
   )
   .openapi(
@@ -84,13 +77,9 @@ export const authRoutes = new OpenAPIHono()
     }),
     async (c) => {
       const token = extractToken(c.req.raw);
-      if (!token) return c.json({ error: "Unauthorized" }, 401);
-      try {
-        const userId = await validateSession(token);
-        await sessionRepo.removeAllForUser(userId);
-        return c.json({ ok: true as const }, 200);
-      } catch {
-        return c.json({ error: "Unauthorized" }, 401);
-      }
+      if (!token) throw new HTTPException(401, { message: "Unauthorized" });
+      const userId = await validateSession(token);
+      await sessionRepo.removeAllForUser(userId);
+      return c.json({ ok: true as const }, 200);
     },
   );

@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { HTTPException } from "hono/http-exception";
 import { authRoutes } from "./routes/auth";
 import { taskRoutes } from "./routes/tasks";
 import { categoryRoutes } from "./routes/categories";
@@ -7,6 +8,14 @@ import { pushRoutes } from "./routes/push";
 import { eventsRoute } from "./routes/events";
 
 const app = new OpenAPIHono();
+
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    return c.json({ error: err.message }, err.status);
+  }
+  console.error(err);
+  return c.json({ error: "Internal server error" }, 500);
+});
 
 // CORS — needed for extension context (moz-extension:// origin)
 app.use("*", async (c, next) => {

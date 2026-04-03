@@ -1,4 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
+import { HTTPException } from "hono/http-exception";
 import { createId } from "@paralleldrive/cuid2";
 import taskRepo, {
   taskInsertSchema,
@@ -45,7 +46,7 @@ export const taskRoutes = authed()
       if (data.parentId) {
         const parent = await taskRepo.findById(data.parentId);
         if (parent.parentId)
-          return c.json({ error: "Cannot nest subtasks more than one level" }, 400);
+          throw new HTTPException(400, { message: "Cannot nest subtasks more than one level" });
       }
       const result = await taskRepo.insert(data);
       const taskWithRelations = { ...result, subtasks: [], shares: [] };
@@ -98,8 +99,8 @@ export const taskRoutes = authed()
         taskRepo.findById(data.taskId),
         userRepo.findByUsername(data.username),
       ]);
-      if (task.userId !== userId) return c.json({ error: "Not authorized" }, 403);
-      if (targetUser.id === userId) return c.json({ error: "Cannot share with yourself" }, 400);
+      if (task.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
+      if (targetUser.id === userId) throw new HTTPException(400, { message: "Cannot share with yourself" });
 
       const result = await taskRepo.insertShare({
         id: createId(),

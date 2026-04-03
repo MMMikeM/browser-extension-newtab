@@ -1,4 +1,5 @@
 import { hash, verify } from "@node-rs/argon2";
+import { HTTPException } from "hono/http-exception";
 import { createId } from "@paralleldrive/cuid2";
 import userRepo from "./db/user.repo";
 import sessionRepo from "./db/session.repo";
@@ -41,11 +42,11 @@ export const login = async (username: string, password: string) => {
   try {
     user = await userRepo.findByUsernameWithPassword(username);
   } catch {
-    throw new Error("Invalid username or password");
+    throw new HTTPException(401, { message: "Invalid username or password" });
   }
 
   const valid = await verify(user.passwordHash, password);
-  if (!valid) throw new Error("Invalid username or password");
+  if (!valid) throw new HTTPException(401, { message: "Invalid username or password" });
 
   const token = await sessionRepo.insert(user.id);
   return { userId: user.id, token, name: user.name, username: user.username };

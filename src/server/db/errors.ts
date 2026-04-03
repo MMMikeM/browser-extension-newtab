@@ -1,27 +1,25 @@
-export class NotFoundError extends Error {
+import { HTTPException } from "hono/http-exception";
+
+export class NotFoundError extends HTTPException {
   constructor(entity: string, id?: string) {
-    super(id ? `${entity} not found: ${id}` : `${entity} not found`);
-    this.name = "NotFoundError";
+    super(404, { message: id ? `${entity} not found: ${id}` : `${entity} not found` });
   }
 }
 
-export class ConflictError extends Error {
+export class ConflictError extends HTTPException {
   constructor(message: string) {
-    super(message);
-    this.name = "ConflictError";
+    super(409, { message });
   }
 }
 
-export class StaleUpdateError extends Error {
+export class StaleUpdateError extends HTTPException {
   constructor(entity: string, id: string) {
-    super(`Stale or missing ${entity}: ${id}`);
-    this.name = "StaleUpdateError";
+    super(409, { message: `Stale or missing ${entity}: ${id}` });
   }
 }
 
-export class InsertFailedError extends Error {
+export class InsertFailedError extends HTTPException {
   constructor(entity: string) {
-    super(`Insert failed: no ${entity} row returned`);
-    this.name = "InsertFailedError";
+    super(500, { message: `Insert failed: no ${entity} row returned` });
   }
 }
