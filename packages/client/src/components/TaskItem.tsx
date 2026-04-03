@@ -76,7 +76,7 @@ export function TaskItem({
         )}
       >
         {!isSubtask && (
-          <span className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost active:cursor-grabbing">
+          <span className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-ghost active:cursor-grabbing">
             <GripVertical size={14} />
           </span>
         )}
@@ -125,7 +125,7 @@ export function TaskItem({
           !isDone && (
             <button
               onClick={openPicker}
-              className="mt-0.5 whitespace-nowrap text-xs text-muted-foreground opacity-0 transition-opacity hover:underline group-hover/task:opacity-100"
+              className="mt-0.5 whitespace-nowrap text-xs text-muted-foreground opacity-0 transition-opacity hover:underline group-hover/task:opacity-100 touch:hidden"
             >
               set date
             </button>
@@ -134,7 +134,7 @@ export function TaskItem({
         {onAddSubtask && !isSubtask && !isDone && (
           <button
             onClick={() => setAddingSubtask(true)}
-            className="mt-1 text-transparent transition-colors hover:text-foreground group-hover/task:text-ghost"
+            className="mt-1 text-transparent transition-colors hover:text-foreground group-hover/task:text-ghost touch:hidden"
             title="Add subtask"
           >
             <Plus size={14} />
@@ -142,7 +142,8 @@ export function TaskItem({
         )}
         <button
           onClick={onDelete}
-          className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost"
+          className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:text-ghost touch:hover:text-destructive"
+          aria-label="Delete task"
         >
           <X size={14} />
         </button>
