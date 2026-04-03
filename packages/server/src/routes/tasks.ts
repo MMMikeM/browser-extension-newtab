@@ -100,7 +100,8 @@ export const taskRoutes = authed()
         userRepo.findByUsername(data.username),
       ]);
       if (task.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
-      if (targetUser.id === userId) throw new HTTPException(400, { message: "Cannot share with yourself" });
+      if (targetUser.id === userId)
+        throw new HTTPException(400, { message: "Cannot share with yourself" });
 
       const result = await taskRepo.insertShare({
         id: createId(),

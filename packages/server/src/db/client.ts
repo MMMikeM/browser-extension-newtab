@@ -5,16 +5,14 @@ import { relations } from "./schema";
 
 mkdirSync(".data", { recursive: true });
 
-const syncUrl = process.env.TURSO_DATABASE_URL;
-
 const client = createClient({
   url: "file:.data/local.db",
-  ...(syncUrl && {
-    syncUrl,
-    authToken: process.env.TURSO_AUTH_TOKEN,
-    syncInterval: 60,
-  }),
+  syncUrl: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+  syncInterval: 60,
 });
+
+await client.sync();
 
 // Enable foreign key enforcement (off by default in SQLite)
 await client.execute("PRAGMA foreign_keys = ON");
