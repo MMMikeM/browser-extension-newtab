@@ -25,7 +25,9 @@ jobs:
 
       - name: Extract extension artifact
         run: |
-          id=$(docker create $(docker images -q | head -1))
+          img=$(docker images --filter "reference=registry.fly.io/*" -q | head -1)
+          [ -z "$img" ] && img=$(docker images -q | head -1)
+          id=$(docker create "$img")
           docker cp "$id:/app/.output/extension" ./extension
           docker rm "$id"
 
