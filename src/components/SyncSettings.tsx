@@ -26,8 +26,9 @@ const signupSchema = z.object({
 const persistToken = (token: string) => {
   setAuthToken(token);
   if (getBuildTarget() === "extension") {
-    browser.storage.local.set({ [TOKEN_KEY]: token });
-    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
+    browser.storage.local.set({ [TOKEN_KEY]: token }).then(() =>
+      browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}),
+    );
   }
 };
 
@@ -35,8 +36,9 @@ const clearAuth = () => {
   setAuthToken(null);
   clearCurrentUser();
   if (getBuildTarget() === "extension") {
-    browser.storage.local.remove(TOKEN_KEY);
-    browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {});
+    browser.storage.local.remove(TOKEN_KEY).then(() =>
+      browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}),
+    );
   }
   unregisterPushSubscription();
 };
