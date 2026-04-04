@@ -1,4 +1,4 @@
-import { and, eq, lt } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { z } from "@hono/zod-openapi";
 import { db } from "./client";
@@ -66,8 +66,13 @@ const findById = async (id: string) => {
   return row;
 };
 
+// LWW insert: if same id arrives again (retry), return the existing row unchanged.
 const insert = async (data: TaskInsert) => {
-  const [row] = await db.insert(tasks).values(data).returning();
+  const [row] = await db
+    .insert(tasks)
+    .values(data)
+    .onConflictDoUpdate({ target: tasks.id, set: { updatedAt: sql`${tasks.updatedAt}` } })
+    .returning();
   if (!row) throw new InsertFailedError("task");
   return row;
 };

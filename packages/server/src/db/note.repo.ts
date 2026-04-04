@@ -1,4 +1,4 @@
-import { and, eq, lt } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { db } from "./client";
 import { notes } from "./schema";
@@ -24,8 +24,13 @@ export const noteUpdateSchema = createUpdateSchema(notes, { updatedAt: isoDateti
 const list = async (userId: string) =>
   db.query.notes.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
 
+// LWW insert: if same id arrives again (retry), return the existing row unchanged.
 const insert = async (data: NoteInsert) => {
-  const [row] = await db.insert(notes).values(data).returning();
+  const [row] = await db
+    .insert(notes)
+    .values(data)
+    .onConflictDoUpdate({ target: notes.id, set: { updatedAt: sql`${notes.updatedAt}` } })
+    .returning();
   if (!row) throw new InsertFailedError("note");
   return row;
 };
