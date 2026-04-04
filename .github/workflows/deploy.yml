@@ -14,7 +14,14 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Build client and extract extension artifact
+      - name: Build production image
+        run: |
+          docker build -t hearth \
+            --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
+            --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }} \
+            .
+
+      - name: Extract extension artifact
         run: |
           docker build --target client -t hearth-client \
             --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
@@ -24,10 +31,7 @@ jobs:
           docker cp "$id:/app/packages/client/dist-extension" ./extension
           docker rm "$id"
 
-      - run: >
-          flyctl deploy --local-only
-          --build-arg SERVER_URL=https://extension-sync-service.fly.dev
-          --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+      - run: flyctl deploy --image hearth
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 

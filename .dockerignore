@@ -7,3 +7,4 @@ dist
 .git
 .claude
 packages/e2e
+extension
