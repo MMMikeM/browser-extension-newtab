@@ -8,7 +8,7 @@
     },
     "build:ext": {
       "dependsOn": ["build"],
-      "outputs": ["dist/extension/**"]
+      "outputs": ["dist-extension/**"]
     },
     "dev": {
       "cache": false,
