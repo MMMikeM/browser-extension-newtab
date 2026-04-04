@@ -27,8 +27,12 @@ import { pushUndo } from "~/lib/undo";
 const TaskDetail = lazy(() => import("~/components/TaskDetail"));
 
 function TaskListView() {
-  const { data: allTasks = [] } = useTasks();
-  const { data: rawCategories = [] } = useCategories();
+  const { data: allTasks } = useTasks();
+  const { data: rawCategories } = useCategories();
+
+  // While OPFS is initialising, data is undefined — render nothing so
+  // FirstRunState doesn't flash before real tasks arrive.
+  if (allTasks === undefined || rawCategories === undefined) return null;
   const categories = [...rawCategories].sort((a, b) =>
     (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""),
   );
