@@ -26,11 +26,11 @@
     "@paralleldrive/cuid2": "^3.3.0",
     "drizzle-orm": "1.0.0-beta.19",
     "hono": "^4.12.10",
+    "tsx": "^4.21.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@typescript/native-preview": "7.0.0-dev.20260403.1",
-    "drizzle-kit": "1.0.0-beta.19",
-    "tsx": "^4.21.0"
+    "drizzle-kit": "1.0.0-beta.19"
   }
 }

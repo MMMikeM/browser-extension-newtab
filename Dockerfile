@@ -21,7 +21,7 @@ COPY . .
 ARG SERVER_URL VITE_VAPID_PUBLIC_KEY
 RUN pnpm build:ext
 
-FROM deps AS server
+FROM base AS server
 WORKDIR /app
 COPY package.json pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/
@@ -31,7 +31,7 @@ COPY packages/server/tsconfig.json ./packages/server/
 COPY packages/shared/src ./packages/shared/src
 COPY --from=client /app/packages/client/dist ./packages/client/dist
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm i --prod --filter @newtab-todo/server --prefer-offline
+    pnpm i --prod --filter @newtab-todo/server --filter @newtab-todo/shared
 EXPOSE 3000
 WORKDIR /app/packages/server
-CMD ["node", "--experimental-strip-types", "src/index.ts"]
+CMD ["node", "--import=tsx", "src/index.ts"]
