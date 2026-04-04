@@ -8,16 +8,10 @@ import {
   openBrowserWASQLiteOPFSDatabase,
   createBrowserWASQLitePersistence,
 } from "@tanstack/browser-db-sqlite-persistence";
-import { getBuildTarget } from "./build-target";
-
-const createPersistence = async () => {
-  if (getBuildTarget() === "server") throw new Error("Client side only");
-  const database = await openBrowserWASQLiteOPFSDatabase({ databaseName: "newtab-todo.sqlite" });
-  return createBrowserWASQLitePersistence<Record<PropertyKey, unknown>, string>({
-    database,
-  });
-};
-const persistence = createPersistence();
+const database = await openBrowserWASQLiteOPFSDatabase({ databaseName: "newtab-todo.sqlite" });
+const persistence = createBrowserWASQLitePersistence<Record<PropertyKey, unknown>, string>({
+  database,
+});
 
 export const categoriesCollection = createCollection(
   persistedCollectionOptions<Category, string>({
