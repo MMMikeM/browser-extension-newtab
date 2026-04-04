@@ -6,7 +6,7 @@ import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed 
 import { client } from "~/lib/api";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
-import { useSyncState } from "~/lib/sse";
+import { useSyncState, usePendingMutations } from "~/lib/sse";
 import { cn } from "~/lib/utils";
 
 const clearAuth = () => {
@@ -26,6 +26,7 @@ export const SyncSettings = () => {
   const token = useAuthToken();
   const currentUser = useCurrentUser();
   const syncState = useSyncState();
+  const hasPending = usePendingMutations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -89,7 +90,11 @@ export const SyncSettings = () => {
           "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
           open
             ? "bg-muted text-muted-foreground"
-            : "text-hint hover:bg-muted hover:text-muted-foreground",
+            : syncState === "disconnected"
+              ? "text-foreground hover:bg-muted"
+              : hasPending || syncState === "connecting"
+                ? "text-hint hover:bg-muted hover:text-muted-foreground"
+                : "text-ghost hover:bg-muted hover:text-muted-foreground",
         )}
         aria-label="Sync settings"
         aria-expanded={open}
@@ -97,14 +102,19 @@ export const SyncSettings = () => {
         <span
           className={cn(
             "size-1.5 shrink-0 rounded-full transition-colors",
-            syncState === "connected"
-              ? "bg-primary"
-              : syncState === "connecting"
+            syncState === "disconnected"
+              ? "bg-destructive"
+              : hasPending || syncState === "connecting"
                 ? "animate-pulse bg-amber-500"
-                : "bg-ghost",
+                : "bg-primary/50",
           )}
         />
-        <span>{SYNC_LABELS[syncState]}</span>
+        {/* Connected idle: ghost label — whispers affordance without competing.
+            Pending/connecting: hint level — active state deserves presence.
+            Disconnected: full foreground — error demands attention. */}
+        <span className={cn(syncState === "disconnected" && "font-medium")}>
+          {hasPending && syncState !== "disconnected" ? "Syncing…" : SYNC_LABELS[syncState]}
+        </span>
       </button>
 
       {open && currentUser && (
