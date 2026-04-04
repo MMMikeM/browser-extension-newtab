@@ -76,7 +76,7 @@ export function TaskItem({
         )}
       >
         {!isSubtask && (
-          <span className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-ghost active:cursor-grabbing">
+          <span className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-hint active:cursor-grabbing">
             <GripVertical size={14} />
           </span>
         )}
@@ -142,7 +142,7 @@ export function TaskItem({
         )}
         <button
           onClick={onDelete}
-          className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:text-ghost touch:hover:text-destructive"
+          className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:text-hint touch:hover:text-destructive"
           aria-label="Delete task"
         >
           <X size={14} />

@@ -186,7 +186,7 @@ export function CategoryTabs({
         );
       })}
       {categories.length === 0 && (
-        <span className="rounded-md px-3 py-1.5 text-sm font-medium text-ghost">Personal</span>
+        <span className="rounded-md px-3 py-1.5 text-sm font-medium text-hint">Personal</span>
       )}
       {adding ? (
         <form
