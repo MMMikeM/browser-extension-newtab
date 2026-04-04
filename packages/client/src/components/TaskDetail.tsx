@@ -15,6 +15,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
+import { Field, FieldLabel } from "~/components/ui/field";
 import { cn } from "~/lib/utils";
 
 export function TaskDetail({
@@ -75,21 +76,24 @@ const TaskDetailContent = ({
           checked={isDone}
           onCheckedChange={() => onUpdate({ status: isDone ? "todo" : "done" })}
         />
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={() => {
-            const trimmed = title.trim();
-            if (trimmed && trimmed !== task.title) onUpdate({ title: trimmed });
-          }}
-          className="flex-1 bg-transparent text-lg font-semibold outline-none"
-        />
+        <Field className="flex-1">
+          <FieldLabel className="sr-only">Title</FieldLabel>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => {
+              const trimmed = title.trim();
+              if (trimmed && trimmed !== task.title) onUpdate({ title: trimmed });
+            }}
+            className="w-full bg-transparent text-lg font-semibold outline-none"
+          />
+        </Field>
       </div>
 
       {/* Description */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-muted-foreground">Description</label>
+      <Field>
+        <FieldLabel className="text-xs font-medium text-muted-foreground">Description</FieldLabel>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -101,11 +105,11 @@ const TaskDetailContent = ({
           rows={3}
           className="w-full resize-none rounded-md border border-input bg-input/30 px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
         />
-      </div>
+      </Field>
 
       {/* Due date */}
-      <div className="flex items-center gap-3">
-        <label className="text-xs font-medium text-muted-foreground">Due date</label>
+      <Field className="flex-row items-center gap-3">
+        <FieldLabel className="text-xs font-medium text-muted-foreground">Due date</FieldLabel>
         <input
           ref={dateRef}
           type="date"
@@ -121,7 +125,7 @@ const TaskDetailContent = ({
             clear
           </button>
         )}
-      </div>
+      </Field>
 
       {/* Subtasks */}
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
@@ -133,7 +137,7 @@ const TaskDetailContent = ({
 
       {/* Notes */}
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-medium text-muted-foreground">Notes</label>
+        <p className="text-xs font-medium text-muted-foreground">Notes</p>
         {taskNotes.map((note) => (
           <NoteItem key={note.id} note={note} />
         ))}
@@ -231,9 +235,9 @@ const SubtaskSection = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-medium text-muted-foreground">
         Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}
-      </label>
+      </p>
       {subtasks.map((sub) => (
         <div
           key={sub.id}
@@ -316,9 +320,9 @@ const ShareSection = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-medium text-muted-foreground">
         Shared with{shares.length > 0 ? ` (${shares.length})` : ""}
-      </label>
+      </p>
       {shares.map((share) => (
         <div
           key={share.id}
@@ -350,14 +354,17 @@ const ShareSection = ({
         >
           <form.Field name="username">
             {(field) => (
-              <Input
-                type="text"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                placeholder="Share by username..."
-                className="h-8 text-sm"
-              />
+              <Field>
+                <FieldLabel className="sr-only">Share by username</FieldLabel>
+                <Input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="Share by username..."
+                  className="h-8 text-sm"
+                />
+              </Field>
             )}
           </form.Field>
           <Button size="sm" className="h-8 text-xs" disabled={form.state.isSubmitting}>
