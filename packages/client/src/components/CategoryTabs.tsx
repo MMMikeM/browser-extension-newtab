@@ -74,7 +74,7 @@ export function CategoryTabs({
   };
 
   return (
-    <div className="mb-2 flex flex-wrap items-end gap-0 border-b border-border">
+    <div className="mb-1 flex flex-wrap items-end gap-0 border-b border-border">
       {categories.map((cat, index) => {
         const isActive = activeCategoryId === cat.id;
         const color = cat.color ?? undefined;
@@ -113,7 +113,7 @@ export function CategoryTabs({
                       }}
                       onClick={() => onSelect(cat.id)}
                       className={cn(
-                        "px-3 pb-2 pt-1.5 text-sm font-medium transition-colors touch:pb-4",
+                        "px-3 pb-1.5 pt-1 text-sm font-medium transition-colors touch:pb-3",
                         isActive
                           ? "-mb-px border-b-2 border-primary text-foreground"
                           : "text-hint hover:text-foreground",

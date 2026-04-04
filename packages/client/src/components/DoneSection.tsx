@@ -17,7 +17,7 @@ export function DoneSection({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mt-2 border-t border-border pt-3">
+    <div className="mt-1 border-t border-border pt-2">
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"

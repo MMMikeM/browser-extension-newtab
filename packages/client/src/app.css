@@ -147,7 +147,7 @@
   }
 
   html {
-    @apply font-sans antialiased;
+    @apply bg-background font-sans antialiased;
   }
 }
 
