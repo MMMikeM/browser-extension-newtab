@@ -1,5 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
+import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 import { authRoutes } from "./routes/auth";
 import { taskRoutes } from "./routes/tasks";
@@ -18,6 +19,13 @@ app.onError((err, c) => {
   return c.json({ error: "Internal server error" }, 500);
 });
 
+// Compress all responses except SSE (streamSSE is a streaming response — buffered
+// compression would break it by preventing chunks from flushing to the client).
+app.use("*", async (c, next) => {
+  if (c.req.path === "/api/events") return next();
+  return compress()(c, next);
+});
+
 app.use(
   "*",
   secureHeaders({
@@ -34,6 +42,7 @@ app.use("*", async (c, next) => {
   c.header("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Client-Id");
   c.header("Access-Control-Allow-Credentials", "true");
   c.header("Access-Control-Expose-Headers", "*");
+  c.header("Access-Control-Max-Age", "86400");
 });
 
 app.options("*", (c) => c.body(null, 204));
