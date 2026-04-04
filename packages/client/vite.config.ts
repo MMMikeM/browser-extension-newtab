@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
 import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
 import { generateSW } from "./plugins/generate-sw";
+import { injectFontPreloads } from "./plugins/inject-font-preloads";
 import { prerender } from "./plugins/prerender";
 import babel from "@rolldown/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -109,6 +110,7 @@ export default defineConfig(({ mode }) => {
       }),
       viteReact({}),
       generateSW(),
+      injectFontPreloads(),
       prerender(),
       babel({
         presets: [reactCompilerPreset()],
