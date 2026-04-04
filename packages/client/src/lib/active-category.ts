@@ -1,7 +1,9 @@
 import { createExternalStore } from "~/lib/external-store";
 
 const KEY = "newtab-todo-active-category";
-const store = createExternalStore<string | null>(localStorage.getItem(KEY));
+const store = createExternalStore<string | null>(
+  typeof localStorage !== "undefined" ? localStorage.getItem(KEY) : null,
+);
 
 export const getActiveCategoryId = store.get;
 

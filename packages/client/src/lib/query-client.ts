@@ -4,7 +4,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 0,
-      gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
+      gcTime: Infinity, // never evict — 30-day ms value overflows 32-bit setTimeout
       retry: 2,
     },
   },

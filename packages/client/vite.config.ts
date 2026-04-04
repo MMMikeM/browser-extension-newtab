@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
 import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
 import { generateSW } from "./plugins/generate-sw";
+import { prerender } from "./plugins/prerender";
 import babel from "@rolldown/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
 import { globSync } from "node:fs";
@@ -103,12 +104,12 @@ export default defineConfig(({ mode }) => {
       opfsWorker(),
       tailwindcss(),
       tanstackRouter({
-        autoCodeSplitting: true,
         routesDirectory: "src/routes",
         generatedRouteTree: "src/routeTree.gen.ts",
       }),
       viteReact({}),
       generateSW(),
+      prerender(),
       babel({
         presets: [reactCompilerPreset()],
       }),

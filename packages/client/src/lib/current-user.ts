@@ -7,6 +7,7 @@ const INFO_KEY = "newtab-todo-user-info";
 const DEVICE_ID_KEY = "newtab-todo-device-id";
 
 const getOrCreateDeviceId = (): string => {
+  if (typeof localStorage === "undefined") return "";
   let id = localStorage.getItem(DEVICE_ID_KEY);
   if (!id) {
     id = `device-${nanoid()}`;
@@ -22,6 +23,7 @@ export interface CurrentUser {
 }
 
 const loadUser = (): CurrentUser | null => {
+  if (typeof localStorage === "undefined") return null;
   const raw = localStorage.getItem(INFO_KEY);
   if (raw) {
     try {

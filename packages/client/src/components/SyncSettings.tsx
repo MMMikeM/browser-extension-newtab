@@ -15,7 +15,7 @@ const clearAuth = () => {
   if (getBuildTarget() === "extension") {
     browser.storage.local
       .remove(TOKEN_KEY)
-      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}));
+      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => { }));
   }
   unregisterPushSubscription();
 };
@@ -134,3 +134,5 @@ export const SyncSettings = () => {
     </div>
   );
 };
+
+export default SyncSettings

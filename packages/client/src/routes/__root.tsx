@@ -6,7 +6,8 @@ import { SyncSettings } from "~/components/SyncSettings";
 import { UndoToast } from "~/components/UndoToast";
 import { cn } from "~/lib/utils";
 
-// Dynamic import: SyncHint pulls in auth-token → localStorage at module init, which crashes prerender
+// Dynamic imports: both pull in auth-token → localStorage at module init, which crashes prerender
+const SyncSettings = lazy(() => import("~/components/SyncSettings"));
 const SyncHint = lazy(() => import("~/components/SyncHint"));
 
 export const Route = createRootRoute({

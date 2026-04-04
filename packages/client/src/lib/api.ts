@@ -7,12 +7,19 @@ import { clientId } from "~/lib/client-id";
 // In prod/extension, SERVER_URL points to the deployed server.
 const serverUrl = import.meta.env.DEV ? "" : (import.meta.env.SERVER_URL ?? "");
 
+// During SSR prerender (Node.js), relative URLs are invalid and there's no auth.
+// Return empty JSON so collections render with no data — client hydrates after mount.
+const ssrFetch = () =>
+  Promise.resolve(new Response("[]", { headers: { "content-type": "application/json" } }));
+
+const browserFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+  const token = getAuthToken();
+  const headers = new Headers(init?.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  headers.set("X-Client-Id", clientId);
+  return fetch(input, { ...init, headers });
+};
+
 export const client = hc<AppType>(serverUrl, {
-  fetch: (input: RequestInfo | URL, init?: RequestInit) => {
-    const token = getAuthToken();
-    const headers = new Headers(init?.headers);
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-    headers.set("X-Client-Id", clientId);
-    return fetch(input, { ...init, headers });
-  },
+  fetch: typeof window === "undefined" ? ssrFetch : browserFetch,
 });

@@ -2,6 +2,10 @@
 
 Client-only code. SPA — no `typeof window` or `isServer` guards needed.
 
+## SSR prerender safety
+
+Any module that accesses `localStorage`, `window`, or browser-only APIs (`OPFS`, `IndexedDB`) at **module init time** (top-level code) must guard with `typeof localStorage !== 'undefined'` / `typeof window !== 'undefined'`. The SSR prerender runs in Node.js where these globals don't exist. Function bodies are fine — only top-level statements matter.
+
 ## Structure
 
 - **`collections.ts`** — TanStack DB collections with offline persistence

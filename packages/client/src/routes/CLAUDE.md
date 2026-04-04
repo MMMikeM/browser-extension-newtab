@@ -8,8 +8,11 @@ The shell prerender evaluates the root route's module graph. Any static import c
 
 - `AddTaskInput` — safe to static import (pure component, no store deps)
 - `SyncSettings` — lazy imported (pulls in stores → auth-token → localStorage)
+- `SyncHint` — lazy imported (same chain)
 - `addTask` — dynamic `import()` in callback (pulls in stores)
 - `TanStackDevtools` — lazy imported (crashes SSR)
+
+Any new module with module-level `localStorage`/`window` access must guard with `typeof localStorage !== 'undefined'` — the SSR prerender runs in Node.js where these globals don't exist.
 
 The `mounted` state + `useEffect` pattern gates lazy components to prevent hydration mismatches.
 
