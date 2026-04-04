@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { getAuthToken, subscribeAuthToken } from "~/lib/auth-token";
 import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/collections";
 import { ensurePushRegistered } from "~/lib/push";
@@ -5,12 +6,45 @@ import { getBuildTarget } from "~/lib/build-target";
 import { SSE_DATA_CHANGED, EVENTS_PATH } from "~/lib/constants";
 import type { MutationEvent } from "~/lib/constants";
 import { createExternalStore } from "~/lib/external-store";
+import { offline } from "~/lib/offline";
 
 let es: EventSource | null = null;
 
 export type SyncState = "disconnected" | "connecting" | "connected";
 const syncStateStore = createExternalStore<SyncState>("disconnected");
 export const useSyncState = syncStateStore.useStore;
+
+// ─── Pending mutations ────────────────────────────────────────────────────────
+// Polls the offline executor for unreconciled optimistic writes.
+// Lazy: interval only runs while at least one component is subscribed.
+
+let pendingSnapshot = 0;
+const pendingListeners = new Set<() => void>();
+let pendingInterval: ReturnType<typeof setInterval> | null = null;
+
+const subscribePending = (cb: () => void) => {
+  pendingListeners.add(cb);
+  if (pendingListeners.size === 1) {
+    pendingInterval = setInterval(() => {
+      const next = offline.getPendingCount() + offline.getRunningCount();
+      if (next !== pendingSnapshot) {
+        pendingSnapshot = next;
+        pendingListeners.forEach((fn) => fn());
+      }
+    }, 200);
+  }
+  return () => {
+    pendingListeners.delete(cb);
+    if (pendingListeners.size === 0 && pendingInterval !== null) {
+      clearInterval(pendingInterval);
+      pendingInterval = null;
+    }
+  };
+};
+
+/** True while any optimistic mutations have not yet been confirmed by the server. */
+export const usePendingMutations = () =>
+  useSyncExternalStore(subscribePending, () => pendingSnapshot) > 0;
 
 const collectionMap = {
   tasks: tasksCollection,
