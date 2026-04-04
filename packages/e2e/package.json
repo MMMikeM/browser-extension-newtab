@@ -5,7 +5,8 @@
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "screenshot": "tsx screenshot.ts"
+    "screenshot": "tsx screenshot.ts",
+    "cls": "tsx cls.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
