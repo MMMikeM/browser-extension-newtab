@@ -22,6 +22,9 @@ COPY . .
 ARG SERVER_URL VITE_VAPID_PUBLIC_KEY
 RUN pnpm build:ext
 
+FROM scratch AS extension
+COPY --from=client /app/packages/client/dist-extension /
+
 FROM manifests AS server
 COPY packages/server/src ./packages/server/src
 COPY packages/server/tsconfig.json ./packages/server/
