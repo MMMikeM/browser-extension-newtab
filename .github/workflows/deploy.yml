@@ -12,16 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: superfly/flyctl-actions/setup-flyctl@v1.5
 
       - run: >
           flyctl deploy --local-only
-          --build-arg TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }}
-          --build-arg TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }}
+          --build-arg SERVER_URL=
           --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}
-          --build-arg VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
-          --build-arg VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
-          --build-arg VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -29,12 +25,7 @@ jobs:
         run: |
           docker build --target build -t hearth-build \
             --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
-            --build-arg TURSO_DATABASE_URL=${{ secrets.TURSO_DATABASE_URL }} \
-            --build-arg TURSO_AUTH_TOKEN=${{ secrets.TURSO_AUTH_TOKEN }} \
             --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }} \
-            --build-arg VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }} \
-            --build-arg VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }} \
-            --build-arg VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }} \
             .
           id=$(docker create hearth-build)
           docker cp "$id:/app/dist/extension" ./extension

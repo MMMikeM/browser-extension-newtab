@@ -11,7 +11,7 @@ COPY packages/client/package.json packages/client/
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm ci
 COPY . .
-ARG SERVER_URL TURSO_DATABASE_URL TURSO_AUTH_TOKEN VITE_VAPID_PUBLIC_KEY VAPID_PRIVATE_KEY VAPID_PUBLIC_KEY VAPID_SUBJECT
+ARG SERVER_URL VITE_VAPID_PUBLIC_KEY
 RUN pnpm build && pnpm build:ext
 
 FROM base AS runtime
@@ -27,4 +27,4 @@ COPY --from=build /app/package.json ./
 COPY --from=build /app/tsconfig.base.json ./
 EXPOSE 3000
 WORKDIR /app/packages/server
-CMD ["node", "--import", "tsx/esm", "src/index.ts"]
+CMD ["node", "--experimental-strip-types", "src/index.ts"]
