@@ -145,7 +145,7 @@ export default defineConfig(({ mode }) => {
               // 4. UI Primitives & Styling
               {
                 name: "ui-primitives",
-                test: /node_modules[\\/](@base-ui|@radix-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
+                test: /node_modules[\\/](@base-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
                 priority: 30,
               },
 

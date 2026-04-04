@@ -23,7 +23,7 @@ import { DoneSection } from "~/components/DoneSection";
 import { FirstRunState } from "~/components/FirstRunState";
 import { pushUndo } from "~/lib/undo";
 
-// Lazy-load: defers vaul (55KB), @radix-ui (45KB), @tanstack/react-form (69KB)
+// Lazy-load: defers @base-ui/drawer, @tanstack/react-form (69KB)
 const TaskDetail = lazy(() => import("~/components/TaskDetail"));
 
 function TaskListView() {
