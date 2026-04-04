@@ -40,19 +40,16 @@ export function AppBackground() {
 
 export function AppShell({ right, children }: { right?: ReactNode; children?: ReactNode }) {
   return (
-    <>
-      <div
-        className="mx-auto min-h-screen max-w-sm px-6 pt-8 pb-8 relative z-1"
-        style={{ backgroundColor: "oklch(0.20 0.01 50 / 75%)" }}
-      >
-        <div className="mb-5 flex items-center justify-between">
-          <h1 className="font-display text-2xl tracking-[0.28em] text-foreground uppercase">Jot</h1>
-          {right}
-        </div>
-        {children}
+    <div
+      className="mx-auto min-h-screen max-w-sm px-6 pt-8 pb-8 relative z-1"
+      style={{ backgroundColor: "oklch(0.20 0.01 50 / 75%)" }}
+    >
+      <div className="mb-5 flex items-center justify-between">
+        <h1 className="font-display text-2xl tracking-[0.28em] text-foreground uppercase">Jot</h1>
+        {right}
       </div>
-      <AppBackground />
-    </>
+      {children}
+    </div>
   );
 }
 
