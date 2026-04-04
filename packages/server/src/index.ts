@@ -6,6 +6,14 @@ import app from "./app";
 const clientDist =
   process.env.CLIENT_DIST_PATH || resolve(import.meta.dirname, "../../client/dist");
 
+// Serve hashed assets with long-term immutable cache (Vite content-hashes filenames)
+app.use("/assets/*", async (c, next) => {
+  await next();
+  if (c.res.status === 200) {
+    c.res.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  }
+});
+
 // Serve static assets from the Vite build output
 app.use("*", serveStatic({ root: clientDist }));
 
