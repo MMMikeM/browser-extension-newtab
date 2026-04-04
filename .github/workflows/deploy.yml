@@ -14,23 +14,17 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Build
+      - name: Extract extension artifact
         run: |
-          ARGS="--build-arg SERVER_URL=https://extension-sync-service.fly.dev \
-                --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}"
+          docker buildx build --target extension --output type=local,dest=./extension \
+            --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
+            --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }} \
+            .
 
-          # Export extension artifact — builds client stage, Vite runs once
-          docker buildx build --target extension --output type=local,dest=./extension $ARGS .
-
-          # Build production image — all client layers already cached
-          docker build -t hearth $ARGS .
-
-      - name: Deploy
-        run: |
-          flyctl auth docker
-          docker tag hearth registry.fly.io/extension-sync-service:latest
-          docker push registry.fly.io/extension-sync-service:latest
-          flyctl deploy --image registry.fly.io/extension-sync-service:latest
+      - run: >
+          flyctl deploy --local-only
+          --build-arg SERVER_URL=https://extension-sync-service.fly.dev
+          --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
