@@ -15,7 +15,7 @@ screenshot.png
 .turbo/
 .tanstack/
 .playwright-mcp/
-screenshot-*.png
+# screenshot-*.png
 har.json
 stats.html
 docs/superpowers/
