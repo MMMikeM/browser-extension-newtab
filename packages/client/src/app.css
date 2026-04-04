@@ -91,7 +91,7 @@
 }
 
 .dark {
-  --background: oklch(0.155 0.012 55);
+  --background: oklch(0.155 0.022 52);
   --foreground: oklch(0.95 0.015 75);
   --card: oklch(0.205 0.015 50);
   --card-foreground: oklch(0.95 0.015 75);
@@ -110,7 +110,7 @@
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.6 0.04 60);
   --date: oklch(0.78 0.06 70);
-  --hint: oklch(0.52 0.018 58);
+  --hint: oklch(0.63 0.018 58);
   --ghost: oklch(0.38 0.014 55);
   --chart-1: oklch(0.868 0.007 39.5);
   --chart-2: oklch(0.547 0.021 43.1);
@@ -131,29 +131,11 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-    /* Gradients only — noise is handled by body::before with soft-light blending */
-    background-image:
-      linear-gradient(in oklch to bottom, transparent 45%, oklch(0.11 0.01 50 / 65%) 100%),
-      radial-gradient(
-        in oklch ellipse 80% 55% at 50% 0%,
-        oklch(0.22 0.025 55 / 80%) 0%,
-        oklch(0.185 0.018 55 / 50%) 45%,
-        oklch(0.172 0.016 53 / 35%) 57%,
-        oklch(0.16 0.014 52 / 20%) 70%,
-        transparent 100%
-      );
-    background-attachment: fixed;
-    background-size: cover;
-    /* GPU compositing — helps some 8-bit panels render gradients at higher precision */
-    transform: translateZ(0);
-  }
 
   /* Noise dithering via soft-light blend — composites against the fully-rendered
      gradient rather than stacking flat, breaking banding specifically in midtones.
      pointer-events: none ensures it never blocks interaction. */
-  body::before {
+  .noise::before {
     content: "";
     position: fixed;
     inset: 0;
@@ -162,7 +144,6 @@
     mix-blend-mode: soft-light;
     opacity: 0.15;
     pointer-events: none;
-    z-index: 9999;
   }
 
   html {
