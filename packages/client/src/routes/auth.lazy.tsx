@@ -5,8 +5,9 @@ import { z } from "zod/mini";
 import { setAuthToken } from "~/lib/auth-token";
 import { setCurrentUser } from "~/lib/current-user";
 import { client } from "~/lib/api";
-import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { FormField } from "~/components/ui/field";
+import { Input } from "~/components/ui/input";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
@@ -69,15 +70,19 @@ const AuthView = () => {
   });
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-6">
-      <div className="w-full max-w-xs">
-        <h1 className="font-display mb-1 text-center text-2xl tracking-[0.28em] text-foreground uppercase">
+    <div className="flex min-h-screen flex-col items-center px-6 justify-center touch:justify-start">
+      {/* Branding: centered on desktop, positioned in warm bloom zone on mobile */}
+      <div className="flex flex-col items-center gap-1 mb-8 touch:mt-[18vh] touch:mb-0">
+        <h1 className="font-display text-center text-2xl tracking-[0.28em] text-foreground uppercase">
           Jot
         </h1>
-        <p className="mb-8 text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm text-muted-foreground">
           Sign in to sync your tasks across devices
         </p>
+      </div>
 
+      {/* Form: natural flow on desktop, bottom-anchored on mobile */}
+      <div className="w-full max-w-xs touch:mt-auto touch:pb-12">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -88,7 +93,7 @@ const AuthView = () => {
           {mode === "signup" && (
             <form.Field name="name" validators={{ onChange: signupSchema.shape.name }}>
               {(field) => (
-                <div>
+                <FormField field={field} label="Name">
                   <Input
                     type="text"
                     value={field.state.value}
@@ -97,20 +102,13 @@ const AuthView = () => {
                     placeholder="Name"
                     className="text-sm"
                   />
-                  {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
-                    <span className="mt-1 block text-xs text-destructive">
-                      {typeof field.state.meta.errors[0] === "string"
-                        ? field.state.meta.errors[0]
-                        : field.state.meta.errors[0]?.message}
-                    </span>
-                  )}
-                </div>
+                </FormField>
               )}
             </form.Field>
           )}
           <form.Field name="username" validators={{ onChange: schema.shape.username }}>
             {(field) => (
-              <div>
+              <FormField field={field} label="Username">
                 <Input
                   type="text"
                   value={field.state.value}
@@ -119,19 +117,12 @@ const AuthView = () => {
                   placeholder="Username"
                   className="text-sm"
                 />
-                {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
-                  <span className="mt-1 block text-xs text-destructive">
-                    {typeof field.state.meta.errors[0] === "string"
-                      ? field.state.meta.errors[0]
-                      : field.state.meta.errors[0]?.message}
-                  </span>
-                )}
-              </div>
+              </FormField>
             )}
           </form.Field>
           <form.Field name="password" validators={{ onChange: schema.shape.password }}>
             {(field) => (
-              <div>
+              <FormField field={field} label="Password">
                 <Input
                   type="password"
                   value={field.state.value}
@@ -140,14 +131,7 @@ const AuthView = () => {
                   placeholder="Password"
                   className="text-sm"
                 />
-                {field.state.meta.isTouched && field.state.meta.errors.length > 0 && (
-                  <span className="mt-1 block text-xs text-destructive">
-                    {typeof field.state.meta.errors[0] === "string"
-                      ? field.state.meta.errors[0]
-                      : field.state.meta.errors[0]?.message}
-                  </span>
-                )}
-              </div>
+              </FormField>
             )}
           </form.Field>
           {serverError && <span className="text-xs text-destructive">{serverError}</span>}
@@ -155,7 +139,7 @@ const AuthView = () => {
             <Button type="submit" variant="outline" className="w-full" disabled={form.state.isSubmitting}>
               {mode === "login" ? "Sign in" : "Create account"}
             </Button>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center gap-6">
               <button
                 type="button"
                 onClick={() => {
@@ -183,5 +167,5 @@ const AuthView = () => {
 };
 
 export const Route = createLazyFileRoute("/auth")({
-  component: AuthView,
+  component: AuthView
 });
