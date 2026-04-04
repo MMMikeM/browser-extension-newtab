@@ -76,3 +76,6 @@ export const offline = startOfflineExecutor({
     syncNotes: createSyncFn("notes", client.api.notes, notesCollection),
   },
 });
+
+// Kick off storage probe + leader election + outbox replay as early as possible.
+offline.waitForInit().catch(console.error);
