@@ -3,7 +3,7 @@ import { useUndoEntry, executeUndo, dismissUndo } from "~/lib/undo";
 
 const UNDO_TIMEOUT = 5000;
 
-export function UndoToast() {
+export default function UndoToast() {
   const entry = useUndoEntry();
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(100);
