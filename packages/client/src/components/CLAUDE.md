@@ -7,4 +7,4 @@
 ## Styling
 
 - **`tailwind-variants`**: Use `tv()` + `cn()`. Do NOT use CVA, clsx, or tailwind-merge directly.
-- **shadcn/ui**: Uses **base** (React Aria), NOT radix. Use `render`, NOT `asChild`.
+- **shadcn/ui**: Uses **Base UI** (base-ui.com, from MUI team), NOT Radix. Use `render`, NOT `asChild`.
