@@ -25,7 +25,12 @@ jobs:
           # Build production image — all client layers already cached
           docker build -t hearth $ARGS .
 
-      - run: flyctl deploy --image hearth
+      - name: Deploy
+        run: |
+          flyctl auth docker
+          docker tag hearth registry.fly.io/extension-sync-service:latest
+          docker push registry.fly.io/extension-sync-service:latest
+          flyctl deploy --image registry.fly.io/extension-sync-service:latest
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
