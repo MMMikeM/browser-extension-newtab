@@ -1,5 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
+import { secureHeaders } from "hono/secure-headers";
 import { authRoutes } from "./routes/auth";
 import { taskRoutes } from "./routes/tasks";
 import { categoryRoutes } from "./routes/categories";
@@ -16,6 +17,14 @@ app.onError((err, c) => {
   console.error(err);
   return c.json({ error: "Internal server error" }, 500);
 });
+
+app.use(
+  "*",
+  secureHeaders({
+    xFrameOptions: "DENY",
+    strictTransportSecurity: "max-age=63072000; includeSubDomains; preload",
+  })
+);
 
 // CORS — needed for extension context (moz-extension:// origin)
 app.use("*", async (c, next) => {
