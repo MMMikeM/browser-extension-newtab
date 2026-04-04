@@ -14,22 +14,22 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Build client and extract extension artifact
+        run: |
+          docker build --target client -t hearth-client \
+            --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
+            --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }} \
+            .
+          id=$(docker create hearth-client)
+          docker cp "$id:/app/packages/client/dist-extension" ./extension
+          docker rm "$id"
+
       - run: >
           flyctl deploy --local-only
           --build-arg SERVER_URL=
           --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Extract extension artifact
-        run: |
-          docker build --target build -t hearth-build \
-            --build-arg SERVER_URL=https://extension-sync-service.fly.dev \
-            --build-arg VITE_VAPID_PUBLIC_KEY=${{ secrets.VITE_VAPID_PUBLIC_KEY }} \
-            .
-          id=$(docker create hearth-build)
-          docker cp "$id:/app/dist/extension" ./extension
-          docker rm "$id"
 
       - uses: actions/upload-artifact@v4
         with:

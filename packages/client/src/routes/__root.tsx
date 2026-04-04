@@ -8,7 +8,7 @@ import { getBuildTarget } from "~/lib/build-target";
 const getRootComponent = () => {
   if (getBuildTarget() === "server") return PendingShell
   const Root = lazy(() => import("~/root"))
-  return () => <ClientOnly><Root /></ClientOnly>
+  return () => <ClientOnly fallback={<PendingShell />}><Root /></ClientOnly>
 } 
 
 export const Route = createRootRoute({
