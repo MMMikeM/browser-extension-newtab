@@ -13,10 +13,11 @@
     "fmt:check": "oxfmt --check",
     "typecheck": "turbo typecheck",
     "check": "turbo typecheck && oxlint && oxfmt --check && knip",
-    "screenshot": "tsx scripts/screenshot.ts"
+    "screenshot": "pnpm --dir packages/e2e run screenshot",
+    "test:e2e": "pnpm --filter @newtab-todo/e2e test",
+    "test:e2e:ui": "pnpm --filter @newtab-todo/e2e test:ui"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.2",
     "@typescript/native-preview": "7.0.0-dev.20260403.1",
     "knip": "^6.3.0",

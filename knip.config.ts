@@ -1,9 +1,10 @@
 import type { KnipConfig } from "knip";
 
 export default {
+  ignore: ["packages/e2e/**"],
   workspaces: {
     "packages/client": {
-      entry: ["src/main.tsx", "src/background.ts", "src/sw.ts", "src/routes/**/*.tsx"],
+      entry: ["src/main.tsx", "src/background.ts", 'src/entry-server.tsx', "src/sw.ts", "src/routes/**/*.tsx",],
       project: ["src/**/*.{ts,tsx}"],
     },
     "packages/server": {
