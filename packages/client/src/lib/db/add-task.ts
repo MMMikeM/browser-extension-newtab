@@ -25,6 +25,7 @@ export const addTask = (title: string, categoryId?: string | null, parentId?: st
       id: nanoid(),
       userId,
       categoryId: parentId ? null : (categoryId ?? null),
+      assigneeId: null,
       parentId: parentId ?? null,
       title,
       status: "todo",

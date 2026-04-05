@@ -74,7 +74,7 @@ export function CategoryTabs({
   };
 
   return (
-    <div className="mb-1 flex flex-wrap items-end gap-0 border-b border-border touch:flex-nowrap touch:overflow-x-auto touch:scrollbar-none touch:scroll-smooth">
+    <div className="touch:hidden mb-1 flex flex-wrap items-end gap-0 border-b border-border">
       <button
         onClick={() => onSelect(null)}
         className={cn(

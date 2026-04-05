@@ -10,6 +10,7 @@ import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-cat
 import { useCurrentUserId } from "~/lib/auth/current-user";
 import { TaskList } from "~/components/TaskList";
 import { CategoryTabs } from "~/components/CategoryTabs";
+import { CategorySheet } from "~/components/CategorySheet";
 import { DoneSection } from "~/components/DoneSection";
 import { useTaskActions } from "~/lib/hooks/use-task-actions";
 
@@ -41,10 +42,15 @@ function TaskListView() {
     handleDelete,
     handleReorder,
     handleAddCategory,
-    handleReorderCategory,
     handleDeleteCategory,
     handleDragEnd,
-  } = useTaskActions({ allTasks: allTasks ?? [], categories, activeCategoryId, activeTasks, userId });
+  } = useTaskActions({
+    allTasks: allTasks ?? [],
+    categories,
+    activeCategoryId,
+    activeTasks,
+    userId,
+  });
 
   // While OPFS is initialising, data is undefined or the collection is loading.
   // Guard both: data===undefined catches the pre-ready state, isLoading catches
@@ -79,6 +85,18 @@ function TaskListView() {
           <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
         </Suspense>
         <div className="mt-2 flex flex-col gap-4">
+          {/* Mobile category selector — shown only on touch devices; desktop uses CategoryTabs inside DragDropProvider */}
+          <div className="hidden touch:block">
+            <CategorySheet
+              categories={categories}
+              activeCategoryId={activeCategoryId}
+              onSelect={setActiveCategoryId}
+              onAdd={handleAddCategory}
+              onRename={(id, name) => updateCategory(id, { name })}
+              onSetColor={(id, color) => updateCategory(id, { color })}
+              onDeleteCategory={handleDeleteCategory}
+            />
+          </div>
           <DragDropProvider onDragEnd={handleDragEnd}>
             <CategoryTabs
               categories={categories}
