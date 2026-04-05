@@ -31,15 +31,13 @@ function TaskListView() {
   const { data: rawCategories, isLoading: categoriesLoading } = useCategories();
   const activeCategoryId = useActiveCategoryId();
   const userId = useCurrentUserId();
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // While OPFS is initialising, data is undefined or the collection is loading.
-  // Guard both: data===undefined catches the pre-ready state, isLoading catches
-  // the brief window where the collection is ready but hasn't emitted yet.
-  if (tasksLoading || categoriesLoading || allTasks === undefined || rawCategories === undefined)
-    return null;
-  const categories = [...rawCategories].sort((a, b) =>
-    (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""),
-  );
+  // Compute categories here so the useEffect below can reference them without
+  // being declared after the early return (which would violate Rules of Hooks).
+  const categories = rawCategories
+    ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
+    : [];
 
   // Auto-select first category if none active
   useEffect(() => {
@@ -47,6 +45,12 @@ function TaskListView() {
       setActiveCategoryId(categories[0].id);
     }
   }, [categories, activeCategoryId]);
+
+  // While OPFS is initialising, data is undefined or the collection is loading.
+  // Guard both: data===undefined catches the pre-ready state, isLoading catches
+  // the brief window where the collection is ready but hasn't emitted yet.
+  if (tasksLoading || categoriesLoading || allTasks === undefined || rawCategories === undefined)
+    return null;
 
   const categoryTasks = allTasks.filter(
     (t) => !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
@@ -57,7 +61,6 @@ function TaskListView() {
   const doneTasks = categoryTasks.filter((t) => t.status === "done");
   const isEmpty = activeTasks.length === 0 && doneTasks.length === 0;
 
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const selectedTask = selectedTaskId
     ? (allTasks.find((t) => t.id === selectedTaskId) ?? null)
     : null;
