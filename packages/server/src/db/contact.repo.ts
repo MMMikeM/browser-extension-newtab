@@ -18,6 +18,8 @@ const list = async (userId: string) =>
     },
   });
 
+export type ContactWithUser = Awaited<ReturnType<typeof list>>[number];
+
 const insert = async (userId: string, contactUserId: string) => {
   const [row] = await db
     .insert(contacts)
