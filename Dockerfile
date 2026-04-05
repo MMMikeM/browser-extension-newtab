@@ -40,5 +40,7 @@ WORKDIR /app
 COPY --from=server-build /app/deploy .
 COPY --from=client /app/packages/client/dist ./client/dist
 ENV CLIENT_DIST_PATH=/app/client/dist
+RUN echo "=== /app top-level ===" && du -sh /app/* && \
+    echo "=== node_modules top 20 ===" && du -sh /app/node_modules/* 2>/dev/null | sort -rh | head -20
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
