@@ -32,12 +32,13 @@ COPY packages/shared/src ./packages/shared/src
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm i --frozen-lockfile --filter @newtab-todo/server --filter @newtab-todo/shared
 RUN pnpm --filter @newtab-todo/server build
+RUN pnpm --filter @newtab-todo/server --prod deploy --legacy /app/deploy
 
-FROM manifests AS server
-COPY --from=server-build /app/packages/server/dist ./packages/server/dist
-COPY --from=client /app/packages/client/dist ./packages/client/dist
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm i --prod --filter @newtab-todo/server --filter @newtab-todo/shared
+FROM node:24-alpine AS server
+RUN apk add --no-cache ca-certificates
+WORKDIR /app
+COPY --from=server-build /app/deploy .
+COPY --from=client /app/packages/client/dist ./client/dist
+ENV CLIENT_DIST_PATH=/app/client/dist
 EXPOSE 3000
-WORKDIR /app/packages/server
 CMD ["node", "dist/index.js"]
