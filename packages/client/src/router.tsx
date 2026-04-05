@@ -15,8 +15,4 @@ export const getRouter = () =>
     routeTree,
     history: createHistory(),
     defaultNotFoundComponent: () => <p>Page not found</p>,
-    // ssr: true makes Matches use SafeFragment instead of Suspense on the client,
-    // matching the server-rendered tree structure and preventing React 19 error #418.
-    // Transitioner still renders (gated on router.isServer, not router.ssr).
-    ssr: getBuildTarget() === "browser",
   });
