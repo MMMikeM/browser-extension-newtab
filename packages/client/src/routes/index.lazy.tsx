@@ -29,9 +29,11 @@ function TaskListView() {
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
 
-  const categoryTasks = (allTasks ?? []).filter(
-    (t) => !t.parentId && (activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId),
-  );
+  const categoryTasks = (allTasks ?? []).filter((t) => {
+    if (t.parentId) return false;
+    if (t.userId !== userId) return !activeCategoryId; // shared tasks → Inbox only
+    return activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId;
+  });
   const activeTasks = categoryTasks
     .filter((t) => t.status !== "done")
     .sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""));

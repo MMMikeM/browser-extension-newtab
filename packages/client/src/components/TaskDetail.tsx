@@ -135,6 +135,11 @@ const TaskDetailContent = ({
         <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
       )}
 
+      {/* Assignee — only when the task has been shared with someone */}
+      {!task.parentId && task.shares.length > 0 && (
+        <AssigneeSection task={task} onUpdate={onUpdate} />
+      )}
+
       {/* Notes */}
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground">Notes</p>
@@ -284,6 +289,43 @@ const SubtaskSection = ({
         />
       </form>
     </div>
+  );
+};
+
+const AssigneeSection = ({
+  task,
+  onUpdate,
+}: {
+  task: Task;
+  onUpdate: (fields: Partial<Task>) => void;
+}) => {
+  const currentUserId = getCurrentUserId();
+  const isOwner = currentUserId === task.userId;
+
+  const candidates = [
+    { id: task.userId, label: "Owner" },
+    ...task.shares
+      .filter((s) => s.sharedWithUser)
+      .map((s) => ({ id: s.sharedWithUserId, label: s.sharedWithUser!.name })),
+  ];
+
+  return (
+    <Field className="flex-row items-center gap-3">
+      <FieldLabel className="text-xs font-medium text-muted-foreground">Assignee</FieldLabel>
+      <select
+        value={task.assigneeId ?? ""}
+        onChange={(e) => onUpdate({ assigneeId: e.target.value || null })}
+        disabled={!isOwner}
+        className="rounded-md border border-input bg-input/30 px-2 py-1 text-sm outline-none focus-visible:border-ring disabled:cursor-default disabled:opacity-60"
+      >
+        <option value="">Unassigned</option>
+        {candidates.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+    </Field>
   );
 };
 

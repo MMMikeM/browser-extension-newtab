@@ -197,6 +197,14 @@ export function TaskItem({
               </button>
             )
           )}
+          {task.assignee && (
+            <span
+              title={task.assignee.name}
+              className="mt-0.5 shrink-0 size-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center"
+            >
+              {task.assignee.name.slice(0, 2).toUpperCase()}
+            </span>
+          )}
           {onAddSubtask && !isSubtask && !isDone && (
             <button
               onClick={() => setAddingSubtask(true)}
