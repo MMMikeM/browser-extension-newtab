@@ -4,7 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod/mini";
 import { setAuthToken } from "~/lib/auth/token";
 import { setCurrentUser } from "~/lib/auth/current-user";
-import { client } from "~/lib/api";
+import { authenticate } from "~/lib/actions";
 import { Button } from "~/components/ui/button";
 import { FormField } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
@@ -42,24 +42,11 @@ const AuthView = () => {
     onSubmit: async ({ value }) => {
       setServerError(null);
       try {
-        const endpoint = mode === "login" ? client.api.auth.login : client.api.auth.signup;
-        const res = await endpoint.$post({
-          json: {
-            username: value.username.trim(),
-            password: value.password,
-            name: value.name.trim(),
-          },
+        const result = await authenticate(mode, {
+          username: value.username.trim(),
+          password: value.password,
+          name: value.name.trim(),
         });
-        if (!res.ok) {
-          const body = (await res.json()) as { error?: string };
-          throw new Error(body.error ?? "Authentication failed");
-        }
-        const result = (await res.json()) as {
-          userId: string;
-          token: string;
-          name: string;
-          username: string;
-        };
         persistToken(result.token);
         setCurrentUser({ id: result.userId, name: result.name, username: result.username });
         const pendingInvite = sessionStorage.getItem("pending-invite");
@@ -147,24 +134,26 @@ const AuthView = () => {
               {mode === "login" ? "Sign in" : "Create account"}
             </Button>
             <div className="flex items-center justify-center gap-6">
-              <button
+              <Button
                 type="button"
+                variant="subtle"
+                size="xs"
                 onClick={() => {
                   setMode(mode === "login" ? "signup" : "login");
                   form.reset();
                   setServerError(null);
                 }}
-                className="text-xs text-hint hover:text-muted-foreground"
               >
                 {mode === "login" ? "Create an account" : "Already have an account?"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="subtle"
+                size="xs"
                 onClick={() => router.navigate({ to: "/" })}
-                className="text-xs text-hint hover:text-muted-foreground"
               >
                 Skip
-              </button>
+              </Button>
             </div>
           </div>
         </form>

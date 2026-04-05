@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "~/components/ui/button";
 import { useUndoEntry, executeUndo, dismissUndo } from "~/lib/state/undo";
 
 const UNDO_TIMEOUT = 5000;
@@ -36,16 +37,12 @@ export default function UndoToast() {
     >
       <div className="flex items-center gap-3 text-sm">
         <span className="text-muted-foreground">{entry?.message}</span>
-        <button onClick={executeUndo} className="font-medium text-primary hover:underline">
+        <Button variant="link" onClick={executeUndo}>
           Undo
-        </button>
-        <button
-          onClick={dismissUndo}
-          className="text-hint hover:text-muted-foreground"
-          aria-label="Dismiss"
-        >
+        </Button>
+        <Button variant="subtle" size="icon-xs" onClick={dismissUndo} aria-label="Dismiss">
           &times;
-        </button>
+        </Button>
       </div>
       <div
         className="absolute bottom-0 left-0 h-0.5 w-full origin-left bg-ghost transition-none"
