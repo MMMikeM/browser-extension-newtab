@@ -183,11 +183,14 @@ export const categoryRoutes = authed()
     async (c) => {
       const { id, userId: targetUserId } = c.req.param();
       const userId = c.get("userId");
+      const isSelf = targetUserId === userId;
 
       const cat = await categoryRepo.findById(id);
-      if (cat.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
+      if (cat.userId !== userId && !isSelf) throw new HTTPException(403, { message: "Not authorized" });
 
       await categoryCollaboratorRepo.remove(id, targetUserId);
+      // Notify the removed user so the category disappears from their collection
+      broadcast(c, "categories", "delete", { id }, [targetUserId]);
       return c.json({ userId: targetUserId }, 200);
     },
   );

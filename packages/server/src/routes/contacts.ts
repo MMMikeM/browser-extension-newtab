@@ -1,5 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import contactRepo, { contactResponseSchema } from "../db/contact.repo";
+import categoryCollaboratorRepo from "../db/category-collaborator.repo";
 import { authed } from "../middleware";
 import { errorSchema } from "./openapi-schemas";
 import { jsonContent, withAuth } from "./crud";
@@ -24,7 +25,10 @@ export const contactRoutes = authed()
     }),
     async (c) => {
       const { id } = c.req.param();
-      const contact = await contactRepo.remove(id, c.get("userId"));
+      const userId = c.get("userId");
+      const contact = await contactRepo.remove(id, userId);
+      // Revoke all shared category access between the two users
+      await categoryCollaboratorRepo.removeAllBetweenUsers(userId, contact.contactUserId);
       return c.json({ id: contact.id }, 200);
     },
   );
