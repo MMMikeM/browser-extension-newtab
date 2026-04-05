@@ -22,7 +22,7 @@ const sharedWithUserSchema = createSelectSchema(users).pick({
   username: true,
 });
 
-/** Response schema for task list — includes subtasks and shares with user info. */
+/** Response schema for task list — includes subtasks, shares, and assignee. */
 export const taskListItemSchema = taskResponseSchema.extend({
   subtasks: z.array(taskResponseSchema),
   shares: z.array(
@@ -30,13 +30,12 @@ export const taskListItemSchema = taskResponseSchema.extend({
       sharedWithUser: sharedWithUserSchema.nullable(),
     }),
   ),
+  assignee: sharedWithUserSchema.nullable(),
 });
 export const taskInsertSchema = createInsertSchema(tasks, {
   createdAt: isoDatetime,
   updatedAt: isoDatetime,
-})
-  .required({ id: true, createdAt: true, updatedAt: true })
-  .strict();
+}).required({ id: true, createdAt: true, updatedAt: true });
 export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDatetime })
   .required({ id: true, updatedAt: true })
   .omit({ createdAt: true })
@@ -58,6 +57,7 @@ const list = async (userId: string) =>
           sharedWithUser: { columns: { id: true, name: true, username: true } },
         },
       },
+      assignee: { columns: { id: true, name: true, username: true } },
     },
     orderBy: { sortOrder: "asc", createdAt: "asc" },
   });
@@ -68,14 +68,15 @@ const findById = async (id: string) => {
   return row;
 };
 
-// Fetches task with the caller's collaborator row on its category (if any).
-// category.collaborators will be empty if the user is not a collab — avoids a separate round trip.
-const findByIdWithAccess = async (id: string, userId: string) => {
+// Fetches task with all category collaborator userIds.
+// Used for both access checks (isCollab = collabUserIds.includes(callerId)) and
+// broadcast recipient lists — one query serves both purposes.
+const findByIdWithAccess = async (id: string, _userId: string) => {
   const row = await db.query.tasks.findFirst({
     where: { id },
     with: {
       category: {
-        with: { collaborators: { where: { userId }, columns: { userId: true } } },
+        with: { collaborators: { columns: { userId: true } } },
         columns: { id: true },
       },
     },

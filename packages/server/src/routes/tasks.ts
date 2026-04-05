@@ -12,6 +12,7 @@ import taskRepo, {
 } from "../db/task.repo";
 import userRepo from "../db/user.repo";
 import contactRepo from "../db/contact.repo";
+import categoryCollaboratorRepo from "../db/category-collaborator.repo";
 import { authed } from "../middleware";
 import { broadcast } from "../broadcast";
 import { errorSchema } from "./openapi-schemas";
@@ -22,6 +23,12 @@ const shareSchema = z.object({
   username: z.string().min(1),
   permission: z.enum(["view", "edit"]).default("edit"),
 });
+
+/** Returns deduplicated userIds that should receive broadcast events for this task. */
+const taskUserIds = (task: {
+  userId: string;
+  category?: { collaborators: { userId: string }[] } | null;
+}) => [...new Set([task.userId, ...(task.category?.collaborators.map((c) => c.userId) ?? [])])];
 
 export const taskRoutes = authed()
   .openapi(
@@ -44,14 +51,21 @@ export const taskRoutes = authed()
     }),
     async (c) => {
       const data = c.req.valid("json");
+      const userId = c.get("userId");
+
       if (data.parentId) {
         const parent = await taskRepo.findById(data.parentId);
         if (parent.parentId)
           throw new HTTPException(400, { message: "Cannot nest subtasks more than one level" });
       }
-      const result = await taskRepo.insert({ ...data, userId: c.get("userId") });
+
+      const result = await taskRepo.insert({ ...data, userId });
       const taskWithRelations = { ...result, subtasks: [], shares: [] };
-      broadcast(c, "tasks", "insert", taskWithRelations);
+
+      const collabIds = data.categoryId
+        ? await categoryCollaboratorRepo.listUserIds(data.categoryId)
+        : [];
+      broadcast(c, "tasks", "insert", taskWithRelations, [...new Set([userId, ...collabIds])]);
       return c.json(result, 200);
     },
   )
@@ -66,20 +80,20 @@ export const taskRoutes = authed()
       const { id, updatedAt, ...fields } = c.req.valid("json");
       const userId = c.get("userId");
 
-      // Parallel: fetch task with its category's collab list + contact check (if assigneeId set).
-      // The category.collaborators with-filter returns only the current user's row — empty = not a collab.
+      // Parallel: fetch task (with all collab userIds) + contact check (if assigneeId set).
       const [task, isContact] = await Promise.all([
         taskRepo.findByIdWithAccess(id, userId),
         fields.assigneeId ? contactRepo.exists(userId, fields.assigneeId) : Promise.resolve(true),
       ]);
 
+      const collabUserIds = task.category?.collaborators.map((c) => c.userId) ?? [];
       const isOwner = task.userId === userId;
-      const isCollab = (task.category?.collaborators.length ?? 0) > 0;
+      const isCollab = collabUserIds.includes(userId);
       if (!isOwner && !isCollab) throw new HTTPException(403, { message: "Not authorized" });
       if (!isContact) throw new HTTPException(400, { message: "Can only assign to a contact" });
 
       const result = await taskRepo.update(id, updatedAt, fields);
-      broadcast(c, "tasks", "update", result);
+      broadcast(c, "tasks", "update", result, taskUserIds(task));
       return c.json(result, 200);
     },
   )
@@ -94,11 +108,11 @@ export const taskRoutes = authed()
       const { id } = c.req.valid("json");
       const userId = c.get("userId");
 
-      const task = await taskRepo.findById(id);
+      const task = await taskRepo.findByIdWithAccess(id, userId);
       if (task.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
 
       const result = await taskRepo.remove(id);
-      broadcast(c, "tasks", "delete", { id: result.id });
+      broadcast(c, "tasks", "delete", { id: result.id }, taskUserIds(task));
       return c.json(result, 200);
     },
   )
@@ -130,7 +144,7 @@ export const taskRoutes = authed()
         sharedWithUserId: targetUser.id,
         permission: data.permission,
       });
-      broadcast(c, "tasks", "update", { id: data.taskId });
+      broadcast(c, "tasks", "update", { id: data.taskId }, [task.userId, targetUser.id]);
       return c.json(result, 200);
     },
   )
@@ -143,7 +157,8 @@ export const taskRoutes = authed()
     }),
     async (c) => {
       const result = await taskRepo.removeShare(c.req.valid("json").id);
-      broadcast(c, "tasks", "update", { id: result.taskId });
+      const task = await taskRepo.findById(result.taskId);
+      broadcast(c, "tasks", "update", { id: result.taskId }, [task.userId, result.sharedWithUserId]);
       return c.json(result, 200);
     },
   );

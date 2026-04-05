@@ -27,7 +27,7 @@ export const noteRoutes = authed()
     }),
     async (c) => {
       const result = await noteRepo.insert({ ...c.req.valid("json"), userId: c.get("userId") });
-      broadcast(c, "notes", "insert", result);
+      broadcast(c, "notes", "insert", result, [c.get("userId")]);
       return c.json(result, 200);
     },
   )
@@ -41,7 +41,7 @@ export const noteRoutes = authed()
     async (c) => {
       const { id, updatedAt, ...fields } = c.req.valid("json");
       const result = await noteRepo.update(id, updatedAt, fields);
-      broadcast(c, "notes", "update", result);
+      broadcast(c, "notes", "update", result, [c.get("userId")]);
       return c.json(result, 200);
     },
   )
@@ -54,7 +54,7 @@ export const noteRoutes = authed()
     }),
     async (c) => {
       const result = await noteRepo.remove(c.req.valid("json").id);
-      broadcast(c, "notes", "delete", { id: result.id });
+      broadcast(c, "notes", "delete", { id: result.id }, [c.get("userId")]);
       return c.json(result, 200);
     },
   );

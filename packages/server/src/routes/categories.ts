@@ -35,8 +35,9 @@ export const categoryRoutes = authed()
       responses: withAuth({ 200: jsonContent(categoryResponseSchema) }),
     }),
     async (c) => {
-      const result = await categoryRepo.insert({ ...c.req.valid("json"), userId: c.get("userId") });
-      broadcast(c, "categories", "insert", result);
+      const userId = c.get("userId");
+      const result = await categoryRepo.insert({ ...c.req.valid("json"), userId });
+      broadcast(c, "categories", "insert", result, [userId]);
       return c.json(result, 200);
     },
   )
@@ -54,11 +55,12 @@ export const categoryRoutes = authed()
       const { id, updatedAt, ...fields } = c.req.valid("json");
       const userId = c.get("userId");
 
-      const cat = await categoryRepo.findById(id);
+      const cat = await categoryRepo.findByIdWithCollaborators(id);
       if (cat.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
+      const catUserIds = [cat.userId, ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : []))];
 
       const result = await categoryRepo.update(id, updatedAt, fields);
-      broadcast(c, "categories", "update", result);
+      broadcast(c, "categories", "update", result, catUserIds);
       return c.json(result, 200);
     },
   )
@@ -77,8 +79,11 @@ export const categoryRoutes = authed()
       const { id } = c.req.valid("json");
       const userId = c.get("userId");
 
-      const cat = await categoryRepo.findById(id);
+      // findByIdWithCollaborators used (not findById) so we have userIds for broadcast
+      // before the row is deleted — after deletion we can't look up collaborators.
+      const cat = await categoryRepo.findByIdWithCollaborators(id);
       if (cat.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
+      const catUserIds = [cat.userId, ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : []))];
 
       const taskCount = await taskRepo.countByCategory(id);
       if (taskCount > 0)
@@ -87,7 +92,7 @@ export const categoryRoutes = authed()
         });
 
       const result = await categoryRepo.remove(id);
-      broadcast(c, "categories", "delete", { id: result.id });
+      broadcast(c, "categories", "delete", { id: result.id }, catUserIds);
       return c.json(result, 200);
     },
   )
