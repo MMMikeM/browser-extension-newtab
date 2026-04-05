@@ -24,4 +24,23 @@ export default defineConfig({
       },
     ],
   },
+  overrides: [
+    {
+      files: ["packages/client/src/routes/**", "packages/client/src/components/**"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: [
+              {
+                name: "~/lib/api",
+                message:
+                  "Import from ~/lib/actions or ~/lib/db/hooks instead. Direct API calls belong in ~/lib/actions.ts.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
 });
