@@ -25,13 +25,19 @@ RUN pnpm build:ext
 FROM scratch AS extension
 COPY --from=client /app/packages/client/dist-extension /
 
-FROM manifests AS server
+FROM manifests AS server-build
 COPY packages/server/src ./packages/server/src
-COPY packages/server/tsconfig.json ./packages/server/
+COPY packages/server/tsconfig.json packages/server/tsup.config.ts ./packages/server/
 COPY packages/shared/src ./packages/shared/src
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm i --frozen-lockfile --filter @newtab-todo/server --filter @newtab-todo/shared
+RUN pnpm --filter @newtab-todo/server build
+
+FROM manifests AS server
+COPY --from=server-build /app/packages/server/dist ./packages/server/dist
 COPY --from=client /app/packages/client/dist ./packages/client/dist
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm i --prod --filter @newtab-todo/server --filter @newtab-todo/shared
 EXPOSE 3000
 WORKDIR /app/packages/server
-CMD ["node", "--import=tsx", "src/index.ts"]
+CMD ["node", "dist/index.js"]
