@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:ext": "vite build -c vite.extension.config.ts",
+    "build:ext": "node build-extension.ts",
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
