@@ -101,6 +101,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
+      // TEMP: force React dev bundle for readable hydration errors
+      "process.env.NODE_ENV": JSON.stringify("development"),
     },
     plugins: [
       opfsWorker(),
