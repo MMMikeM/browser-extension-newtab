@@ -70,19 +70,11 @@ const AuthView = () => {
   });
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-6 justify-center touch:justify-start">
-      {/* Branding: centered on desktop, positioned in warm bloom zone on mobile */}
-      <div className="flex flex-col items-center gap-1 mb-8 touch:mt-[18vh] touch:mb-0">
-        <h1 className="font-display text-center text-2xl tracking-[0.28em] text-foreground uppercase">
-          Jot
-        </h1>
-        <p className="text-center text-sm text-muted-foreground">
-          Sign in to sync your tasks across devices
+    <div className="flex flex-col items-center justify-center py-8 min-h-[50vh] touch:min-h-0 touch:pt-[12vh] touch:pb-10">
+      <div className="w-full max-w-xs">
+        <p className="text-center text-sm text-hint mb-6">
+          {mode === "signup" ? "Create your account" : "Sign in to sync across devices"}
         </p>
-      </div>
-
-      {/* Form: natural flow on desktop, bottom-anchored on mobile */}
-      <div className="w-full max-w-xs touch:mt-auto touch:pb-12">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -99,8 +91,9 @@ const AuthView = () => {
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Name"
+                    placeholder="Your name"
                     className="text-sm"
+                    autoFocus
                   />
                 </FormField>
               )}
@@ -116,6 +109,9 @@ const AuthView = () => {
                   onBlur={field.handleBlur}
                   placeholder="Username"
                   className="text-sm"
+                  autoFocus={mode === "login"}
+                  autoCapitalize="none"
+                  autoCorrect="off"
                 />
               </FormField>
             )}
@@ -135,7 +131,7 @@ const AuthView = () => {
             )}
           </form.Field>
           {serverError && <span className="text-xs text-destructive">{serverError}</span>}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-1">
             <Button
               type="submit"
               variant="outline"
@@ -152,14 +148,14 @@ const AuthView = () => {
                   form.reset();
                   setServerError(null);
                 }}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="text-xs text-hint hover:text-muted-foreground"
               >
                 {mode === "login" ? "Create an account" : "Already have an account?"}
               </button>
               <button
                 type="button"
                 onClick={() => router.navigate({ to: "/" })}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="text-xs text-hint hover:text-muted-foreground"
               >
                 Skip
               </button>
