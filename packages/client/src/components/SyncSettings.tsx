@@ -151,6 +151,15 @@ export const SyncSettings = () => {
             </button>
           )}
           <button
+            onClick={() => {
+              router.navigate({ to: "/people" });
+              setOpen(false);
+            }}
+            className="text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            People
+          </button>
+          <button
             onClick={handleLogout}
             className="text-left text-xs text-muted-foreground transition-colors hover:text-destructive"
           >

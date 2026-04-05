@@ -62,7 +62,13 @@ const AuthView = () => {
         };
         persistToken(result.token);
         setCurrentUser({ id: result.userId, name: result.name, username: result.username });
-        router.navigate({ to: "/" });
+        const pendingInvite = sessionStorage.getItem("pending-invite");
+        if (pendingInvite) {
+          sessionStorage.removeItem("pending-invite");
+          router.navigate({ to: "/invite/$token", params: { token: pendingInvite } });
+        } else {
+          router.navigate({ to: "/" });
+        }
       } catch (err) {
         setServerError(err instanceof Error ? err.message : "Authentication failed");
       }
