@@ -34,15 +34,18 @@ app.use(
   })
 );
 
-// CORS — needed for extension context (moz-extension:// origin)
-app.use("*", async (c, next) => {
-  await next();
+// CORS — needed for extension context (moz-extension:// origin).
+// Headers are set BEFORE next() so they're present on error responses too:
+// if a route throws HTTPException, onError() calls c.json() which picks up
+// whatever is already in c._headers — but post-next() code is never reached.
+app.use("*", (c, next) => {
   c.header("Access-Control-Allow-Origin", c.req.header("origin") ?? "*");
   c.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   c.header("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Client-Id");
   c.header("Access-Control-Allow-Credentials", "true");
   c.header("Access-Control-Expose-Headers", "*");
   c.header("Access-Control-Max-Age", "86400");
+  return next();
 });
 
 app.options("*", (c) => c.body(null, 204));
