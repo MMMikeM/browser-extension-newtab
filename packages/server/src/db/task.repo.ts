@@ -45,7 +45,11 @@ export const taskUpdateSchema = createUpdateSchema(tasks, { updatedAt: isoDateti
 const list = async (userId: string) =>
   db.query.tasks.findMany({
     where: {
-      OR: [{ userId }, { shares: { sharedWithUserId: userId } }],
+      OR: [
+        { userId },
+        { shares: { sharedWithUserId: userId } },
+        { category: { collaborators: { userId } } },
+      ],
     },
     with: {
       subtasks: true,
@@ -59,8 +63,22 @@ const list = async (userId: string) =>
   });
 
 const findById = async (id: string) => {
+  const row = await db.query.tasks.findFirst({ where: { id } });
+  if (!row) throw new NotFoundError("task", id);
+  return row;
+};
+
+// Fetches task with the caller's collaborator row on its category (if any).
+// category.collaborators will be empty if the user is not a collab — avoids a separate round trip.
+const findByIdWithAccess = async (id: string, userId: string) => {
   const row = await db.query.tasks.findFirst({
     where: { id },
+    with: {
+      category: {
+        with: { collaborators: { where: { userId }, columns: { userId: true } } },
+        columns: { id: true },
+      },
+    },
   });
   if (!row) throw new NotFoundError("task", id);
   return row;
@@ -109,4 +127,17 @@ const removeShare = async (id: string) => {
   return row;
 };
 
-export default { list, findById, insert, update, remove, insertShare, removeShare };
+const countByCategory = async (categoryId: string): Promise<number> =>
+  db.$count(tasks, eq(tasks.categoryId, categoryId));
+
+export default {
+  list,
+  findById,
+  findByIdWithAccess,
+  insert,
+  update,
+  remove,
+  insertShare,
+  removeShare,
+  countByCategory,
+};

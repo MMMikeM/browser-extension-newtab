@@ -11,6 +11,7 @@ import taskRepo, {
   taskListItemSchema,
 } from "../db/task.repo";
 import userRepo from "../db/user.repo";
+import contactRepo from "../db/contact.repo";
 import { authed } from "../middleware";
 import { broadcast } from "../broadcast";
 import { errorSchema } from "./openapi-schemas";
@@ -63,6 +64,20 @@ export const taskRoutes = authed()
     }),
     async (c) => {
       const { id, updatedAt, ...fields } = c.req.valid("json");
+      const userId = c.get("userId");
+
+      // Parallel: fetch task with its category's collab list + contact check (if assigneeId set).
+      // The category.collaborators with-filter returns only the current user's row — empty = not a collab.
+      const [task, isContact] = await Promise.all([
+        taskRepo.findByIdWithAccess(id, userId),
+        fields.assigneeId ? contactRepo.exists(userId, fields.assigneeId) : Promise.resolve(true),
+      ]);
+
+      const isOwner = task.userId === userId;
+      const isCollab = (task.category?.collaborators.length ?? 0) > 0;
+      if (!isOwner && !isCollab) throw new HTTPException(403, { message: "Not authorized" });
+      if (!isContact) throw new HTTPException(400, { message: "Can only assign to a contact" });
+
       const result = await taskRepo.update(id, updatedAt, fields);
       broadcast(c, "tasks", "update", result);
       return c.json(result, 200);
@@ -76,7 +91,13 @@ export const taskRoutes = authed()
       responses: withAuth({ 200: jsonContent(taskResponseSchema) }),
     }),
     async (c) => {
-      const result = await taskRepo.remove(c.req.valid("json").id);
+      const { id } = c.req.valid("json");
+      const userId = c.get("userId");
+
+      const task = await taskRepo.findById(id);
+      if (task.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
+
+      const result = await taskRepo.remove(id);
       broadcast(c, "tasks", "delete", { id: result.id });
       return c.json(result, 200);
     },
