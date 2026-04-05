@@ -4,6 +4,7 @@ export default defineConfig({
   plugins: ["eslint", "typescript", "unicorn", "oxc", "react", "import", "jsx-a11y"],
   ignorePatterns: ["src/routeTree.gen.ts"],
   rules: {
+    "react/rules-of-hooks": ["error"],
     "@typescript-eslint/no-explicit-any": ["error"],
     "no-unused-vars": ["error"],
     "no-unsafe-optional-chaining": ["error"],
