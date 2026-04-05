@@ -10,6 +10,11 @@ export const registerServiceWorker = () => {
     return console.log("[sw] skipped: extension context");
   if (!("serviceWorker" in navigator)) return console.log("[sw] skipped: no serviceWorker API");
 
+  // Reload when a new SW takes control so users get fresh assets immediately
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
+
   console.log("[sw] calling register(/sw.js)");
   navigator.serviceWorker
     .register("/sw.js")
