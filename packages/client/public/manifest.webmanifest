@@ -1,10 +1,11 @@
 {
   "id": "/",
-  "name": "hearth",
-  "short_name": "hearth",
-  "description": "A fast, offline-ready task manager",
+  "name": "Jot",
+  "short_name": "Jot",
+  "description": "A calm, fast task list for daily capture",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#1c1917",
   "theme_color": "#1c1917",
   "icons": [
