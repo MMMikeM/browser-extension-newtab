@@ -97,7 +97,7 @@ export const taskRoutes = authed()
       const userId = c.get("userId");
       const [task, targetUser] = await Promise.all([
         taskRepo.findById(data.taskId),
-        userRepo.findByUsername(data.username),
+        userRepo.findByUsername(data.username.toLowerCase()),
       ]);
       if (task.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
       if (targetUser.id === userId)

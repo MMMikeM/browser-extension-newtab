@@ -13,9 +13,10 @@ const ARGON2_OPTIONS = {
 };
 
 export const signup = async (username: string, password: string, name: string) => {
+  const normalizedUsername = username.toLowerCase();
   let existing = false;
   try {
-    await userRepo.findByUsername(username);
+    await userRepo.findByUsername(normalizedUsername);
     existing = true;
   } catch (e) {
     if (!(e instanceof NotFoundError)) throw e;
@@ -27,7 +28,7 @@ export const signup = async (username: string, password: string, name: string) =
   const user = await userRepo.insert({
     id: createId(),
     name,
-    username,
+    username: normalizedUsername,
     passwordHash,
     createdAt: now,
     updatedAt: now,
@@ -40,7 +41,7 @@ export const signup = async (username: string, password: string, name: string) =
 export const login = async (username: string, password: string) => {
   let user;
   try {
-    user = await userRepo.findByUsernameWithPassword(username);
+    user = await userRepo.findByUsernameWithPassword(username.toLowerCase());
   } catch {
     throw new HTTPException(401, { message: "Invalid username or password" });
   }
