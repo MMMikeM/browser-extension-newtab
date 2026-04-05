@@ -272,6 +272,14 @@ const users = await db.query.users.findMany({
   },
 });
 
+// NULL checks
+const users = await db.query.users.findMany({
+  where: { deletedAt: { isNull: true } },
+});
+const users = await db.query.users.findMany({
+  where: { deletedAt: { isNull: false } }, // IS NOT NULL
+});
+
 // RAW SQL in where
 const users = await db.query.users.findMany({
   where: {
