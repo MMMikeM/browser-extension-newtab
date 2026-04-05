@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from "react";
-import { getAuthToken, subscribeAuthToken } from "~/lib/auth-token";
-import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/collections";
-import { ensurePushRegistered } from "~/lib/push";
+import { getAuthToken, subscribeAuthToken } from "~/lib/auth/token";
+import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/db/collections";
+import { ensurePushRegistered } from "~/lib/sync/push";
 import { getBuildTarget } from "~/lib/build-target";
 import { SSE_DATA_CHANGED, EVENTS_PATH, MSG_GET_STATUS, MSG_BG_STATUS } from "~/lib/constants";
 import type { MutationEvent } from "~/lib/constants";
 import { createExternalStore } from "~/lib/external-store";
-import { offline } from "~/lib/offline";
+import { offline } from "~/lib/db/offline";
 
 let es: EventSource | null = null;
 

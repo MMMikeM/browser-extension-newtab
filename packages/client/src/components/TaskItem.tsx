@@ -4,7 +4,7 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 import { Calendar, GripVertical, Plus, X } from "lucide-react";
-import { useSwipeReveal } from "~/lib/use-swipe-reveal";
+import { useSwipeReveal } from "~/lib/hooks/use-swipe-reveal";
 
 // Evaluated once at module init — pointer type doesn't change during a session
 const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;

@@ -8,10 +8,11 @@ Any module that accesses `localStorage`, `window`, or browser-only APIs (`OPFS`,
 
 ## Structure
 
-- **`collections.ts`** — TanStack DB collections with offline persistence
-- **`hooks.ts`** — React hooks for collections + optimistic mutation helpers
-- **`offline.ts`** — Offline transaction sync functions
-- **`sse.ts`** / **`push.ts`** / **`active-category.ts`** / **`auth-token.ts`** — standalone client modules
+- **`db/`** — TanStack DB layer: `collections.ts`, `hooks.ts` (useLiveQuery + mutations), `offline.ts` (offline executor), `add-task.ts`
+- **`sync/`** — Live sync mechanisms: `sse.ts` (browser tab SSE), `push.ts` (Web Push), `register-sw.ts`
+- **`auth/`** — Identity: `token.ts` (auth token store), `current-user.ts`
+- **`state/`** — App UI state: `active-category.ts`, `undo.ts`
+- **`hooks/`** — Standalone React hooks: `use-install-prompt.ts`, `use-swipe-reveal.ts`
 - **`constants.ts`** — re-exports from `@newtab-todo/shared`
 
 ## Non-obvious decisions

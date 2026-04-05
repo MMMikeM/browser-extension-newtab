@@ -1,6 +1,6 @@
 import { useLiveQuery } from "@tanstack/react-db";
-import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/collections";
-import { offline } from "~/lib/offline";
+import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/db/collections";
+import { offline } from "~/lib/db/offline";
 import type { Task, Category, Note } from "~/lib/types";
 import { now } from "~/lib/utils";
 export const useTasks = () => useLiveQuery(tasksCollection);

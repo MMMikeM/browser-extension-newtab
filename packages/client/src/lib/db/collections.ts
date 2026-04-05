@@ -1,9 +1,9 @@
 import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { persistedCollectionOptions } from "@tanstack/browser-db-sqlite-persistence";
-import { queryClient } from "~/lib/query-client";
+import { queryClient } from "~/lib/db/query-client";
 import { client } from "~/lib/api";
-import { getAuthToken } from "~/lib/auth-token";
+import { getAuthToken } from "~/lib/auth/token";
 import type { Task, Category, Note } from "~/lib/types";
 import {
   openBrowserWASQLiteOPFSDatabase,

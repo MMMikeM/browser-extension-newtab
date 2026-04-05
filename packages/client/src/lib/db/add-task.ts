@@ -1,9 +1,9 @@
 import { nanoid } from "nanoid";
 import { generateKeyBetween } from "fractional-indexing";
-import { getCurrentUserId } from "~/lib/current-user";
+import { getCurrentUserId } from "~/lib/auth/current-user";
 import { now } from "~/lib/utils";
-import { tasksCollection } from "~/lib/collections";
-import { offline } from "~/lib/offline";
+import { tasksCollection } from "~/lib/db/collections";
+import { offline } from "~/lib/db/offline";
 import type { Task } from "~/lib/types";
 
 const bySortOrder = (a: Task, b: Task) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "");

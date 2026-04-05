@@ -1,6 +1,6 @@
 import type { AppType } from "@newtab-todo/server/app";
 import { hc } from "hono/client";
-import { getAuthToken } from "~/lib/auth-token";
+import { getAuthToken } from "~/lib/auth/token";
 import { clientId } from "~/lib/client-id";
 
 // In dev, API is on the same origin (Hono dev server plugin).

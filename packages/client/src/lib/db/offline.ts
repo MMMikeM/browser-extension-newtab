@@ -1,8 +1,8 @@
 import { startOfflineExecutor, NonRetriableError } from "@tanstack/offline-transactions";
-import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/collections";
+import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/db/collections";
 import { client } from "~/lib/api";
-import { getAuthToken, subscribeAuthToken } from "~/lib/auth-token";
-import { getCurrentUserId } from "~/lib/current-user";
+import { getAuthToken, subscribeAuthToken } from "~/lib/auth/token";
+import { getCurrentUserId } from "~/lib/auth/current-user";
 import type { Collection } from "@tanstack/db";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- transaction mutation payloads are untyped

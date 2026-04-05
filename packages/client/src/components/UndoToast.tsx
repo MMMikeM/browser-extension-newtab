@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUndoEntry, executeUndo, dismissUndo } from "~/lib/undo";
+import { useUndoEntry, executeUndo, dismissUndo } from "~/lib/state/undo";
 
 const UNDO_TIMEOUT = 5000;
 

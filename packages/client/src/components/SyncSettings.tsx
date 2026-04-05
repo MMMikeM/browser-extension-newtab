@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
-import { useAuthToken, setAuthToken } from "~/lib/auth-token";
-import { useCurrentUser, clearCurrentUser } from "~/lib/current-user";
-import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
+import { useAuthToken, setAuthToken } from "~/lib/auth/token";
+import { useCurrentUser, clearCurrentUser } from "~/lib/auth/current-user";
+import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/sync/push";
 import { client } from "~/lib/api";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
-import { useSyncState, usePendingMutations } from "~/lib/sse";
-import { useInstallPrompt } from "~/lib/use-install-prompt";
+import { useSyncState, usePendingMutations } from "~/lib/sync/sse";
+import { useInstallPrompt } from "~/lib/hooks/use-install-prompt";
 import { cn } from "~/lib/utils";
 
 const clearAuth = () => {

@@ -2,9 +2,9 @@ import { StrictMode } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
-import { queryClient } from "~/lib/query-client";
+import { queryClient } from "~/lib/db/query-client";
 import { getRouter } from "./router";
-import { initSync } from "~/lib/sse";
+import { initSync } from "~/lib/sync/sse";
 import "./app.css";
 
 initSync();

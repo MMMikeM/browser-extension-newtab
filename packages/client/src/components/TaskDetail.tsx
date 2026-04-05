@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import type { Task, Note } from "~/lib/types";
-import { useNotes, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/hooks";
+import { useNotes, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/db/hooks";
 import { client } from "~/lib/api";
-import { addTask } from "~/lib/add-task";
-import { getCurrentUserId } from "~/lib/current-user";
+import { addTask } from "~/lib/db/add-task";
+import { getCurrentUserId } from "~/lib/auth/current-user";
 import {
   Drawer,
   DrawerContent,

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAuthToken } from "~/lib/auth-token";
-import { useTasks } from "~/lib/hooks";
+import { useAuthToken } from "~/lib/auth/token";
+import { useTasks } from "~/lib/db/hooks";
 
 const DISMISSED_KEY = "newtab-todo-sync-hint-dismissed-until";
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days

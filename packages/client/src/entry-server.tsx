@@ -1,7 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { RouterProvider } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "~/lib/query-client";
+import { queryClient } from "~/lib/db/query-client";
 import { getRouter } from "./router";
 
 // Render the full router tree. getBuildTarget() returns "server" in Node.js,
