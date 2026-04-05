@@ -7,6 +7,7 @@ import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
 import { generateSW } from "./plugins/generate-sw";
 import { injectFontPreloads } from "./plugins/inject-font-preloads";
 import { prerender } from "./plugins/prerender";
+import { injectCriticalCss } from "./plugins/inject-critical-css";
 import babel from "@rolldown/plugin-babel";
 import { visualizer } from "rollup-plugin-visualizer";
 import { globSync } from "node:fs";
@@ -112,6 +113,7 @@ export default defineConfig(({ mode }) => {
       generateSW(),
       injectFontPreloads(),
       prerender(),
+      injectCriticalCss(),
       babel({
         presets: [reactCompilerPreset()],
       }),

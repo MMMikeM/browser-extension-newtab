@@ -302,6 +302,9 @@ importers:
       '@rolldown/plugin-babel':
         specifier: ^0.2.2
         version: 0.2.2(@babel/core@7.29.0)(@babel/runtime@7.29.2)(rolldown@1.0.0-rc.13)(vite@8.0.3)
+      '@tailwindcss/node':
+        specifier: ^4.2.2
+        version: 4.2.2
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.3)
@@ -326,6 +329,9 @@ importers:
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
+      lightningcss:
+        specifier: ^1.32.0
+        version: 1.32.0
       rollup-plugin-visualizer:
         specifier: ^7.0.1
         version: 7.0.1(rolldown@1.0.0-rc.13)(rollup@2.80.0)

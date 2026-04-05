@@ -16,6 +16,7 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
       }}
     >
       <Input
+        id="add-task-input"
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
