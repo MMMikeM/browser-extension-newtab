@@ -9,6 +9,7 @@ const UndoToast = lazy(() => import("~/components/UndoToast"));
 
 export default function RootComponent() {
   const router = useRouter();
+  console.log("[RootComponent] render — router.ssr:", router.ssr, "router.isServer:", router.isServer);
 
   useEffect(() => {
     // Dynamic import: SW registration is fire-and-forget, not needed for initial render.

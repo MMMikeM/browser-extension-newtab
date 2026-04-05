@@ -17,14 +17,11 @@ const router = getRouter();
 // In prod, index.html has prerendered content — hydrate to preserve it.
 // In dev (vite dev), root is empty — fall back to createRoot.
 if (root.innerHTML.trim()) {
-  // Setting router.ssr makes Matches use SafeFragment instead of Suspense,
-  // matching the server-rendered tree. Without this, React 19 throws error
-  // #418 because it finds a client Suspense with no dehydration marker in HTML.
-  // This also tells Transitioner to skip its initial router.load() call
-  // (we call it ourselves below).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (router as any).ssr = {};
+  console.log("[hydration] router.ssr before assignment:", router.ssr);
+  router.ssr = { manifest: undefined };
+  console.log("[hydration] router.ssr after assignment:", router.ssr);
   await router.load();
+  console.log("[hydration] router.ssr after load():", router.ssr);
   hydrateRoot(
     root,
     <StrictMode>
