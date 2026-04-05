@@ -7,6 +7,7 @@ import { client } from "~/lib/api";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState, usePendingMutations } from "~/lib/sse";
+import { useInstallPrompt } from "~/lib/use-install-prompt";
 import { cn } from "~/lib/utils";
 
 const clearAuth = () => {
@@ -31,6 +32,7 @@ export const SyncSettings = () => {
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { canInstall, install } = useInstallPrompt();
 
   useEffect(() => {
     isPushSubscribed().then(setPushEnabled);
@@ -125,6 +127,14 @@ export const SyncSettings = () => {
             <span className="text-xs text-hint">@{currentUser.username}</span>
           </div>
           <div className="h-px bg-border" />
+          {getBuildTarget() === "browser" && canInstall && (
+            <button
+              onClick={install}
+              className="text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Add to Home Screen
+            </button>
+          )}
           {getBuildTarget() === "browser" && (
             <button
               onClick={handleTogglePush}
