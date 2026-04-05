@@ -74,7 +74,7 @@ export function CategoryTabs({
   };
 
   return (
-    <div className="mb-1 flex flex-wrap items-end gap-0 border-b border-border">
+    <div className="mb-1 flex flex-wrap items-end gap-0 border-b border-border touch:flex-nowrap touch:overflow-x-auto touch:scrollbar-none touch:scroll-smooth">
       {categories.map((cat, index) => {
         const isActive = activeCategoryId === cat.id;
         const color = cat.color ?? undefined;
