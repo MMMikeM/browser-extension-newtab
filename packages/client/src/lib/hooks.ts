@@ -3,7 +3,6 @@ import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/co
 import { offline } from "~/lib/offline";
 import type { Task, Category, Note } from "~/lib/types";
 import { now } from "~/lib/utils";
-
 export const useTasks = () => useLiveQuery(tasksCollection);
 export const useCategories = () => useLiveQuery(categoriesCollection);
 export const useNotes = () => useLiveQuery(notesCollection);

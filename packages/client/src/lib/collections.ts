@@ -80,4 +80,9 @@ async function makeCollections() {
   };
 }
 
-export const { categoriesCollection, tasksCollection, notesCollection } = await makeCollections();
+// makeCollections() returns null values on the server path (SSR prerender).
+// This module is client-only — no server-path code ever imports it.
+const collections = await makeCollections();
+export const tasksCollection = collections.tasksCollection!;
+export const categoriesCollection = collections.categoriesCollection!;
+export const notesCollection = collections.notesCollection!;
