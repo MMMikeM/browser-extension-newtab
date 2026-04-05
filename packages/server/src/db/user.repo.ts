@@ -1,7 +1,16 @@
 import { and, eq, lt } from "drizzle-orm";
+import { createSelectSchema } from "drizzle-orm/zod";
 import { db } from "./client";
 import { users } from "./schema";
 import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
+
+/** Public user shape — id, name, username, avatarUrl. Excludes sensitive fields. */
+export const userPublicSchema = createSelectSchema(users).pick({
+  id: true,
+  name: true,
+  username: true,
+  avatarUrl: true,
+});
 
 export type UserInsert = typeof users.$inferInsert;
 
@@ -10,6 +19,15 @@ const list = async (_userId: string) =>
     orderBy: { name: "asc" },
     columns: { passwordHash: false },
   });
+
+const findById = async (id: string) => {
+  const row = await db.query.users.findFirst({
+    where: { id },
+    columns: { passwordHash: false },
+  });
+  if (!row) throw new NotFoundError("user", id);
+  return row;
+};
 
 const findByUsername = async (username: string) => {
   const row = await db.query.users.findFirst({
@@ -48,4 +66,12 @@ const remove = async (id: string) => {
   return row;
 };
 
-export default { list, findByUsername, findByUsernameWithPassword, insert, update, remove };
+export default {
+  list,
+  findById,
+  findByUsername,
+  findByUsernameWithPassword,
+  insert,
+  update,
+  remove,
+};

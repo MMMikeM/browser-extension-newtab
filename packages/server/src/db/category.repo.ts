@@ -22,7 +22,29 @@ export const categoryUpdateSchema = createUpdateSchema(categories, { updatedAt: 
   .strict();
 
 const list = async (userId: string) =>
-  db.query.categories.findMany({ where: { userId }, orderBy: { sortOrder: "asc", name: "asc" } });
+  db.query.categories.findMany({
+    where: { OR: [{ userId }, { collaborators: { userId } }] },
+    orderBy: { sortOrder: "asc", name: "asc" },
+  });
+
+const findById = async (id: string) => {
+  const row = await db.query.categories.findFirst({ where: { id } });
+  if (!row) throw new NotFoundError("category", id);
+  return row;
+};
+
+const findByIdWithCollaborators = async (id: string) => {
+  const row = await db.query.categories.findFirst({
+    where: { id },
+    with: {
+      collaborators: {
+        with: { user: { columns: { id: true, name: true, username: true, avatarUrl: true } } },
+      },
+    },
+  });
+  if (!row) throw new NotFoundError("category", id);
+  return row;
+};
 
 // LWW insert: if same id arrives again (retry), return the existing row unchanged.
 const insert = async (data: CategoryInsert) => {
@@ -51,4 +73,4 @@ const remove = async (id: string) => {
   return row;
 };
 
-export default { list, insert, update, remove };
+export default { list, findById, findByIdWithCollaborators, insert, update, remove };
