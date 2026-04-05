@@ -34,7 +34,7 @@ export default {
     "@tanstack/router-plugin",
     "@tailwindcss/vite",
     "@tailwindcss/node", // peer dep of @tailwindcss/vite, invoked internally
-    "lightningcss",      // Vite CSS pipeline peer dep, version-pinned here
+    "lightningcss", // Vite CSS pipeline peer dep, version-pinned here
     "@vitejs/plugin-react",
     "@rolldown/plugin-babel",
     "babel-plugin-react-compiler",

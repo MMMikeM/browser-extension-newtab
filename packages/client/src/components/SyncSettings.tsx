@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthToken, setAuthToken } from "~/lib/auth/token";
 import { useCurrentUser, clearCurrentUser } from "~/lib/auth/current-user";
-import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/sync/push";
+import {
+  registerPushSubscription,
+  unregisterPushSubscription,
+  isPushSubscribed,
+} from "~/lib/sync/push";
 import { client } from "~/lib/api";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";

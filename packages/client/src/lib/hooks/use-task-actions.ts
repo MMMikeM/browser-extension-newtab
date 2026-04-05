@@ -2,7 +2,13 @@ import { ComponentProps } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { isSortableOperation } from "@dnd-kit/react/sortable";
 import { generateKeyBetween } from "fractional-indexing";
-import { updateTask, deleteTask, addCategory, updateCategory, deleteCategory } from "~/lib/db/hooks";
+import {
+  updateTask,
+  deleteTask,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+} from "~/lib/db/hooks";
 import { tasksCollection, categoriesCollection } from "~/lib/db/collections";
 import { addTask } from "~/lib/db/add-task";
 import { setActiveCategoryId } from "~/lib/state/active-category";
@@ -10,7 +16,9 @@ import { pushUndo } from "~/lib/state/undo";
 import { CATEGORY_DROP_PREFIX } from "~/components/CategoryTabs";
 import type { Task, Category } from "~/lib/types";
 
-type DragEndEvent = Parameters<NonNullable<ComponentProps<typeof DragDropProvider>["onDragEnd"]>>[0];
+type DragEndEvent = Parameters<
+  NonNullable<ComponentProps<typeof DragDropProvider>["onDragEnd"]>
+>[0];
 
 interface Params {
   allTasks: Task[];
@@ -20,7 +28,13 @@ interface Params {
   userId: string | null | undefined;
 }
 
-export const useTaskActions = ({ allTasks, categories, activeCategoryId, activeTasks, userId }: Params) => {
+export const useTaskActions = ({
+  allTasks,
+  categories,
+  activeCategoryId,
+  activeTasks,
+  userId,
+}: Params) => {
   const handleAdd = (title: string) => {
     addTask(title, activeCategoryId ?? null);
   };

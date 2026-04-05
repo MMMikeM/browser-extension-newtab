@@ -21,7 +21,8 @@ const buildManifest = (serverUrl: string) => ({
   version: "1.0.0",
   browser_specific_settings: { gecko: { id: "newtab-todo@local" } },
   chrome_url_overrides: { newtab: "index.html" },
-  content_security_policy: `script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src 'self' https: ${serverUrl.startsWith("http:") ? serverUrl : ""}`.trim(),
+  content_security_policy:
+    `script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src 'self' https: ${serverUrl.startsWith("http:") ? serverUrl : ""}`.trim(),
   permissions: ["storage"],
   background: { scripts: ["background.js"], persistent: true },
 });
@@ -31,14 +32,19 @@ const patchHtml = () => {
   let scriptCount = 0;
 
   // Extract inline <script> blocks — MV2 CSP blocks inline scripts.
-  html = html.replace(/<script([^>]*)>([\s\S]+?)<\/script>/g, (match, attrs: string, content: string) => {
-    if (attrs.includes("src=") || !content.trim()) return match;
-    const filename = `_inline-${scriptCount++}.js`;
-    writeFileSync(join(EXT_OUT, filename), content);
-    const typeAttr = attrs.match(/type="([^"]*)"/) ? ` type="${attrs.match(/type="([^"]*)"/)![1]}"` : "";
-    const asyncAttr = attrs.includes("async") ? " async" : "";
-    return `<script${typeAttr}${asyncAttr} src="/${filename}"></script>`;
-  });
+  html = html.replace(
+    /<script([^>]*)>([\s\S]+?)<\/script>/g,
+    (match, attrs: string, content: string) => {
+      if (attrs.includes("src=") || !content.trim()) return match;
+      const filename = `_inline-${scriptCount++}.js`;
+      writeFileSync(join(EXT_OUT, filename), content);
+      const typeAttr = attrs.match(/type="([^"]*)"/)
+        ? ` type="${attrs.match(/type="([^"]*)"/)![1]}"`
+        : "";
+      const asyncAttr = attrs.includes("async") ? " async" : "";
+      return `<script${typeAttr}${asyncAttr} src="/${filename}"></script>`;
+    },
+  );
 
   // Convert async CSS preloads to plain stylesheets — MV2 CSP blocks the
   // inline onload="this.rel='stylesheet'" event handler (script-src-attr),

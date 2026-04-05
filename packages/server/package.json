@@ -1,8 +1,10 @@
 {
   "name": "@newtab-todo/server",
   "private": true,
+  "files": [
+    "dist"
+  ],
   "type": "module",
-  "files": ["dist"],
   "exports": {
     "./app": "./src/app.ts",
     "./db/task.repo": "./src/db/task.repo.ts",

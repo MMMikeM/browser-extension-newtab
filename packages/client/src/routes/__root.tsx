@@ -7,9 +7,6 @@ export const Route = createRootRoute({
   component: RootComponent,
 });
 
-
-
-
 const SyncSettings = lazy(() => import("../components/SyncSettings"));
 
 export default function RootComponent() {
