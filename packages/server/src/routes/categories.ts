@@ -26,7 +26,7 @@ export const categoryRoutes = authed()
       responses: withAuth({ 200: jsonContent(categoryResponseSchema) }),
     }),
     async (c) => {
-      const result = await categoryRepo.insert(c.req.valid("json"));
+      const result = await categoryRepo.insert({ ...c.req.valid("json"), userId: c.get("userId") });
       broadcast(c, "categories", "insert", result);
       return c.json(result, 200);
     },

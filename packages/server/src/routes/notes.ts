@@ -26,7 +26,7 @@ export const noteRoutes = authed()
       responses: withAuth({ 200: jsonContent(noteResponseSchema) }),
     }),
     async (c) => {
-      const result = await noteRepo.insert(c.req.valid("json"));
+      const result = await noteRepo.insert({ ...c.req.valid("json"), userId: c.get("userId") });
       broadcast(c, "notes", "insert", result);
       return c.json(result, 200);
     },

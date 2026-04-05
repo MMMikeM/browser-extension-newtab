@@ -48,7 +48,7 @@ export const taskRoutes = authed()
         if (parent.parentId)
           throw new HTTPException(400, { message: "Cannot nest subtasks more than one level" });
       }
-      const result = await taskRepo.insert(data);
+      const result = await taskRepo.insert({ ...data, userId: c.get("userId") });
       const taskWithRelations = { ...result, subtasks: [], shares: [] };
       broadcast(c, "tasks", "insert", taskWithRelations);
       return c.json(result, 200);
