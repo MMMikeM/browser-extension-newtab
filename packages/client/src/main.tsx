@@ -10,18 +10,29 @@ import "./app.css";
 initSync();
 
 const root = document.getElementById("root")!;
-const app = (
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={getRouter()} />
-    </QueryClientProvider>
-  </StrictMode>
-);
+const router = getRouter();
 
 // In prod, index.html has prerendered content — hydrate to preserve it.
 // In dev (vite dev), root is empty — fall back to createRoot.
 if (root.innerHTML.trim()) {
-  hydrateRoot(root, app);
+  // Load the router before hydrating so TanStack Router's Matches component
+  // renders real route content (not null) during the first hydration pass,
+  // matching the server-rendered HTML and avoiding error #418.
+  await router.load();
+  hydrateRoot(
+    root,
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
 } else {
-  createRoot(root).render(app);
+  createRoot(root).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
 }
