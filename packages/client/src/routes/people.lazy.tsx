@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { client } from "~/lib/api";
-import { getAuthToken } from "~/lib/auth/token";
+import { useContacts } from "~/lib/db/hooks";
+import { createInvite, removeContact } from "~/lib/actions";
+import { Button } from "~/components/ui/button";
 
 export const Route = createLazyFileRoute("/people")({
   component: PeoplePage,
@@ -9,33 +10,14 @@ export const Route = createLazyFileRoute("/people")({
 
 export function PeoplePage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const [inviting, setInviting] = useState(false);
 
-  type Contact = {
-    id: string;
-    userId: string;
-    contactUserId: string;
-    createdAt: string;
-    contactUser: { id: string; name: string; username: string; avatarUrl: string | null } | null;
-  };
+  const { data: contacts = [], isLoading } = useContacts();
 
-  const { data: contacts = [], isLoading } = useQuery({
-    queryKey: ["contacts"],
-    queryFn: async () => {
-      const res = await client.api.contacts.$get();
-      if (!res.ok) throw new Error("Failed to fetch contacts");
-      return res.json() as Promise<Contact[]>;
-    },
-    enabled: !!getAuthToken(),
-  });
-
-  const { mutate: invite, isPending: inviting } = useMutation({
-    mutationFn: async () => {
-      const res = await client.api.invites.$post();
-      if (!res.ok) throw new Error("Failed to create invite");
-      return res.json() as Promise<{ token: string; expiresAt: string }>;
-    },
-    onSuccess: ({ token }) => {
+  const invite = async () => {
+    setInviting(true);
+    try {
+      const { token } = await createInvite();
       const base = window.location.origin + window.location.pathname;
       const url = `${base}#/invite/${token}`;
       if (navigator.share) {
@@ -45,35 +27,23 @@ export function PeoplePage() {
       } else {
         navigator.clipboard.writeText(url);
       }
-    },
-  });
-
-  const { mutate: remove } = useMutation({
-    mutationFn: async (id: string) => {
-      await client.api.contacts[":id"].$delete({ param: { id } });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contacts"] }),
-  });
+    } finally {
+      setInviting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 px-6 py-8 max-w-md mx-auto">
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.navigate({ to: "/" })}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
+        <Button variant="subtle" size="sm" onClick={() => router.navigate({ to: "/" })}>
           ← Back
-        </button>
+        </Button>
         <h1 className="text-lg font-semibold">People</h1>
       </div>
 
-      <button
-        onClick={() => invite()}
-        disabled={inviting}
-        className="self-start rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted disabled:opacity-50"
-      >
+      <Button variant="outline" size="sm" onClick={invite} disabled={inviting} className="self-start">
         {inviting ? "Generating link…" : "Invite someone"}
-      </button>
+      </Button>
 
       <div className="flex flex-col gap-1">
         {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
@@ -101,7 +71,7 @@ export function PeoplePage() {
               )}
             </div>
             <button
-              onClick={() => remove(contact.id)}
+              onClick={() => removeContact(contact.id)}
               className="text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/contact:opacity-100"
             >
               Remove

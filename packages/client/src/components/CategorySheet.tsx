@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Ellipsis, Plus } from "lucide-react";
 import { Drawer, DrawerTrigger, DrawerContent } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
+import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { Input } from "~/components/ui/input";
 import { CATEGORY_COLORS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
@@ -10,25 +11,34 @@ import type { Category } from "~/lib/types";
 export function CategorySheet({
   categories,
   activeCategoryId,
+  currentUserId,
+  showInbox = true,
+  inboxCount = 0,
   onSelect,
   onAdd,
   onRename,
   onSetColor,
   onDeleteCategory,
+  onLeaveCategory,
 }: {
   categories: Category[];
   activeCategoryId: string | null;
+  currentUserId: string | null;
+  showInbox?: boolean;
+  inboxCount?: number;
   onSelect: (id: string | null) => void;
   onAdd: (name: string) => void;
   onRename: (id: string, name: string) => void;
   onSetColor: (id: string, color: string | null) => void;
   onDeleteCategory: (id: string) => void;
+  onLeaveCategory: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [sharingCategoryId, setSharingCategoryId] = useState<string | null>(null);
   const renameRef = useRef<HTMLInputElement>(null);
   const addRef = useRef<HTMLInputElement>(null);
 
@@ -52,189 +62,248 @@ export function CategorySheet({
   };
 
   const activeCategory = categories.find((c) => c.id === activeCategoryId);
+  const showBadge = inboxCount > 0 && activeCategoryId !== null;
 
-  return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger
-        data-testid="category-sheet-trigger"
-        render={
-          <button className="flex items-center gap-1.5 rounded-md px-1 py-1 text-sm font-medium text-foreground transition-colors active:bg-accent/10" />
-        }
-      >
-        {activeCategory?.color && (
-          <span
-            className="size-2 shrink-0 rounded-full"
-            style={{ backgroundColor: activeCategory.color }}
+  const ownedCategories = categories.filter((c) => c.userId === currentUserId);
+  const sharedCategories = categories.filter((c) => c.userId !== currentUserId);
+
+  const renderCategoryRow = (cat: Category) => {
+    const isOwned = cat.userId === currentUserId;
+    const isActive = activeCategoryId === cat.id;
+
+    if (renamingId === cat.id) {
+      return (
+        <form
+          key={cat.id}
+          className="px-5 py-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitRename();
+          }}
+        >
+          <Input
+            ref={renameRef}
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            className="h-8 text-sm"
+            onBlur={submitRename}
           />
-        )}
-        <span>{activeCategory?.name ?? "Inbox"}</span>
-        <ChevronDown size={13} className="text-hint" />
-      </DrawerTrigger>
+        </form>
+      );
+    }
 
-      <DrawerContent>
-        {/* Inbox */}
+    return (
+      <div key={cat.id} className="flex items-center">
         <button
-          onClick={() => selectAndClose(null)}
+          onClick={() => selectAndClose(cat.id)}
           className={cn(
-            "flex w-full items-center gap-3 px-5 py-3.5 text-sm transition-colors",
-            activeCategoryId === null ? "font-medium text-foreground" : "text-hint",
+            "flex flex-1 items-center gap-3 px-5 py-3.5 text-sm transition-colors",
+            isActive ? "font-medium text-foreground" : "text-hint",
           )}
         >
-          <span
-            className={cn(
-              "size-1.5 shrink-0 rounded-full",
-              activeCategoryId === null ? "bg-primary" : "bg-transparent",
+          {cat.color ? (
+            <span
+              className="size-2 shrink-0 rounded-full"
+              style={{ backgroundColor: cat.color }}
+            />
+          ) : (
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                isActive ? "bg-primary" : "bg-transparent",
+              )}
+            />
+          )}
+          <span className="flex-1 text-left">
+            {cat.name}
+            {!isOwned && cat.user?.name && (
+              <span className="ml-1 text-xs font-normal text-muted-foreground">
+                · {cat.user.name}
+              </span>
             )}
-          />
-          Inbox
+          </span>
         </button>
 
-        <div className="mx-5 h-px bg-border/50" />
-
-        {/* Category list */}
-        {categories.map((cat) => {
-          const isActive = activeCategoryId === cat.id;
-
-          if (renamingId === cat.id) {
-            return (
-              <form
-                key={cat.id}
-                className="px-5 py-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  submitRename();
-                }}
-              >
-                <Input
-                  ref={renameRef}
-                  type="text"
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  className="h-8 text-sm"
-                  onBlur={submitRename}
-                />
-              </form>
-            );
-          }
-
-          return (
-            <div key={cat.id} className="flex items-center">
+        <Popover>
+          <PopoverTrigger
+            render={
               <button
-                onClick={() => selectAndClose(cat.id)}
-                className={cn(
-                  "flex flex-1 items-center gap-3 px-5 py-3.5 text-sm transition-colors",
-                  isActive ? "font-medium text-foreground" : "text-hint",
-                )}
-              >
-                {cat.color ? (
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: cat.color }}
-                  />
-                ) : (
-                  <span
-                    className={cn(
-                      "size-2 shrink-0 rounded-full",
-                      isActive ? "bg-primary" : "bg-transparent",
-                    )}
-                  />
-                )}
-                {cat.name}
-              </button>
-
-              <Popover>
-                <PopoverTrigger
-                  render={
-                    <button
-                      className="mr-3 rounded p-2 text-hint transition-colors active:text-foreground"
-                      aria-label="Category options"
-                    />
-                  }
+                className="mr-3 rounded p-2 text-hint transition-colors active:text-foreground"
+                aria-label="Category options"
+              />
+            }
+          >
+            <Ellipsis size={14} />
+          </PopoverTrigger>
+          <PopoverContent>
+            {isOwned ? (
+              <>
+                <button
+                  className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                  onClick={() => {
+                    setRenamingId(cat.id);
+                    setRenameValue(cat.name);
+                  }}
                 >
-                  <Ellipsis size={14} />
-                </PopoverTrigger>
-                <PopoverContent>
-                  <button
-                    className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                    onClick={() => {
-                      setRenamingId(cat.id);
-                      setRenameValue(cat.name);
-                    }}
-                  >
-                    Rename
-                  </button>
-                  <div className="px-2 py-1.5">
-                    <span className="text-xs text-muted-foreground">Color</span>
-                    <div className="mt-1 grid grid-cols-4 gap-1">
-                      {CATEGORY_COLORS.map((c) => (
-                        <button
-                          key={c.name}
-                          onClick={() => onSetColor(cat.id, c.value)}
-                          className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform active:scale-95"
-                          style={{ backgroundColor: c.value }}
-                          title={c.name}
-                        />
-                      ))}
-                    </div>
-                    <button
-                      className="mt-1 text-xs text-muted-foreground"
-                      onClick={() => onSetColor(cat.id, null)}
-                    >
-                      None
-                    </button>
+                  Rename
+                </button>
+                <div className="px-2 py-1.5">
+                  <span className="text-xs text-muted-foreground">Color</span>
+                  <div className="mt-1 grid grid-cols-4 gap-1">
+                    {CATEGORY_COLORS.map((c) => (
+                      <button
+                        key={c.name}
+                        onClick={() => onSetColor(cat.id, c.value)}
+                        className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform active:scale-95"
+                        style={{ backgroundColor: c.value }}
+                        title={c.name}
+                      />
+                    ))}
                   </div>
-                  <div className="my-1 h-px bg-border" />
                   <button
-                    className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
-                    onClick={() => onDeleteCategory(cat.id)}
+                    className="mt-1 text-xs text-muted-foreground"
+                    onClick={() => onSetColor(cat.id, null)}
                   >
-                    Delete
+                    None
                   </button>
-                </PopoverContent>
-              </Popover>
-            </div>
-          );
-        })}
+                </div>
+                <div className="my-1 h-px bg-border" />
+                <button
+                  className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                  onClick={() => setSharingCategoryId(cat.id)}
+                >
+                  Share
+                </button>
+                <button
+                  className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                  onClick={() => onDeleteCategory(cat.id)}
+                >
+                  Delete
+                </button>
+              </>
+            ) : (
+              <button
+                className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                onClick={() => onLeaveCategory(cat.id)}
+              >
+                Leave
+              </button>
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  };
 
-        <div className="mx-5 mt-1 h-px bg-border/50" />
-
-        {/* Add category */}
-        {adding ? (
-          <form
-            className="px-5 py-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const name = newName.trim();
-              if (!name) return;
-              onAdd(name);
-              setNewName("");
-              setAdding(false);
-            }}
-          >
-            <Input
-              ref={addRef}
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Category name..."
-              className="h-8 text-sm"
-              onBlur={() => {
-                if (!newName.trim()) setAdding(false);
-              }}
+  return (
+    <>
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger
+          data-testid="category-sheet-trigger"
+          render={
+            <button className="flex items-center gap-1.5 rounded-md px-1 py-1 text-sm font-medium text-foreground transition-colors active:bg-accent/10" />
+          }
+        >
+          {activeCategory?.color && (
+            <span
+              className="size-2 shrink-0 rounded-full"
+              style={{ backgroundColor: activeCategory.color }}
             />
-          </form>
-        ) : (
-          <button
-            onClick={() => setAdding(true)}
-            className="flex w-full items-center gap-3 px-5 py-3.5 text-sm text-hint transition-colors active:text-foreground"
-          >
-            <Plus size={14} />
-            Add category
-          </button>
-        )}
+          )}
+          <span>{activeCategory?.name ?? "Inbox"}</span>
+          <ChevronDown size={13} className="text-hint" />
+          {showBadge && (
+            <span className="size-4 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+              {inboxCount > 9 ? "9+" : inboxCount}
+            </span>
+          )}
+        </DrawerTrigger>
 
-        <div className="h-[env(safe-area-inset-bottom,12px)] min-h-3" />
-      </DrawerContent>
-    </Drawer>
+        <DrawerContent>
+          {/* Inbox */}
+          {showInbox && (
+            <button
+              onClick={() => selectAndClose(null)}
+              className={cn(
+                "flex w-full items-center gap-3 px-5 py-3.5 text-sm transition-colors",
+                activeCategoryId === null ? "font-medium text-foreground" : "text-hint",
+              )}
+            >
+              <span
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full",
+                  activeCategoryId === null ? "bg-primary" : "bg-transparent",
+                )}
+              />
+              Inbox
+              {inboxCount > 0 && activeCategoryId !== null && (
+                <span className="ml-auto text-xs text-primary">{inboxCount}</span>
+              )}
+            </button>
+          )}
+
+          <div className="mx-5 h-px bg-border/50" />
+
+          {/* Owned categories */}
+          {ownedCategories.map(renderCategoryRow)}
+
+          {/* Shared categories */}
+          {sharedCategories.length > 0 && (
+            <>
+              <div className="mx-5 my-1 h-px bg-border/50" />
+              {sharedCategories.map(renderCategoryRow)}
+            </>
+          )}
+
+          <div className="mx-5 mt-1 h-px bg-border/50" />
+
+          {/* Add category */}
+          {adding ? (
+            <form
+              className="px-5 py-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const name = newName.trim();
+                if (!name) return;
+                onAdd(name);
+                setNewName("");
+                setAdding(false);
+              }}
+            >
+              <Input
+                ref={addRef}
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Category name..."
+                className="h-8 text-sm"
+                onBlur={() => {
+                  if (!newName.trim()) setAdding(false);
+                }}
+              />
+            </form>
+          ) : (
+            <button
+              onClick={() => setAdding(true)}
+              className="flex w-full items-center gap-3 px-5 py-3.5 text-sm text-hint transition-colors active:text-foreground"
+            >
+              <Plus size={14} />
+              Add category
+            </button>
+          )}
+
+          <div className="h-[env(safe-area-inset-bottom,12px)] min-h-3" />
+        </DrawerContent>
+      </Drawer>
+
+      {sharingCategoryId && (
+        <CategoryCollabSheet
+          categoryId={sharingCategoryId}
+          open={!!sharingCategoryId}
+          onClose={() => setSharingCategoryId(null)}
+        />
+      )}
+    </>
   );
 }

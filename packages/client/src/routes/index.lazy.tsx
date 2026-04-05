@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { TaskInputBar } from "~/components/TaskInputBar";
 import { SyncHint } from "~/components/SyncHint";
@@ -8,6 +8,7 @@ import { useTasks, updateTask, deleteTask, useCategories, updateCategory } from 
 import { addTask } from "~/lib/db/add-task";
 import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-category";
 import { useCurrentUserId } from "~/lib/auth/current-user";
+import { leaveCategory } from "~/lib/actions";
 import { TaskList } from "~/components/TaskList";
 import { CategoryTabs } from "~/components/CategoryTabs";
 import { CategorySheet } from "~/components/CategorySheet";
@@ -29,6 +30,17 @@ function TaskListView() {
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
 
+  const inboxTasks = (allTasks ?? []).filter(
+    (t) => !t.parentId && t.status !== "done" && (!t.categoryId || t.userId !== userId),
+  );
+  const hasInbox = inboxTasks.length > 0;
+
+  useEffect(() => {
+    if (activeCategoryId === null && !hasInbox && categories.length > 0) {
+      setActiveCategoryId(categories[0].id);
+    }
+  }, [hasInbox]);
+
   const categoryTasks = (allTasks ?? []).filter((t) => {
     if (t.parentId) return false;
     if (t.userId !== userId) return !activeCategoryId; // shared tasks → Inbox only
@@ -37,6 +49,11 @@ function TaskListView() {
   const activeTasks = categoryTasks
     .filter((t) => t.status !== "done")
     .sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""));
+
+  const handleLeaveCategory = async (categoryId: string) => {
+    if (!userId) return;
+    await leaveCategory(categoryId, userId);
+  };
 
   const {
     handleAdd,
@@ -92,22 +109,29 @@ function TaskListView() {
             <CategorySheet
               categories={categories}
               activeCategoryId={activeCategoryId}
+              currentUserId={userId}
+              showInbox={hasInbox}
+              inboxCount={inboxTasks.length}
               onSelect={setActiveCategoryId}
               onAdd={handleAddCategory}
               onRename={(id, name) => updateCategory(id, { name })}
               onSetColor={(id, color) => updateCategory(id, { color })}
               onDeleteCategory={handleDeleteCategory}
+              onLeaveCategory={handleLeaveCategory}
             />
           </div>
           <DragDropProvider onDragEnd={handleDragEnd}>
             <CategoryTabs
               categories={categories}
               activeCategoryId={activeCategoryId}
+              currentUserId={userId}
+              showInbox={hasInbox}
               onSelect={setActiveCategoryId}
               onAdd={handleAddCategory}
               onRename={(id, name) => updateCategory(id, { name })}
               onSetColor={(id, color) => updateCategory(id, { color })}
               onDeleteCategory={handleDeleteCategory}
+              onLeaveCategory={handleLeaveCategory}
             />
             <div className="flex flex-col gap-4">
               <TaskList
