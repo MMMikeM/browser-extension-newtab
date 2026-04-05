@@ -1,5 +1,5 @@
-import { Suspense, lazy, useEffect } from "react";
-import { ClientOnly, Outlet, useRouter } from "@tanstack/react-router";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { Outlet, useRouter } from "@tanstack/react-router";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { AppShell } from "./AppBackground";
 
@@ -7,8 +7,18 @@ const SyncSettings = lazy(() => import("./components/SyncSettings"));
 const SyncHint = lazy(() => import("./components/SyncHint"));
 const UndoToast = lazy(() => import("~/components/UndoToast"));
 
+// useState+useEffect returns false on SSR and initial client render, then true
+// after mount. Unlike useSyncExternalStore with differing snapshots, this never
+// creates a server/client HTML mismatch during React 19 hydration.
+function useIsClient() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+  return isClient;
+}
+
 export default function RootComponent() {
   const router = useRouter();
+  const isClient = useIsClient();
 
   useEffect(() => {
     // Dynamic import: SW registration is fire-and-forget, not needed for initial render.
@@ -18,15 +28,17 @@ export default function RootComponent() {
   return (
     <AppShell
       right={
-        // ClientOnly ensures SSR renders the static spinner fallback, matching
-        // the initial client render. Without it, if the SyncSettings chunk is
-        // already cached when React hydrates, the client renders the real
-        // component while SSR rendered the Suspense fallback — mismatch.
-        <ClientOnly fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}>
+        // isClient is false on SSR and initial hydration, true after mount.
+        // This ensures SSR and the initial client render agree on the fallback,
+        // eliminating the hydration mismatch that ClientOnly's useSyncExternalStore
+        // caused in React 19 (getServerSnapshot ≠ getSnapshot → error #418).
+        isClient ? (
           <Suspense fallback={<span className="text-muted-foreground">&#x2699;</span>}>
             <SyncSettings />
           </Suspense>
-        </ClientOnly>
+        ) : (
+          <span className="text-muted-foreground opacity-40">&#x2699;</span>
+        )
       }
     >
       <AddTaskInput

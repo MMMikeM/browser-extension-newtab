@@ -121,6 +121,8 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       outDir: "dist",
+      minify: false, // TEMP: non-minified deploy to verify hydration fix
+
       rolldownOptions: {
         output: {
           codeSplitting: {

@@ -1,4 +1,17 @@
+import { useEffect, useRef } from "react";
+
 export function FirstRunState() {
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+  console.log(`[FirstRunState] render #${renderCount.current}`);
+
+  useEffect(() => {
+    console.log("[FirstRunState] mounted");
+    return () => {
+      console.log("[FirstRunState] unmounted");
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-1 py-4">
       <div className="flex flex-col gap-1 text-hint">
