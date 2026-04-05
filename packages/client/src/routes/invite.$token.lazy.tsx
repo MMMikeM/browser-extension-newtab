@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { client } from "~/lib/api";
-import { getAuthToken } from "~/lib/auth/token";
+import { acceptInvite } from "~/lib/actions";
+import { useAuthToken } from "~/lib/auth/token";
+import { Button } from "~/components/ui/button";
 
 export const Route = createLazyFileRoute("/invite/$token")({
   component: InviteAcceptPage,
@@ -11,8 +11,10 @@ export const Route = createLazyFileRoute("/invite/$token")({
 export function InviteAcceptPage() {
   const { token } = Route.useParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const authToken = getAuthToken();
+  const authToken = useAuthToken();
+  const [isPending, setIsPending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authToken) {
@@ -21,28 +23,20 @@ export function InviteAcceptPage() {
     }
   }, [authToken, token, router]);
 
-  const {
-    mutate: accept,
-    isPending,
-    isSuccess,
-    error,
-  } = useMutation({
-    mutationFn: async () => {
-      const res = await client.api.invites[":token"].accept.$post({ param: { token } });
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
-        throw new Error(body.error ?? "Failed to accept invite");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contacts"] });
-    },
-  });
+  const accept = async () => {
+    setIsPending(true);
+    setErrorMsg(null);
+    try {
+      await acceptInvite(token);
+      setIsSuccess(true);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Failed to accept invite");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   if (!authToken) return null;
-
-  const errorMsg = error instanceof Error ? error.message : null;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] px-6">
@@ -50,12 +44,9 @@ export function InviteAcceptPage() {
         {isSuccess ? (
           <>
             <p className="text-lg font-semibold">You're now connected!</p>
-            <button
-              onClick={() => router.navigate({ to: "/people" })}
-              className="text-sm text-primary hover:underline"
-            >
+            <Button variant="link" onClick={() => router.navigate({ to: "/people" })}>
               Go to People →
-            </button>
+            </Button>
           </>
         ) : (
           <>
@@ -64,20 +55,13 @@ export function InviteAcceptPage() {
               <p className="text-sm text-destructive">{errorMsg}</p>
             )}
             {!errorMsg && (
-              <button
-                onClick={() => accept()}
-                disabled={isPending}
-                className="rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
-              >
+              <Button variant="outline" onClick={accept} disabled={isPending}>
                 {isPending ? "Accepting…" : "Accept invite"}
-              </button>
+              </Button>
             )}
-            <button
-              onClick={() => router.navigate({ to: "/" })}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
+            <Button variant="subtle" size="xs" onClick={() => router.navigate({ to: "/" })}>
               Go to app
-            </button>
+            </Button>
           </>
         )}
       </div>

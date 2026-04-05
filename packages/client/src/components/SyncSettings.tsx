@@ -7,7 +7,7 @@ import {
   unregisterPushSubscription,
   isPushSubscribed,
 } from "~/lib/sync/push";
-import { client } from "~/lib/api";
+import { logout } from "~/lib/actions";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState, usePendingMutations } from "~/lib/sync/sse";
@@ -66,11 +66,7 @@ export const SyncSettings = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await client.api.auth.logout.$post();
-    } catch {
-      // Still clear local state even if server call fails
-    }
+    await logout();
     clearAuth();
     setPushEnabled(false);
     setOpen(false);

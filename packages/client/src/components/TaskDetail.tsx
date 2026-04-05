@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import type { Task, Note } from "~/lib/types";
 import { useNotes, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/db/hooks";
-import { client } from "~/lib/api";
+import { shareTask, removeTaskShare } from "~/lib/actions";
 import { addTask } from "~/lib/db/add-task";
 import { getCurrentUserId } from "~/lib/auth/current-user";
 import {
@@ -348,9 +348,7 @@ const ShareSection = ({
       if (!trimmed) return;
       setServerError(null);
       try {
-        await client.api.tasks.share.$post({
-          json: { taskId, username: trimmed, permission: "edit" },
-        });
+        await shareTask(taskId, trimmed, "edit");
         form.reset();
       } catch (err) {
         setServerError(err instanceof Error ? err.message : "Failed to share");
@@ -378,7 +376,7 @@ const ShareSection = ({
           <span className="text-xs text-muted-foreground">{share.permission}</span>
           {isOwner && (
             <button
-              onClick={() => client.api.tasks.share.$delete({ json: { id: share.id } })}
+              onClick={() => removeTaskShare(share.id)}
               className="text-xs text-destructive opacity-0 hover:underline group-hover/share:opacity-100"
             >
               remove
