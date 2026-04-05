@@ -20,10 +20,8 @@ const app = (
 
 // In prod, index.html has prerendered content — hydrate to preserve it.
 // In dev (vite dev), root is empty — fall back to createRoot.
-// onRecoverableError is suppressed: ClientOnly intentionally swaps PendingShell → RootComponent
-// after mount, which triggers a recoverable hydration mismatch warning we don't care about.
 if (root.innerHTML.trim()) {
-  hydrateRoot(root, app, { onRecoverableError: () => {} });
+  hydrateRoot(root, app);
 } else {
   createRoot(root).render(app);
 }

@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { Outlet, useRouter } from "@tanstack/react-router";
+import { ClientOnly, Outlet, useRouter } from "@tanstack/react-router";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { AppShell } from "./AppBackground";
 
@@ -18,9 +18,15 @@ export default function RootComponent() {
   return (
     <AppShell
       right={
-        <Suspense fallback={<span className="text-muted-foreground">&#x2699;</span>}>
-          <SyncSettings />
-        </Suspense>
+        // ClientOnly ensures SSR renders the static spinner fallback, matching
+        // the initial client render. Without it, if the SyncSettings chunk is
+        // already cached when React hydrates, the client renders the real
+        // component while SSR rendered the Suspense fallback — mismatch.
+        <ClientOnly fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}>
+          <Suspense fallback={<span className="text-muted-foreground">&#x2699;</span>}>
+            <SyncSettings />
+          </Suspense>
+        </ClientOnly>
       }
     >
       <AddTaskInput
