@@ -10,21 +10,24 @@ type Direction = "left" | "right" | "top" | "bottom";
 
 type Stop = {
   oklch: string | "transparent"; // L C H values, e.g. "0.07 0.018 48", or "transparent"
-  alpha?: number;                 // 0–1, default 1; forced to 0 when oklch is "transparent"
-  position?: number;              // 0–100; defaults to 0 in from(), 100 in to()
+  alpha?: number; // 0–1, default 1; forced to 0 when oklch is "transparent"
+  position?: number; // 0–100; defaults to 0 in from(), 100 in to()
 };
 
 const lerpOklch = (a: string, b: string, t: number): string =>
-  a.split(" ")
+  a
+    .split(" ")
     .map((n, i) => Number((+n + (+b.split(" ")[i]! - +n) * t).toFixed(4)))
     .join(" ");
 
 const fmtStop = (oklch: string, alpha: number, pct: number): string => {
   const a = Math.max(0, Math.min(1, alpha));
   const color =
-    a <= 0 ? "transparent"
-    : a >= 1 ? `oklch(${oklch})`
-    : `oklch(${oklch} / ${Number(a.toFixed(3))})`;
+    a <= 0
+      ? "transparent"
+      : a >= 1
+        ? `oklch(${oklch})`
+        : `oklch(${oklch} / ${Number(a.toFixed(3))})`;
   return `${color} ${Number(pct.toFixed(1))}%`;
 };
 
@@ -100,7 +103,8 @@ class GradientBuilder {
   }
 
   private _buildStops(): string[] {
-    if (this._stops.length < 2) throw new Error("gradient() requires at least .from() and .to(stop)");
+    if (this._stops.length < 2)
+      throw new Error("gradient() requires at least .from() and .to(stop)");
 
     for (let i = 1; i < this._stops.length; i++) {
       if (this._stops[i]!.position < this._stops[i - 1]!.position) {
@@ -117,8 +121,8 @@ class GradientBuilder {
       const b = this._stops[i + 1]!;
 
       // "transparent" borrows the adjacent stop's oklch so the lerp stays in-gamut
-      const aColor = a.oklch === "transparent" ? b.oklch as string : a.oklch;
-      const bColor = b.oklch === "transparent" ? a.oklch as string : b.oklch;
+      const aColor = a.oklch === "transparent" ? (b.oklch as string) : a.oklch;
+      const bColor = b.oklch === "transparent" ? (a.oklch as string) : b.oklch;
       const fa = a.oklch === "transparent" ? 0 : (a.alpha ?? 1);
       const ta = b.oklch === "transparent" ? 0 : (b.alpha ?? 1);
 

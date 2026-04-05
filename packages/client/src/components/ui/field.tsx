@@ -52,7 +52,11 @@ const FieldError = ({ className, ...props }: FieldPrimitive.Error.Props) => (
 const extractZodError = (error: unknown): string | undefined => {
   if (error == null) return undefined;
   if (typeof error === "string") return error || undefined;
-  if (typeof error === "object" && "message" in error && typeof (error as { message: unknown }).message === "string") {
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+  ) {
     return (error as { message: string }).message || undefined;
   }
   return undefined;

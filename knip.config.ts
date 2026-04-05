@@ -4,7 +4,13 @@ export default {
   ignore: ["packages/e2e/**"],
   workspaces: {
     "packages/client": {
-      entry: ["src/main.tsx", "src/background.ts", 'src/entry-server.tsx', "src/sw.ts", "src/routes/**/*.tsx",],
+      entry: [
+        "src/main.tsx",
+        "src/background.ts",
+        "src/entry-server.tsx",
+        "src/sw.ts",
+        "src/routes/**/*.tsx",
+      ],
       project: ["src/**/*.{ts,tsx}"],
     },
     "packages/server": {
@@ -27,6 +33,8 @@ export default {
     // Vite plugins / build tools — used in config files, not detectable as normal imports
     "@tanstack/router-plugin",
     "@tailwindcss/vite",
+    "@tailwindcss/node", // peer dep of @tailwindcss/vite, invoked internally
+    "lightningcss",      // Vite CSS pipeline peer dep, version-pinned here
     "@vitejs/plugin-react",
     "@rolldown/plugin-babel",
     "babel-plugin-react-compiler",

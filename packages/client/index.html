@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark" style="background-color:oklch(0.205 0.015 50)">
+<html lang="en" class="dark" style="background-color: oklch(0.205 0.015 50)">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,11 +17,85 @@
 
   <body>
     <!-- Background gradients rendered before JS/CSS — static, never change -->
-    <div style="pointer-events:none;position:fixed;inset:0;z-index:0" class="noise"></div>
-    <div style="pointer-events:none;position:fixed;inset:0;z-index:-2;background-image:radial-gradient(in oklch ellipse 50% 100% at 50% 0%, oklch(0.28 0.055 62 / 0.75) 0%, oklch(0.28 0.055 62 / 0.656) 12.5%, oklch(0.28 0.055 62 / 0.563) 25%, oklch(0.28 0.055 62 / 0.469) 37.5%, oklch(0.28 0.055 62 / 0.375) 50%, oklch(0.28 0.055 62 / 0.281) 62.5%, oklch(0.28 0.055 62 / 0.188) 75%, oklch(0.28 0.055 62 / 0.094) 87.5%, transparent 100%)"></div>
-    <div style="pointer-events:none;position:fixed;inset:0;z-index:-3;background-image:linear-gradient(in oklch to bottom, transparent 40%, oklch(0.1 0.02 48 / 0.002) 47.5%, oklch(0.1 0.02 48 / 0.013) 55%, oklch(0.1 0.02 48 / 0.042) 62.5%, oklch(0.1 0.02 48 / 0.1) 70%, oklch(0.1 0.02 48 / 0.195) 77.5%, oklch(0.1 0.02 48 / 0.338) 85%, oklch(0.1 0.02 48 / 0.536) 92.5%, oklch(0.1 0.02 48 / 0.8) 100%)"></div>
-    <div style="pointer-events:none;position:fixed;inset:0;z-index:-4;background-image:linear-gradient(to right, oklch(0 0 0 / 0.25) 0%, oklch(0 0 0 / 0.219) 2.5%, oklch(0 0 0 / 0.188) 5%, oklch(0 0 0 / 0.156) 7.5%, oklch(0 0 0 / 0.125) 10%, oklch(0 0 0 / 0.094) 12.5%, oklch(0 0 0 / 0.063) 15%, oklch(0 0 0 / 0.031) 17.5%, transparent 20%, transparent 80%, oklch(0 0 0 / 0.031) 82.5%, oklch(0 0 0 / 0.063) 85%, oklch(0 0 0 / 0.094) 87.5%, oklch(0 0 0 / 0.125) 90%, oklch(0 0 0 / 0.156) 92.5%, oklch(0 0 0 / 0.188) 95%, oklch(0 0 0 / 0.219) 97.5%, oklch(0 0 0 / 0.25) 100%)"></div>
-    <div style="pointer-events:none;position:fixed;inset:0;z-index:-5;background-color:oklch(0.205 0.015 50 / 80%)"></div>
+    <div style="pointer-events: none; position: fixed; inset: 0; z-index: 0" class="noise"></div>
+    <div
+      style="
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background-image: radial-gradient(
+          in oklch ellipse 50% 100% at 50% 0%,
+          oklch(0.28 0.055 62 / 0.75) 0%,
+          oklch(0.28 0.055 62 / 0.656) 12.5%,
+          oklch(0.28 0.055 62 / 0.563) 25%,
+          oklch(0.28 0.055 62 / 0.469) 37.5%,
+          oklch(0.28 0.055 62 / 0.375) 50%,
+          oklch(0.28 0.055 62 / 0.281) 62.5%,
+          oklch(0.28 0.055 62 / 0.188) 75%,
+          oklch(0.28 0.055 62 / 0.094) 87.5%,
+          transparent 100%
+        );
+      "
+    ></div>
+    <div
+      style="
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        z-index: -3;
+        background-image: linear-gradient(
+          in oklch to bottom,
+          transparent 40%,
+          oklch(0.1 0.02 48 / 0.002) 47.5%,
+          oklch(0.1 0.02 48 / 0.013) 55%,
+          oklch(0.1 0.02 48 / 0.042) 62.5%,
+          oklch(0.1 0.02 48 / 0.1) 70%,
+          oklch(0.1 0.02 48 / 0.195) 77.5%,
+          oklch(0.1 0.02 48 / 0.338) 85%,
+          oklch(0.1 0.02 48 / 0.536) 92.5%,
+          oklch(0.1 0.02 48 / 0.8) 100%
+        );
+      "
+    ></div>
+    <div
+      style="
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        z-index: -4;
+        background-image: linear-gradient(
+          to right,
+          oklch(0 0 0 / 0.25) 0%,
+          oklch(0 0 0 / 0.219) 2.5%,
+          oklch(0 0 0 / 0.188) 5%,
+          oklch(0 0 0 / 0.156) 7.5%,
+          oklch(0 0 0 / 0.125) 10%,
+          oklch(0 0 0 / 0.094) 12.5%,
+          oklch(0 0 0 / 0.063) 15%,
+          oklch(0 0 0 / 0.031) 17.5%,
+          transparent 20%,
+          transparent 80%,
+          oklch(0 0 0 / 0.031) 82.5%,
+          oklch(0 0 0 / 0.063) 85%,
+          oklch(0 0 0 / 0.094) 87.5%,
+          oklch(0 0 0 / 0.125) 90%,
+          oklch(0 0 0 / 0.156) 92.5%,
+          oklch(0 0 0 / 0.188) 95%,
+          oklch(0 0 0 / 0.219) 97.5%,
+          oklch(0 0 0 / 0.25) 100%
+        );
+      "
+    ></div>
+    <div
+      style="
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        z-index: -5;
+        background-color: oklch(0.205 0.015 50 / 80%);
+      "
+    ></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -80,10 +80,7 @@ export function TaskItem({
       {/* Swipe container: clips the reveal drawer on touch, inert wrapper on desktop */}
       <div
         ref={swipe.containerRef}
-        className={cn(
-          "-mx-2",
-          swipeEnabled && "relative overflow-hidden rounded-lg",
-        )}
+        className={cn("-mx-2", swipeEnabled && "relative overflow-hidden rounded-lg")}
       >
         {/* Action drawer — revealed as row slides left */}
         {swipeEnabled && (
@@ -93,7 +90,10 @@ export function TaskItem({
           >
             {onSetDueDate && (
               <button
-                onClick={() => { openPicker(); swipe.close(); }}
+                onClick={() => {
+                  openPicker();
+                  swipe.close();
+                }}
                 className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
               >
                 <Calendar size={15} />
@@ -102,7 +102,10 @@ export function TaskItem({
             )}
             {onAddSubtask && !isDone && (
               <button
-                onClick={() => { setAddingSubtask(true); swipe.close(); }}
+                onClick={() => {
+                  setAddingSubtask(true);
+                  swipe.close();
+                }}
                 className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
               >
                 <Plus size={15} />
@@ -110,7 +113,10 @@ export function TaskItem({
               </button>
             )}
             <button
-              onClick={() => { onDelete(); swipe.close(); }}
+              onClick={() => {
+                onDelete();
+                swipe.close();
+              }}
               className="flex flex-1 flex-col items-center justify-center gap-0.5 text-destructive transition-colors active:bg-destructive/10"
               aria-label="Delete task"
             >

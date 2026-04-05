@@ -39,11 +39,9 @@ export const prerender = (): PluginOption => {
 
       const indexPath = join(outDir, "index.html");
       const template = readFileSync(indexPath, "utf-8");
-      const injected = template.replace(
-        '<div id="root"></div>',
-        `<div id="root">${html}</div>`,
-      );
-      if (injected === template) throw new Error('prerender: <div id="root"> not found in index.html');
+      const injected = template.replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+      if (injected === template)
+        throw new Error('prerender: <div id="root"> not found in index.html');
       writeFileSync(indexPath, injected);
 
       rmSync(ssrTmp, { recursive: true, force: true });

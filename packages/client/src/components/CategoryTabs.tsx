@@ -117,7 +117,8 @@ export function CategoryTabs({
                         isActive
                           ? "-mb-px border-b-2 border-primary text-foreground"
                           : "text-hint hover:text-foreground",
-                        isDropTarget && "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-md",
+                        isDropTarget &&
+                          "ring-2 ring-primary ring-offset-1 ring-offset-background rounded-md",
                       )}
                       style={isActive && color ? { borderBottomColor: color } : undefined}
                     >

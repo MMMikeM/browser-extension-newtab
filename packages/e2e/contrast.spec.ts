@@ -17,9 +17,7 @@ async function seedAuth(page: Page) {
 }
 
 async function checkContrast(page: Page) {
-  const results = await new AxeBuilder({ page })
-    .withRules(["color-contrast"])
-    .analyze();
+  const results = await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze();
   expect(
     results.violations,
     results.violations

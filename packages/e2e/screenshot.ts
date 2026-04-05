@@ -7,7 +7,7 @@ const AUTH_TOKEN = process.env.AUTH_TOKEN || "dev-token-change-me";
 
 const VIEWPORTS = {
   desktop: { width: 1280, height: 900 },
-  mobile:  { width: 390,  height: 844 }, // iPhone 14
+  mobile: { width: 390, height: 844 }, // iPhone 14
 };
 
 const browser = await chromium.launch();
@@ -47,14 +47,8 @@ const screenshot = async (
   await ctx.close();
 };
 
-const forBothViewports = async (
-  name: string,
-  setup: Parameters<typeof screenshot>[2],
-) => {
-  await Promise.all([
-    screenshot(name, "desktop", setup),
-    screenshot(name, "mobile", setup),
-  ]);
+const forBothViewports = async (name: string, setup: Parameters<typeof screenshot>[2]) => {
+  await Promise.all([screenshot(name, "desktop", setup), screenshot(name, "mobile", setup)]);
 };
 
 console.log("Taking screenshots...");
@@ -96,7 +90,10 @@ if (a11yViolations.length === 0) {
   console.warn(`\n⚠️  Contrast violations found across ${a11yViolations.length} page(s):`);
   for (const { url, viewport, violations } of a11yViolations) {
     console.warn(`  [${viewport}] ${url}`);
-    for (const v of violations as { id: string; nodes: { html: string; failureSummary: string }[] }[]) {
+    for (const v of violations as {
+      id: string;
+      nodes: { html: string; failureSummary: string }[];
+    }[]) {
       for (const node of v.nodes) {
         console.warn(`    • ${node.failureSummary.split("\n")[0]}`);
         console.warn(`      ${node.html.slice(0, 120)}`);

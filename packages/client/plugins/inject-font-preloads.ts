@@ -51,7 +51,8 @@ export const injectFontPreloads = (): PluginOption => {
       const indexPath = join(outDir, "index.html");
       const html = readFileSync(indexPath, "utf-8");
       const injected = html.replace("</head>", `${preloadLinks}\n</head>`);
-      if (injected === html) throw new Error("inject-font-preloads: </head> not found in index.html");
+      if (injected === html)
+        throw new Error("inject-font-preloads: </head> not found in index.html");
       writeFileSync(indexPath, injected);
 
       console.log("  Injected font preload hints");

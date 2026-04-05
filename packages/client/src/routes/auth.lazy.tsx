@@ -136,7 +136,12 @@ const AuthView = () => {
           </form.Field>
           {serverError && <span className="text-xs text-destructive">{serverError}</span>}
           <div className="flex flex-col gap-2">
-            <Button type="submit" variant="outline" className="w-full" disabled={form.state.isSubmitting}>
+            <Button
+              type="submit"
+              variant="outline"
+              className="w-full"
+              disabled={form.state.isSubmitting}
+            >
               {mode === "login" ? "Sign in" : "Create account"}
             </Button>
             <div className="flex items-center justify-center gap-6">
@@ -167,5 +172,5 @@ const AuthView = () => {
 };
 
 export const Route = createLazyFileRoute("/auth")({
-  component: AuthView
+  component: AuthView,
 });
