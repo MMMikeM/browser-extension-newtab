@@ -3,7 +3,7 @@ import { getAuthToken, subscribeAuthToken } from "~/lib/auth-token";
 import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/collections";
 import { ensurePushRegistered } from "~/lib/push";
 import { getBuildTarget } from "~/lib/build-target";
-import { SSE_DATA_CHANGED, EVENTS_PATH } from "~/lib/constants";
+import { SSE_DATA_CHANGED, EVENTS_PATH, MSG_GET_STATUS, MSG_BG_STATUS } from "~/lib/constants";
 import type { MutationEvent } from "~/lib/constants";
 import { createExternalStore } from "~/lib/external-store";
 import { offline } from "~/lib/offline";
@@ -135,8 +135,11 @@ const listenExtensionMessages = () => {
   browser.runtime.onMessage.addListener((message: unknown) => {
     const msg = message as { type?: string; payload?: MutationEvent };
     if (msg?.type === "SSE_MUTATION" && msg.payload) {
+      // Any message from the background page means the SSE connection is alive.
+      syncStateStore.set("connected");
       applyMutation(msg.payload);
     } else if (msg?.type?.startsWith("SYNC_")) {
+      syncStateStore.set("connected");
       refetchAll();
     }
   });
@@ -156,5 +159,14 @@ export const initSync = () => {
     listenSwMessages();
   } else if (target === "extension") {
     listenExtensionMessages();
+    // Probe the background page for its current SSE connection state so the
+    // indicator isn't stuck at "Offline" on fresh tab load.
+    browser.runtime
+      .sendMessage({ type: MSG_GET_STATUS })
+      .then((resp: unknown) => {
+        const r = resp as { type?: string; connected?: boolean };
+        if (r?.type === MSG_BG_STATUS && r.connected) syncStateStore.set("connected");
+      })
+      .catch(() => {}); // background not yet ready — first SYNC_* message will update state
   }
 };

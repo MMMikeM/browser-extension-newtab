@@ -3,6 +3,8 @@ import {
   EVENTS_PATH,
   SSE_DATA_CHANGED,
   MSG_TOKEN_CHANGED,
+  MSG_GET_STATUS,
+  MSG_BG_STATUS,
   MODEL_NAMES,
 } from "~/lib/constants";
 
@@ -15,6 +17,7 @@ const notifyTabsFallback = () => {
 };
 
 let eventSource: EventSource | null = null;
+let isConnected = false;
 
 const connect = async () => {
   eventSource?.close();
@@ -47,18 +50,23 @@ const connect = async () => {
 
   eventSource.addEventListener("open", () => {
     console.log("[bg-sse] connected");
+    isConnected = true;
     notifyTabsFallback();
   });
 
   eventSource.onerror = () => {
     console.log("[bg-sse] connection error, will auto-reconnect");
+    isConnected = false;
   };
 };
 
-browser.runtime.onMessage.addListener((message: unknown) => {
-  if ((message as { type?: string })?.type === MSG_TOKEN_CHANGED) {
+browser.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
+  const type = (message as { type?: string })?.type;
+  if (type === MSG_TOKEN_CHANGED) {
     console.log("[bg-sse] token changed, reconnecting");
     connect().catch((err) => console.error("[bg-sse] reconnect error:", err));
+  } else if (type === MSG_GET_STATUS) {
+    sendResponse({ type: MSG_BG_STATUS, connected: isConnected });
   }
 });
 
