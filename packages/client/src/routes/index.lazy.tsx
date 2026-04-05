@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { TaskInputBar } from "~/components/TaskInputBar";
 import { SyncHint } from "~/components/SyncHint";
@@ -24,8 +24,6 @@ function TaskListView() {
   const userId = useCurrentUserId();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Compute categories here so the useEffect below can reference them without
-  // being declared after the early return (which would violate Rules of Hooks).
   const categories = rawCategories
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
@@ -47,13 +45,6 @@ function TaskListView() {
     handleDeleteCategory,
     handleDragEnd,
   } = useTaskActions({ allTasks: allTasks ?? [], categories, activeCategoryId, activeTasks, userId });
-
-  // Auto-select first category if none active
-  useEffect(() => {
-    if (categories.length > 0 && !activeCategoryId) {
-      setActiveCategoryId(categories[0].id);
-    }
-  }, [categories, activeCategoryId]);
 
   // While OPFS is initialising, data is undefined or the collection is loading.
   // Guard both: data===undefined catches the pre-ready state, isLoading catches

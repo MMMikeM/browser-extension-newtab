@@ -75,6 +75,17 @@ export function CategoryTabs({
 
   return (
     <div className="mb-1 flex flex-wrap items-end gap-0 border-b border-border touch:flex-nowrap touch:overflow-x-auto touch:scrollbar-none touch:scroll-smooth">
+      <button
+        onClick={() => onSelect(null)}
+        className={cn(
+          "px-3 pb-1.5 pt-1 text-sm font-medium transition-colors touch:pb-3",
+          activeCategoryId === null
+            ? "-mb-px border-b-2 border-primary text-foreground"
+            : "text-hint hover:text-foreground",
+        )}
+      >
+        Inbox
+      </button>
       {categories.map((cat, index) => {
         const isActive = activeCategoryId === cat.id;
         const color = cat.color ?? undefined;
@@ -186,9 +197,6 @@ export function CategoryTabs({
           </SortableCategoryTab>
         );
       })}
-      {categories.length === 0 && (
-        <span className="rounded-md px-3 py-1.5 text-sm font-medium text-hint">Personal</span>
-      )}
       {adding ? (
         <form
           className="flex items-center gap-1"
