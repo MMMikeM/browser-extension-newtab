@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Jot",
-  "short_name": "Jot",
+  "name": "Ajot",
+  "short_name": "Ajot",
   "description": "A calm, fast task list for daily capture",
   "start_url": "/",
   "display": "standalone",

@@ -69,7 +69,7 @@ export function AppShell({ right, children }: { right?: ReactNode; children?: Re
       style={{ backgroundColor: "oklch(0.20 0.01 50 / 75%)" }}
     >
       <div className="mb-5 flex items-center justify-between shrink-0">
-        <h1 className="font-display text-2xl tracking-[0.28em] text-foreground uppercase">Jot</h1>
+        <h1 className="font-display text-2xl tracking-[0.28em] text-foreground uppercase">Ajot</h1>
         {right}
       </div>
       {children}
