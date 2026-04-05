@@ -10,7 +10,7 @@ import {
   createBrowserWASQLitePersistence,
   BrowserCollectionCoordinator,
 } from "@tanstack/browser-db-sqlite-persistence";
-import { getBuildTarget } from "./build-target";
+import { getBuildTarget } from "../build-target";
 
 // Guard: OPFS requires browser APIs — not available in Node.js (SSR prerender).
 // Lazy route components that consume these collections suspend in SSR before rendering,
@@ -43,7 +43,8 @@ async function makeCollections() {
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) => !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: (_, error) =>
+            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
         }),
       }),
     ),
@@ -63,7 +64,8 @@ async function makeCollections() {
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) => !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: (_, error) =>
+            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
         }),
       }),
     ),
@@ -83,7 +85,8 @@ async function makeCollections() {
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) => !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: (_, error) =>
+            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
         }),
       }),
     ),
