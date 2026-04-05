@@ -21,6 +21,15 @@ export default function RootComponent() {
     import("~/lib/register-sw").then(({ registerServiceWorker }) => registerServiceWorker());
   }, []);
 
+  const handleAdd = async (title: string) => {
+    // Dynamic import: addTask pulls in collections + offline executor — kept out of root chunk.
+    const [{ addTask }, { getActiveCategoryId }] = await Promise.all([
+      import("./lib/add-task"),
+      import("./lib/active-category"),
+    ]);
+    addTask(title, getActiveCategoryId());
+  };
+
   return (
     <AppShell
       right={
@@ -31,21 +40,21 @@ export default function RootComponent() {
         </ClientOnly>
       }
     >
-      <AddTaskInput
-        onAdd={async (title) => {
-          // Dynamic import: addTask pulls in collections + offline executor — kept out of root chunk.
-          const [{ addTask }, { getActiveCategoryId }] = await Promise.all([
-            import("./lib/add-task"),
-            import("./lib/active-category"),
-          ]);
-          addTask(title, getActiveCategoryId());
-        }}
-      />
-      <Suspense fallback={null}>
-        <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
-      </Suspense>
-      <div className="mt-2 flex flex-col gap-4">
-        <Outlet />
+      {/*
+       * Desktop: input renders first (top), content below — DOM order.
+       * Mobile (touch): flex column with order swapped. Input gets order-2 so it sinks
+       * to the bottom of the viewport; content gets order-1 and fills the remaining space.
+       */}
+      <div className="touch:order-2 touch:shrink-0 touch:-mx-6 touch:px-6 touch:border-t touch:border-border/20 touch:pt-3 touch:pb-[env(safe-area-inset-bottom,0px)]">
+        <AddTaskInput onAdd={handleAdd} />
+      </div>
+      <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0">
+        <Suspense fallback={null}>
+          <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
+        </Suspense>
+        <div className="mt-2 flex flex-col gap-4">
+          <Outlet />
+        </div>
       </div>
       <Suspense fallback={null}>
         <UndoToast />
