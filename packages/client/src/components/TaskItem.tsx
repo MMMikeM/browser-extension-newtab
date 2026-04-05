@@ -132,8 +132,9 @@ export function TaskItem({
           className={cn(
             "group/task flex items-start gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-muted/50 animate-[task-enter_200ms_ease-out]",
             isSubtask && "py-1",
-            // Solid bg needed so content occludes the drawer as it slides
-            swipeEnabled && "bg-card",
+            // relative + bg-card: positions this row above the absolute drawer in the CSS
+            // stacking order (static < absolute, so without relative the drawer bleeds through)
+            swipeEnabled && "relative bg-card",
           )}
         >
           {!isSubtask && (
