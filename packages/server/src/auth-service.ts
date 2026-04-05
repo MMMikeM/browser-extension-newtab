@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { createId } from "@paralleldrive/cuid2";
 import userRepo from "./db/user.repo";
 import sessionRepo from "./db/session.repo";
+import categoryRepo from "./db/category.repo";
 import { ConflictError, NotFoundError } from "./db/errors";
 
 const ARGON2_OPTIONS = {
@@ -30,6 +31,15 @@ export const signup = async (username: string, password: string, name: string) =
     name,
     username: normalizedUsername,
     passwordHash,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  await categoryRepo.insert({
+    id: createId(),
+    userId: user.id,
+    name: "Personal",
+    color: "oklch(0.60 0.18 118)",
     createdAt: now,
     updatedAt: now,
   });
