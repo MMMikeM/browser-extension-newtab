@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
 import { sendPushNotification, type VapidConfig } from "@mmmike/web-push";
-import { db } from "./db/client";
-import { pushSubscriptions } from "./db/schema";
+import pushSubscriptionRepo from "./db/push-subscription.repo";
 
 const vapid: VapidConfig = {
   subject: process.env.VAPID_SUBJECT!,
@@ -10,13 +8,12 @@ const vapid: VapidConfig = {
 };
 
 /**
- * Send a silent sync push to all devices except the one that made the change.
+ * Send a silent sync push to all devices belonging to the affected users.
  * Expired/invalid subscriptions (410 Gone) are cleaned up automatically.
  */
-export const notifyOtherDevices = async (excludeEndpoint?: string) => {
-  const subs = await db.query.pushSubscriptions.findMany(
-    excludeEndpoint ? { where: { NOT: { endpoint: excludeEndpoint } } } : undefined,
-  );
+export const notifyOtherDevices = async (userIds: string[], excludeEndpoint?: string) => {
+  const allSubs = await pushSubscriptionRepo.findForUsers(userIds);
+  const subs = excludeEndpoint ? allSubs.filter((s) => s.endpoint !== excludeEndpoint) : allSubs;
 
   const payload = { title: "sync", body: "tasks updated" };
 
@@ -27,9 +24,7 @@ export const notifyOtherDevices = async (excludeEndpoint?: string) => {
         payload,
         vapid,
       );
-      if (!ok) {
-        await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, sub.endpoint));
-      }
+      if (!ok) await pushSubscriptionRepo.remove(sub.endpoint);
       return ok;
     }),
   );

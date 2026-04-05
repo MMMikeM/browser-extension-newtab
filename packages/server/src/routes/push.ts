@@ -1,8 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { eq } from "drizzle-orm";
-import { createId } from "@paralleldrive/cuid2";
-import { db } from "../db/client";
-import { pushSubscriptions } from "../db/schema";
+import pushSubscriptionRepo from "../db/push-subscription.repo";
 import { authed } from "../middleware";
 import { okSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent, withAuth } from "./crud";
@@ -22,11 +19,7 @@ export const pushRoutes = authed()
       responses: withAuth({ 200: jsonContent(okSchema) }),
     }),
     async (c) => {
-      const data = c.req.valid("json");
-      await db
-        .insert(pushSubscriptions)
-        .values({ id: createId(), ...data })
-        .onConflictDoUpdate({ target: pushSubscriptions.endpoint, set: data });
+      await pushSubscriptionRepo.upsert({ ...c.req.valid("json"), userId: c.get("userId") });
       return c.json({ ok: true as const }, 200);
     },
   )
@@ -38,8 +31,7 @@ export const pushRoutes = authed()
       responses: withAuth({ 200: jsonContent(okSchema) }),
     }),
     async (c) => {
-      const { endpoint } = c.req.valid("json");
-      await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+      await pushSubscriptionRepo.remove(c.req.valid("json").endpoint);
       return c.json({ ok: true as const }, 200);
     },
   );

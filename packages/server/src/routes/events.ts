@@ -1,13 +1,15 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { extractToken, validateSession } from "../auth";
-import { sseClients } from "../broadcast";
+import { registerClient, unregisterClient } from "../broadcast";
 
 export const eventsRoute = new Hono().get("/", async (c) => {
   const token = extractToken(c.req.raw, new URL(c.req.url));
   if (!token) return c.json({ error: "Unauthorized" }, 401);
+
+  let userId: string;
   try {
-    await validateSession(token);
+    userId = await validateSession(token);
   } catch {
     return c.json({ error: "Unauthorized" }, 401);
   }
@@ -20,19 +22,19 @@ export const eventsRoute = new Hono().get("/", async (c) => {
       close: () => stream.close(),
     };
 
-    sseClients.add(writer);
+    registerClient(userId, writer);
     await stream.writeSSE({ retry: 3000, data: "" });
 
     const heartbeat = setInterval(() => {
       stream.writeSSE({ data: "", event: "heartbeat" }).catch(() => {
         clearInterval(heartbeat);
-        sseClients.delete(writer);
+        unregisterClient(userId, writer);
       });
     }, 30_000);
 
     stream.onAbort(() => {
       clearInterval(heartbeat);
-      sseClients.delete(writer);
+      unregisterClient(userId, writer);
     });
 
     // Keep stream open indefinitely
