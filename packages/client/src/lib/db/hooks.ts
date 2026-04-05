@@ -1,11 +1,13 @@
 import { useLiveQuery } from "@tanstack/react-db";
-import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/db/collections";
+import { tasksCollection, categoriesCollection, notesCollection, contactsCollection } from "~/lib/db/collections";
 import { offline } from "~/lib/db/offline";
 import type { Task, Category, Note } from "~/lib/types";
 import { now } from "~/lib/utils";
+export { contactsCollection };
 export const useTasks = () => useLiveQuery(tasksCollection);
 export const useCategories = () => useLiveQuery(categoriesCollection);
 export const useNotes = () => useLiveQuery(notesCollection);
+export const useContacts = () => useLiveQuery(contactsCollection);
 
 export const updateTask = (id: string, fields: Partial<Task>) => {
   console.log(`[mutation] updateTask id=${id}`, fields);
@@ -23,12 +25,12 @@ export const deleteTask = (id: string) => {
   console.log("[mutation] optimistic applied, tx queued");
 };
 
-export const addCategory = (fields: Omit<Category, "id" | "createdAt" | "updatedAt">) => {
+export const addCategory = (fields: Omit<Category, "id" | "createdAt" | "updatedAt" | "collaborators">) => {
   const id = crypto.randomUUID();
   console.log(`[mutation] addCategory id=${id}`, fields);
   const tx = offline.createOfflineTransaction({ mutationFnName: "syncCategories" });
   tx.mutate(() =>
-    categoriesCollection.insert({ ...fields, id, createdAt: now(), updatedAt: now() }),
+    categoriesCollection.insert({ ...fields, id, createdAt: now(), updatedAt: now(), collaborators: [] }),
   );
   console.log("[mutation] optimistic applied, tx queued");
   return { id };

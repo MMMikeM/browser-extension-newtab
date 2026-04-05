@@ -4,7 +4,7 @@ import { persistedCollectionOptions } from "@tanstack/browser-db-sqlite-persiste
 import { queryClient } from "~/lib/db/query-client";
 import { client } from "~/lib/api";
 import { getAuthToken } from "~/lib/auth/token";
-import type { Task, Category, Note } from "~/lib/types";
+import type { Task, Category, Contact, Note } from "~/lib/types";
 import {
   openBrowserWASQLiteOPFSDatabase,
   createBrowserWASQLitePersistence,
@@ -18,7 +18,12 @@ import { getBuildTarget } from "../build-target";
 
 async function makeCollections() {
   if (getBuildTarget() === "server")
-    return { categoriesCollection: null, tasksCollection: null, notesCollection: null };
+    return {
+      categoriesCollection: null,
+      tasksCollection: null,
+      notesCollection: null,
+      contactsCollection: null,
+    };
 
   const database = await openBrowserWASQLiteOPFSDatabase({ databaseName: "newtab-todo.sqlite" });
   const coordinator = new BrowserCollectionCoordinator({ dbName: "newtab-todo" });
@@ -27,6 +32,27 @@ async function makeCollections() {
     coordinator,
   });
   return {
+    contactsCollection: createCollection(
+      persistedCollectionOptions<Contact, string>({
+        // @ts-ignore
+        persistence,
+        schemaVersion: 1,
+        ...queryCollectionOptions({
+          id: "contacts",
+          queryKey: ["contacts"] as const,
+          queryFn: async () => {
+            if (!getAuthToken()) throw new Error("Not authenticated");
+            const res = await client.api.contacts.$get();
+            if (!res.ok) throw new Error("Failed to fetch contacts");
+            return res.json();
+          },
+          queryClient,
+          getKey: (item) => item.id,
+          retry: (_, error) =>
+            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+        }),
+      }),
+    ),
     categoriesCollection: createCollection(
       persistedCollectionOptions<Category, string>({
         // @ts-ignore
@@ -99,3 +125,4 @@ const collections = await makeCollections();
 export const tasksCollection = collections.tasksCollection!;
 export const categoriesCollection = collections.categoriesCollection!;
 export const notesCollection = collections.notesCollection!;
+export const contactsCollection = collections.contactsCollection!;

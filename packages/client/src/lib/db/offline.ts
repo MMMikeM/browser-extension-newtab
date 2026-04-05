@@ -1,5 +1,5 @@
 import { startOfflineExecutor, NonRetriableError } from "@tanstack/offline-transactions";
-import { tasksCollection, categoriesCollection, notesCollection } from "~/lib/db/collections";
+import { tasksCollection, categoriesCollection, notesCollection, contactsCollection } from "~/lib/db/collections";
 import { client } from "~/lib/api";
 import { getAuthToken, subscribeAuthToken } from "~/lib/auth/token";
 import { getCurrentUserId } from "~/lib/auth/current-user";
@@ -95,5 +95,6 @@ subscribeAuthToken(() => {
     tasksCollection.utils.refetch().catch(console.error);
     categoriesCollection.utils.refetch().catch(console.error);
     notesCollection.utils.refetch().catch(console.error);
+    contactsCollection.utils.refetch().catch(console.error);
   }
 });

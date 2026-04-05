@@ -79,7 +79,7 @@ export const useTaskActions = ({
 
   const handleAddCategory = (name: string) => {
     if (!userId) return;
-    const cat = addCategory({ name, userId, color: null, sortOrder: null });
+    const cat = addCategory({ name, userId, color: null, sortOrder: null, user: null });
     setActiveCategoryId(cat.id);
   };
 
