@@ -29,6 +29,8 @@ const TaskDetail = lazy(() => import("~/components/TaskDetail"));
 function TaskListView() {
   const { data: allTasks, isLoading: tasksLoading } = useTasks();
   const { data: rawCategories, isLoading: categoriesLoading } = useCategories();
+  const activeCategoryId = useActiveCategoryId();
+  const userId = useCurrentUserId();
 
   // While OPFS is initialising, data is undefined or the collection is loading.
   // Guard both: data===undefined catches the pre-ready state, isLoading catches
@@ -38,8 +40,6 @@ function TaskListView() {
   const categories = [...rawCategories].sort((a, b) =>
     (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""),
   );
-  const activeCategoryId = useActiveCategoryId();
-  const userId = useCurrentUserId();
 
   // Auto-select first category if none active
   useEffect(() => {
