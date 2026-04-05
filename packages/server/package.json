@@ -9,8 +9,9 @@
     "./db/note.repo": "./src/db/note.repo.ts"
   },
   "scripts": {
+    "build": "tsup",
     "dev": "tsx --env-file=../../.env.dev --watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "start": "node dist/index.js",
     "typecheck": "tsgo --noEmit",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
@@ -26,11 +27,12 @@
     "@paralleldrive/cuid2": "^3.3.0",
     "drizzle-orm": "1.0.0-beta.19",
     "hono": "^4.12.10",
-    "tsx": "^4.21.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@typescript/native-preview": "7.0.0-dev.20260403.1",
-    "drizzle-kit": "1.0.0-beta.19"
+    "drizzle-kit": "1.0.0-beta.19",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0"
   }
 }
