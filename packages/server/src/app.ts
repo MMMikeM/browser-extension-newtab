@@ -8,6 +8,8 @@ import { categoryRoutes } from "./routes/categories";
 import { noteRoutes } from "./routes/notes";
 import { pushRoutes } from "./routes/push";
 import { eventsRoute } from "./routes/events";
+import { inviteRoutes } from "./routes/invites";
+import { contactRoutes } from "./routes/contacts";
 
 const app = new OpenAPIHono();
 
@@ -31,7 +33,7 @@ app.use(
   secureHeaders({
     xFrameOptions: "DENY",
     strictTransportSecurity: "max-age=63072000; includeSubDomains; preload",
-  })
+  }),
 );
 
 // CORS — needed for extension context (moz-extension:// origin).
@@ -56,7 +58,9 @@ const api = app
   .route("/api/categories", categoryRoutes)
   .route("/api/notes", noteRoutes)
   .route("/api/push", pushRoutes)
-  .route("/api/events", eventsRoute);
+  .route("/api/events", eventsRoute)
+  .route("/api/invites", inviteRoutes)
+  .route("/api/contacts", contactRoutes);
 
 app.doc("/api/openapi.json", {
   openapi: "3.0.0",

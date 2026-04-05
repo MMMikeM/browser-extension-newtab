@@ -1,0 +1,30 @@
+import { createRoute, z } from "@hono/zod-openapi";
+import contactRepo, { contactResponseSchema } from "../db/contact.repo";
+import { authed } from "../middleware";
+import { errorSchema } from "./openapi-schemas";
+import { jsonContent, withAuth } from "./crud";
+
+export const contactRoutes = authed()
+  .openapi(
+    createRoute({
+      method: "get",
+      path: "/",
+      responses: withAuth({ 200: jsonContent(z.array(contactResponseSchema)) }),
+    }),
+    async (c) => c.json(await contactRepo.list(c.get("userId")), 200),
+  )
+  .openapi(
+    createRoute({
+      method: "delete",
+      path: "/:id",
+      responses: withAuth({
+        200: jsonContent(z.object({ id: z.string() })),
+        404: jsonContent(errorSchema, "Not found"),
+      }),
+    }),
+    async (c) => {
+      const { id } = c.req.param();
+      const contact = await contactRepo.remove(id, c.get("userId"));
+      return c.json({ id: contact.id }, 200);
+    },
+  );
