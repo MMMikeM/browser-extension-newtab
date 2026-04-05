@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { eq, and, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "./client";
 import { sessions } from "./schema";
 
@@ -22,12 +22,9 @@ const insert = async (userId: string) => {
 
 const findValid = async (token: string) => {
   const now = new Date().toISOString();
-  const [row] = await db
-    .select()
-    .from(sessions)
-    .where(and(eq(sessions.id, token), gt(sessions.expiresAt, now)))
-    .limit(1);
-  return row ?? null;
+  return db.query.sessions.findFirst({
+    where: { id: token, expiresAt: { gt: now } },
+  });
 };
 
 const remove = async (token: string) => {
