@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthToken, setAuthToken } from "~/lib/auth-token";
 import { useCurrentUser, clearCurrentUser } from "~/lib/current-user";
 import { registerPushSubscription, unregisterPushSubscription, isPushSubscribed } from "~/lib/push";
@@ -72,7 +72,10 @@ export const SyncSettings = () => {
     setOpen(false);
   };
 
+  const isAuthPage = useRouterState({ select: (s) => s.location.pathname === "/auth" });
+
   if (!token) {
+    if (isAuthPage) return null;
     return (
       <button
         onClick={() => router.navigate({ to: "/auth" })}
