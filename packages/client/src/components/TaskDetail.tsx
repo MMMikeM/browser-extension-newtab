@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { useForm } from "@tanstack/react-form";
+import { Link } from "@tanstack/react-router";
 import type { Task, Note } from "~/lib/types";
-import { useNotes, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/db/hooks";
+import { useNotes, useContacts, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/db/hooks";
 import { shareTask, removeTaskShare } from "~/lib/actions";
 import { addTask } from "~/lib/db/add-task";
 import { getCurrentUserId } from "~/lib/auth/current-user";
@@ -339,24 +339,30 @@ const ShareSection = ({
   shares: Task["shares"];
 }) => {
   const currentUserId = getCurrentUserId();
-  const [serverError, setServerError] = useState<string | null>(null);
-
-  const form = useForm({
-    defaultValues: { username: "" },
-    onSubmit: async ({ value }) => {
-      const trimmed = value.username.trim();
-      if (!trimmed) return;
-      setServerError(null);
-      try {
-        await shareTask(taskId, trimmed, "edit");
-        form.reset();
-      } catch (err) {
-        setServerError(err instanceof Error ? err.message : "Failed to share");
-      }
-    },
-  });
-
   const isOwner = currentUserId === taskUserId;
+  const [selectedUsername, setSelectedUsername] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: allContacts = [] } = useContacts();
+  const sharedWithIds = new Set(shares.map((s) => s.sharedWithUserId));
+  const addableContacts = allContacts.filter(
+    (c) => c.contactUser && !sharedWithIds.has(c.contactUserId),
+  );
+
+  const handleAdd = async () => {
+    if (!selectedUsername) return;
+    setAdding(true);
+    setError(null);
+    try {
+      await shareTask(taskId, selectedUsername, "edit");
+      setSelectedUsername("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to share");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -366,53 +372,68 @@ const ShareSection = ({
       {shares.map((share) => (
         <div
           key={share.id}
-          className="group/share flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
+          className="group/share flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
         >
-          <span className="flex-1 text-sm">
-            {share.sharedWithUser
-              ? `${share.sharedWithUser.name} (@${share.sharedWithUser.username})`
-              : share.sharedWithUserId}
-          </span>
-          <span className="text-xs text-muted-foreground">{share.permission}</span>
+          <div className="size-7 shrink-0 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center">
+            {(share.sharedWithUser?.name ?? "?").slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-medium truncate">
+              {share.sharedWithUser?.name ?? share.sharedWithUserId}
+            </span>
+            {share.sharedWithUser?.username && (
+              <span className="text-xs text-muted-foreground">
+                @{share.sharedWithUser.username}
+              </span>
+            )}
+          </div>
           {isOwner && (
             <button
               onClick={() => removeTaskShare(share.id)}
-              className="text-xs text-destructive opacity-0 hover:underline group-hover/share:opacity-100"
+              className="text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/share:opacity-100"
             >
-              remove
+              Remove
             </button>
           )}
         </div>
       ))}
-      {isOwner && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
-          }}
-          className="flex items-center gap-2"
-        >
-          <form.Field name="username">
-            {(field) => (
-              <Field>
-                <FieldLabel className="sr-only">Share by username</FieldLabel>
-                <Input
-                  type="text"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="Share by username..."
-                  className="h-8 text-sm"
-                />
-              </Field>
-            )}
-          </form.Field>
-          <Button size="sm" className="h-8 text-xs" disabled={form.state.isSubmitting}>
+      {isOwner && addableContacts.length > 0 && (
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedUsername}
+            onChange={(e) => {
+              setSelectedUsername(e.target.value);
+              setError(null);
+            }}
+            className="flex-1 rounded-md border border-input bg-input/30 px-2 py-1.5 text-sm outline-none focus-visible:border-ring"
+          >
+            <option value="">Share with…</option>
+            {addableContacts.map((c) => (
+              <option key={c.contactUserId} value={c.contactUser!.username}>
+                {c.contactUser!.name}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAdd}
+            disabled={!selectedUsername || adding}
+          >
             Share
           </Button>
-        </form>
+        </div>
       )}
-      {serverError && <span className="text-xs text-destructive">{serverError}</span>}
+      {isOwner && allContacts.length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          No contacts yet.{" "}
+          <Link to="/people" className="underline hover:text-foreground">
+            Invite someone
+          </Link>{" "}
+          to share this task.
+        </p>
+      )}
+      {error && <span className="text-xs text-destructive">{error}</span>}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useCategories, useContacts } from "~/lib/db/hooks";
 import { addCollaborator, removeCollaborator } from "~/lib/actions";
 import { useAuthToken } from "~/lib/auth/token";
@@ -121,7 +122,11 @@ export function CategoryCollabSheet({
 
           {addableContacts.length === 0 && collabs.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              No contacts to share with yet. Add contacts from the People screen.
+              No contacts yet.{" "}
+              <Link to="/people" className="underline hover:text-foreground">
+                Invite someone
+              </Link>{" "}
+              to share this category.
             </p>
           )}
         </div>
