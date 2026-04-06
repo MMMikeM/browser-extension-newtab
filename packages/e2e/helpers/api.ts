@@ -28,6 +28,28 @@ export const apiRequest = async <T>(
 };
 
 /**
+ * Ensures user1 and user2 are mutual contacts by having user1 create an
+ * invite and user2 accept it. Safe to call repeatedly — the accept endpoint
+ * will 410 on a reused token, and contacts already exist anyway, so we
+ * catch and ignore that error.
+ */
+export const ensureMutualContacts = async (token1: string, token2: string): Promise<void> => {
+  let inviteToken: string;
+  try {
+    const invite = await apiRequest<{ token: string }>("POST", "/api/invites", undefined, token1);
+    inviteToken = invite.token;
+  } catch {
+    // If invite creation fails for any reason, contacts may already exist — skip
+    return;
+  }
+  try {
+    await apiRequest("POST", `/api/invites/${inviteToken}/accept`, undefined, token2);
+  } catch {
+    // 410 = already used / expired; contacts already established
+  }
+};
+
+/**
  * Deletes all tasks belonging to a category via the API.
  * Faster than clicking through the UI and leaves no trace in the outbox.
  */

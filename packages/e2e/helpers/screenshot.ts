@@ -39,6 +39,8 @@ export const takeScreenshot = async (
 
   const results = await new AxeBuilder({ page: page as Page })
     .withRules(["color-contrast"])
+    // Skip elements that are behind open modals/drawers (Base UI inerts them)
+    .exclude(["[data-base-ui-inert] *"])
     .analyze();
   if (results.violations.length > 0) {
     violations.push({ url: page.url(), viewport, violations: results.violations });
