@@ -16,7 +16,8 @@
     "screenshot": "pnpm --dir packages/e2e run screenshot",
     "cls": "pnpm --dir packages/e2e install --ignore-workspace && pnpm --dir packages/e2e run cls",
     "test:e2e": "pnpm --filter @newtab-todo/e2e test",
-    "test:e2e:ui": "pnpm --filter @newtab-todo/e2e test:ui"
+    "test:e2e:ui": "pnpm --filter @newtab-todo/e2e test:ui",
+    "reset-password": "node --env-file=.env --import=./packages/server/node_modules/tsx/dist/esm/index.cjs packages/server/reset-password.ts"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",

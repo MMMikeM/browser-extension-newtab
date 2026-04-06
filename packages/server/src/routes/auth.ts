@@ -44,9 +44,16 @@ export const authRoutes = new OpenAPIHono()
     }),
     async (c) => {
       const data = c.req.valid("json");
-      const result = await login(data.username, data.password);
-      setAuthCookie(c, result.token);
-      return c.json(result, 200);
+      console.log(`[login] attempt username=${data.username}`);
+      try {
+        const result = await login(data.username, data.password);
+        console.log(`[login] success username=${data.username} userId=${result.userId}`);
+        setAuthCookie(c, result.token);
+        return c.json(result, 200);
+      } catch (e) {
+        console.log(`[login] failed username=${data.username} error=${e instanceof Error ? e.message : e}`);
+        throw e;
+      }
     },
   )
   .openapi(

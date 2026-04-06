@@ -49,14 +49,18 @@ export const signup = async (username: string, password: string, name: string) =
 };
 
 export const login = async (username: string, password: string) => {
+  const normalized = username.toLowerCase();
   let user;
   try {
-    user = await userRepo.findByUsernameWithPassword(username.toLowerCase());
-  } catch {
+    user = await userRepo.findByUsernameWithPassword(normalized);
+    console.log(`[login] found user id=${user.id} username=${user.username}`);
+  } catch (e) {
+    console.log(`[login] user not found username=${normalized} error=${e instanceof Error ? e.message : e}`);
     throw new HTTPException(401, { message: "Invalid username or password" });
   }
 
   const valid = await verify(user.passwordHash, password);
+  console.log(`[login] password valid=${valid} userId=${user.id}`);
   if (!valid) throw new HTTPException(401, { message: "Invalid username or password" });
 
   const token = await sessionRepo.insert(user.id);
