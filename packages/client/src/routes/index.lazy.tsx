@@ -10,8 +10,7 @@ import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-cat
 import { useCurrentUserId } from "~/lib/auth/current-user";
 import { leaveCategory } from "~/lib/actions";
 import { TaskList } from "~/components/TaskList";
-import { CategoryTabs } from "~/components/CategoryTabs";
-import { CategorySheet } from "~/components/CategorySheet";
+import { CategoryNav } from "~/components/CategoryNav";
 import { DoneSection } from "~/components/DoneSection";
 import { useTaskActions } from "~/lib/hooks/use-task-actions";
 
@@ -25,6 +24,7 @@ function TaskListView() {
   const activeCategoryId = useActiveCategoryId();
   const userId = useCurrentUserId();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [navOpen, setNavOpen] = useState(false);
 
   const categories = rawCategories
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
@@ -75,6 +75,10 @@ function TaskListView() {
   // Guard both: data===undefined catches the pre-ready state, isLoading catches
   // the brief window where the collection is ready but hasn't emitted yet.
   // Render the input shell immediately so it's never hidden during load.
+  const activeCategory = activeCategoryId
+    ? categories.find((c) => c.id === activeCategoryId) ?? null
+    : null;
+
   if (tasksLoading || categoriesLoading || allTasks === undefined || rawCategories === undefined) {
     return (
       <>
@@ -98,34 +102,25 @@ function TaskListView() {
        * to the bottom of the viewport; content gets order-1 and fills the remaining space.
        * Fragment children become direct flex children of AppShell via <Outlet />.
        */}
-      <TaskInputBar onAdd={handleAdd} />
+      <TaskInputBar
+        onAdd={handleAdd}
+        activeCategory={activeCategory}
+        onOpenNav={() => setNavOpen(true)}
+      />
       <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0">
         <Suspense fallback={null}>
           <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
         </Suspense>
         <div className="mt-2 flex flex-col gap-4">
-          {/* Mobile category selector — shown only on touch devices; desktop uses CategoryTabs inside DragDropProvider */}
-          <div className="hidden touch:block">
-            <CategorySheet
+          <DragDropProvider onDragEnd={handleDragEnd}>
+            <CategoryNav
               categories={categories}
               activeCategoryId={activeCategoryId}
               currentUserId={userId}
               showInbox={hasInbox}
               inboxCount={inboxTasks.length}
-              onSelect={setActiveCategoryId}
-              onAdd={handleAddCategory}
-              onRename={(id, name) => updateCategory(id, { name })}
-              onSetColor={(id, color) => updateCategory(id, { color })}
-              onDeleteCategory={handleDeleteCategory}
-              onLeaveCategory={handleLeaveCategory}
-            />
-          </div>
-          <DragDropProvider onDragEnd={handleDragEnd}>
-            <CategoryTabs
-              categories={categories}
-              activeCategoryId={activeCategoryId}
-              currentUserId={userId}
-              showInbox={hasInbox}
+              open={navOpen}
+              onOpenChange={setNavOpen}
               onSelect={setActiveCategoryId}
               onAdd={handleAddCategory}
               onRename={(id, name) => updateCategory(id, { name })}

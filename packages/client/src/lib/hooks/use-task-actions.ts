@@ -14,7 +14,8 @@ import {
 import { tasksCollection, categoriesCollection } from "~/lib/db/collections";
 import { addTask } from "~/lib/db/add-task";
 import { setActiveCategoryId } from "~/lib/state/active-category";
-import { CATEGORY_DROP_PREFIX } from "~/components/CategoryTabs";
+import { getCurrentUserId } from "~/lib/auth/current-user";
+import { CATEGORY_DROP_PREFIX } from "~/components/CategoryNav";
 import type { Task, Category } from "~/lib/types";
 
 type DragEndEvent = Parameters<
@@ -118,8 +119,7 @@ export const useTaskActions = ({
   };
 
   const handleAddCategory = (name: string) => {
-    if (!userId) return;
-    const cat = addCategory({ name, userId, color: null, sortOrder: null, user: null });
+    const cat = addCategory({ name, userId: getCurrentUserId(), color: null, sortOrder: null, user: null });
     setActiveCategoryId(cat.id);
   };
 
