@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { useContacts } from "~/lib/db/hooks";
 import { createInvite, removeContact } from "~/lib/actions";
+import { getBuildTarget } from "~/lib/build-target";
 import { Button } from "~/components/ui/button";
 
 export const Route = createLazyFileRoute("/people")({
@@ -18,11 +19,14 @@ export function PeoplePage() {
     setInviting(true);
     try {
       const { token } = await createInvite();
-      // Always use the server origin so the link works outside the extension.
-      // window.location.origin in extension context is chrome-extension://...
-      // which is unopenable by anyone else.
+      // Browser/PWA uses browser history — route is a real path, no hash.
+      // Extension uses hash history AND chrome-extension:// origin — use
+      // SERVER_URL so the link is openable outside that browser.
       const serverOrigin = import.meta.env.SERVER_URL || window.location.origin;
-      const url = `${serverOrigin}/#/invite/${token}`;
+      const url =
+        getBuildTarget() === "extension"
+          ? `${serverOrigin}/#/invite/${token}`
+          : `${window.location.origin}/invite/${token}`;
       if (navigator.share) {
         navigator.share({ title: "Join me on Todo", url }).catch(() => {
           navigator.clipboard.writeText(url);
