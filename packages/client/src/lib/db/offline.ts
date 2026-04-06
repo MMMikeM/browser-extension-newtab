@@ -81,7 +81,10 @@ export const offline = startOfflineExecutor({
   collections: { tasks: tasksCollection, categories: categoriesCollection, notes: notesCollection },
   mutationFns: {
     syncTasks: createSyncFn("tasks", client.api.tasks, tasksCollection),
-    syncCategories: createSyncFn("categories", client.api.categories, categoriesCollection),
+    syncCategories: createSyncFn("categories", client.api.categories, categoriesCollection, [
+      "user",
+      "collaborators",
+    ]),
     syncNotes: createSyncFn("notes", client.api.notes, notesCollection),
   },
 });

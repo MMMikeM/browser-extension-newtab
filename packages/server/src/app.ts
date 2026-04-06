@@ -18,6 +18,17 @@ app.onError((err, c) => {
   if (err instanceof HTTPException) {
     return c.json({ error: err.message }, err.status);
   }
+  // FK constraint: referenced row doesn't exist (e.g. task with unknown categoryId).
+  // 422 is non-retriable on the client (treated same as 4xx by assertOk) so the
+  // mutation is dropped rather than looping forever.
+  if (
+    "code" in err &&
+    (err as { code: string }).code === "SQLITE_CONSTRAINT" &&
+    err.message.includes("FOREIGN KEY")
+  ) {
+    console.error("[db] FK constraint failed:", err.message);
+    return c.json({ error: "Referenced record does not exist" }, 422);
+  }
   console.error(err);
   return c.json({ error: "Internal server error" }, 500);
 });
