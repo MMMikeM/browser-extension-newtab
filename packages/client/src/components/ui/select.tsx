@@ -60,8 +60,13 @@ const SelectValue = ({ ...props }: ComponentProps<typeof SelectPrimitive.Value>)
 );
 
 // ---------------------------------------------------------------------------
-// Content — portal + positioner + popup with list inside.
-// Matches the popover surface style used elsewhere in the app.
+// Content — positioner + popup with list inside.
+//
+// No Portal wrapper: Base UI Drawer is modal=true by default, which marks
+// everything outside the drawer's DOM subtree as `inert`. A portalled popup
+// would land outside the drawer and be blocked. Rendering inline keeps the
+// popup inside the drawer's accessible scope while Positioner's fixed
+// positioning still floats it visually above all content.
 // ---------------------------------------------------------------------------
 
 const SelectContent = ({
@@ -70,26 +75,30 @@ const SelectContent = ({
   sideOffset = 4,
   ...props
 }: ComponentProps<typeof SelectPrimitive.Popup> & { sideOffset?: number }) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Positioner sideOffset={sideOffset} alignItemWithTrigger={false}>
-      <SelectPrimitive.Popup
-        data-slot="select-popup"
-        className={cn(
-          // Surface
-          "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-popover",
-          "p-1 text-popover-foreground shadow-lg outline-none",
-          // Enter/exit animation — opacity + slight upward slide
-          "transition-[opacity,translate] duration-150",
-          "data-[starting-style]:opacity-0 data-[starting-style]:-translate-y-1",
-          "data-[ending-style]:opacity-0 data-[ending-style]:-translate-y-1",
-          className,
-        )}
-        {...props}
-      >
-        <SelectPrimitive.List>{children}</SelectPrimitive.List>
-      </SelectPrimitive.Popup>
-    </SelectPrimitive.Positioner>
-  </SelectPrimitive.Portal>
+  <SelectPrimitive.Positioner
+    sideOffset={sideOffset}
+    alignItemWithTrigger={false}
+    align="start"
+    // Popup is at least as wide as the trigger — avoids the narrow/centred look
+    style={{ minWidth: "var(--anchor-width)" }}
+  >
+    <SelectPrimitive.Popup
+      data-slot="select-popup"
+      className={cn(
+        // Surface
+        "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-popover",
+        "p-1 text-popover-foreground shadow-lg outline-none",
+        // Enter/exit animation — opacity + slight upward slide
+        "transition-[opacity,translate] duration-150",
+        "data-[starting-style]:opacity-0 data-[starting-style]:-translate-y-1",
+        "data-[ending-style]:opacity-0 data-[ending-style]:-translate-y-1",
+        className,
+      )}
+      {...props}
+    >
+      <SelectPrimitive.List>{children}</SelectPrimitive.List>
+    </SelectPrimitive.Popup>
+  </SelectPrimitive.Positioner>
 );
 
 // ---------------------------------------------------------------------------
