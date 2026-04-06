@@ -70,7 +70,7 @@ const AuthView = () => {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 min-h-[50vh] touch:min-h-0 touch:flex-1 touch:overflow-y-auto touch:justify-start touch:pt-[12vh] touch:pb-10">
+    <div className="flex flex-col items-center pt-[18vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
       <div className="w-full max-w-xs">
         <p className="text-center text-sm text-hint mb-6">
           {mode === "signup" ? "Create your account" : "Sign in to sync across devices"}
