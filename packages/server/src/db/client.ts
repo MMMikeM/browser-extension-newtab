@@ -11,11 +11,13 @@ const client = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
-export const syncNow = () =>
-  client
+export const syncNow = () => {
+  const t = Date.now();
+  return client
     .sync()
-    .then(() => console.log("[libsql] sync ok"))
-    .catch((err) => console.error("[libsql] sync failed:", err));
+    .then(() => console.log(`[libsql] sync ok (${Date.now() - t}ms)`))
+    .catch((err) => console.error(`[libsql] sync failed (${Date.now() - t}ms):`, err));
+};
 
 // Sync in the background — do NOT await here. The embedded replica has the
 // last known good state and is immediately readable. Awaiting blocks the
