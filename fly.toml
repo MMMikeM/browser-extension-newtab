@@ -9,12 +9,12 @@ VITE_VAPID_PUBLIC_KEY = 'BMqPDaTMUgZtFkfOlQdan2gbrl4SRxdO2MD6gRTC2yDcRiY60MjILnC
 [http_service]
 internal_port = 3000
 force_https = true
-auto_stop_machines = 'suspend'
+auto_stop_machines = 'stop'
 auto_start_machines = true
 min_machines_running = 0
 
 [[http_service.checks]]
-grace_period = "5s"
+grace_period = "15s"
 interval = "30s"
 timeout = "5s"
 path = "/health"
