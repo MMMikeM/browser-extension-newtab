@@ -30,6 +30,14 @@ export const notifyMutation = (event: MutationEvent, userIds: string[]) => {
   notifyOtherDevices(userIds).catch(() => {});
 };
 
+/** Close all active SSE connections — called during graceful shutdown. */
+export const closeAllClients = () => {
+  for (const writers of sseClients.values()) {
+    for (const writer of writers) writer.close();
+  }
+  sseClients.clear();
+};
+
 /** Broadcast a mutation event to the specified users, extracting sourceClientId from the request. */
 export const broadcast = (
   c: Context,
