@@ -19,10 +19,6 @@ interval = "30s"
 timeout = "5s"
 path = "/health"
 
-[[restart]]
-policy = 'on-failure'
-max_retries = 10
-
 [[vm]]
 memory = '512mb'
 cpu_kind = 'shared'

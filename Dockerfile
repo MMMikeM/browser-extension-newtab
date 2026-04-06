@@ -41,5 +41,10 @@ COPY --from=server-build /app/deploy .
 COPY --from=client /app/packages/client/dist ./client/dist
 ENV CLIENT_DIST_PATH=/app/client/dist
 EXPOSE 3000
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["node", "dist/index.js"]
+# tini -g forwards signals to the whole process group (sh + node),
+# so SIGTERM from Fly reaches node directly for graceful shutdown.
+# The restart loop keeps the machine alive for clean Fly snapshots —
+# without it, a node crash kills tini (PID 1) and the machine goes
+# fully stopped instead of suspended, breaking resume.
+ENTRYPOINT ["/sbin/tini", "-g", "--"]
+CMD ["sh", "-c", "while true; do node dist/index.js; code=$?; [ $code -eq 0 ] && exit 0; echo \"server exited ($code), restarting in 1s\"; sleep 1; done"]
