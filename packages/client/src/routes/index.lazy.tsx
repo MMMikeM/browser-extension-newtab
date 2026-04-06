@@ -1,16 +1,14 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { TaskInputBar } from "~/components/TaskInputBar";
 import { SyncHint } from "~/components/SyncHint";
 import { Toast, Toasts } from "~/components/ui/toast";
 import { DragDropProvider } from "@dnd-kit/react";
-import { useTasks, updateTask, deleteTask, useCategories, updateCategory } from "~/lib/db/hooks";
-import { addTask } from "~/lib/db/add-task";
-import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-category";
+import { useTasks, useCategories } from "~/lib/db/hooks";
+import { useActiveCategoryId } from "~/lib/state/active-category";
 import { useCurrentUserId } from "~/lib/auth/current-user";
-import { leaveCategory } from "~/lib/actions";
 import { TaskList } from "~/components/TaskList";
-import { CategoryNav } from "~/components/CategoryNav";
+import { CategoryNav } from "~/components/category-nav";
 import { DoneSection } from "~/components/DoneSection";
 import { useTaskActions } from "~/lib/hooks/use-task-actions";
 
@@ -24,22 +22,10 @@ function TaskListView() {
   const activeCategoryId = useActiveCategoryId();
   const userId = useCurrentUserId();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [navOpen, setNavOpen] = useState(false);
 
   const categories = rawCategories
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
-
-  const inboxTasks = (allTasks ?? []).filter(
-    (t) => !t.parentId && t.status !== "done" && (!t.categoryId || t.userId !== userId),
-  );
-  const hasInbox = inboxTasks.length > 0;
-
-  useEffect(() => {
-    if (activeCategoryId === null && !hasInbox && categories.length > 0) {
-      setActiveCategoryId(categories[0].id);
-    }
-  }, [hasInbox]);
 
   const categoryTasks = (allTasks ?? []).filter((t) => {
     if (t.parentId) return false;
@@ -50,39 +36,16 @@ function TaskListView() {
     .filter((t) => t.status !== "done")
     .sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""));
 
-  const handleLeaveCategory = async (categoryId: string) => {
-    if (!userId) return;
-    await leaveCategory(categoryId, userId);
-  };
-
-  const {
-    handleAdd,
-    handleToggle,
-    handleDelete,
-    handleReorder,
-    handleAddCategory,
-    handleDeleteCategory,
-    handleDragEnd,
-  } = useTaskActions({
-    allTasks: allTasks ?? [],
-    categories,
-    activeCategoryId,
-    activeTasks,
-    userId,
-  });
+  const { handleDragEnd } = useTaskActions({ categories, activeCategoryId, activeTasks });
 
   // While OPFS is initialising, data is undefined or the collection is loading.
   // Guard both: data===undefined catches the pre-ready state, isLoading catches
   // the brief window where the collection is ready but hasn't emitted yet.
   // Render the input shell immediately so it's never hidden during load.
-  const activeCategory = activeCategoryId
-    ? categories.find((c) => c.id === activeCategoryId) ?? null
-    : null;
-
   if (tasksLoading || categoriesLoading || allTasks === undefined || rawCategories === undefined) {
     return (
       <>
-        <TaskInputBar onAdd={handleAdd} />
+        <TaskInputBar />
         <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0" />
       </>
     );
@@ -94,6 +57,15 @@ function TaskListView() {
     ? (allTasks.find((t) => t.id === selectedTaskId) ?? null)
     : null;
 
+  const emptyPhrase = (() => {
+    if (doneTasks.length > 0) return "All done.";
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Morning.";
+    if (hour >= 12 && hour < 17) return "All clear.";
+    if (hour >= 17 && hour < 22) return "Nothing here yet.";
+    return "All quiet.";
+  })();
+
   return (
     <>
       {/*
@@ -102,50 +74,23 @@ function TaskListView() {
        * to the bottom of the viewport; content gets order-1 and fills the remaining space.
        * Fragment children become direct flex children of AppShell via <Outlet />.
        */}
-      <TaskInputBar
-        onAdd={handleAdd}
-        activeCategory={activeCategory}
-        onOpenNav={() => setNavOpen(true)}
-      />
+      <TaskInputBar />
       <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0">
         <Suspense fallback={null}>
           <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
         </Suspense>
         <div className="mt-2 flex flex-col gap-4">
           <DragDropProvider onDragEnd={handleDragEnd}>
-            <CategoryNav
-              categories={categories}
-              activeCategoryId={activeCategoryId}
-              currentUserId={userId}
-              showInbox={hasInbox}
-              inboxCount={inboxTasks.length}
-              open={navOpen}
-              onOpenChange={setNavOpen}
-              onSelect={setActiveCategoryId}
-              onAdd={handleAddCategory}
-              onRename={(id, name) => updateCategory(id, { name })}
-              onSetColor={(id, color) => updateCategory(id, { color })}
-              onDeleteCategory={handleDeleteCategory}
-              onLeaveCategory={handleLeaveCategory}
-            />
+            <CategoryNav />
             <div className="flex flex-col gap-4">
-              <TaskList
-                tasks={activeTasks}
-                allTasks={allTasks}
-                onToggle={handleToggle}
-                onDelete={handleDelete}
-                onOpen={setSelectedTaskId}
-                onSetDueDate={(id, date) => updateTask(id, { dueDate: date })}
-                onAddSubtask={(title, parentId) => addTask(title, null, parentId)}
-                onReorder={handleReorder}
-              />
+              <TaskList tasks={activeTasks} onOpen={setSelectedTaskId} sortable />
+              {activeTasks.length === 0 && (
+                <p className="text-sm text-hint animate-in fade-in slide-in-from-bottom-1 duration-300">
+                  {emptyPhrase}
+                </p>
+              )}
               {doneTasks.length > 0 && (
-                <DoneSection
-                  tasks={doneTasks}
-                  onToggle={handleToggle}
-                  onDelete={handleDelete}
-                  onOpen={setSelectedTaskId}
-                />
+                <DoneSection tasks={doneTasks} onOpen={setSelectedTaskId} />
               )}
             </div>
             {selectedTask && (
@@ -154,15 +99,6 @@ function TaskListView() {
                   task={selectedTask}
                   open
                   onClose={() => setSelectedTaskId(null)}
-                  onUpdate={(fields) => {
-                    if (selectedTaskId) updateTask(selectedTaskId, fields);
-                  }}
-                  onDelete={() => {
-                    if (selectedTaskId) {
-                      deleteTask(selectedTaskId);
-                      setSelectedTaskId(null);
-                    }
-                  }}
                 />
               </Suspense>
             )}

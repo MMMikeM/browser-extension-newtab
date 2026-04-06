@@ -16,20 +16,25 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldLabel } from "~/components/ui/field";
+import { TextField } from "~/components/ui/text-field";
+import { TextArea } from "~/components/ui/text-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { cn } from "~/lib/utils";
 
 export function TaskDetail({
   task,
   open,
   onClose,
-  onUpdate,
-  onDelete,
 }: {
   task: Task | null;
   open: boolean;
   onClose: () => void;
-  onUpdate: (fields: Partial<Task>) => void;
-  onDelete: () => void;
 }) {
   if (!task) return null;
 
@@ -40,7 +45,7 @@ export function TaskDetail({
           <DrawerTitle>{task.title}</DrawerTitle>
           <DrawerDescription>Task details</DrawerDescription>
         </DrawerHeader>
-        <TaskDetailContent task={task} onUpdate={onUpdate} onDelete={onDelete} />
+        <TaskDetailContent task={task} onClose={onClose} />
       </DrawerContent>
     </Drawer>
   );
@@ -48,19 +53,17 @@ export function TaskDetail({
 
 const TaskDetailContent = ({
   task,
-  onUpdate,
-  onDelete,
+  onClose,
 }: {
   task: Task;
-  onUpdate: (fields: Partial<Task>) => void;
-  onDelete: () => void;
+  onClose: () => void;
 }) => {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const isDone = task.status === "done";
   const dateRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state when task changes
+  // Sync local state when task changes externally
   if (title !== task.title && document.activeElement?.tagName !== "INPUT") {
     setTitle(task.title);
   }
@@ -74,58 +77,76 @@ const TaskDetailContent = ({
       <div className="flex items-center gap-3">
         <Checkbox
           checked={isDone}
-          onCheckedChange={() => onUpdate({ status: isDone ? "todo" : "done" })}
+          onCheckedChange={() => updateTask(task.id, { status: isDone ? "todo" : "done" })}
         />
         <Field className="flex-1">
           <FieldLabel className="sr-only">Title</FieldLabel>
-          <input
+          <TextField
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={() => {
               const trimmed = title.trim();
-              if (trimmed && trimmed !== task.title) onUpdate({ title: trimmed });
+              if (trimmed && trimmed !== task.title) updateTask(task.id, { title: trimmed });
             }}
-            className="w-full bg-transparent text-lg font-semibold outline-none"
+            className="border-transparent text-lg font-semibold focus-visible:border-hint"
           />
         </Field>
       </div>
 
       {/* Description */}
       <Field>
-        <FieldLabel className="text-xs font-medium text-muted-foreground">Description</FieldLabel>
-        <textarea
+        <FieldLabel className="text-xs font-medium text-hint">Description</FieldLabel>
+        <TextArea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={() => {
             const val = description.trim() || null;
-            if (val !== (task.description ?? null)) onUpdate({ description: val });
+            if (val !== (task.description ?? null)) updateTask(task.id, { description: val });
           }}
-          placeholder="Add a description..."
+          placeholder="Add a description…"
           rows={3}
-          className="w-full resize-none rounded-md border border-input bg-input/30 px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
         />
       </Field>
 
       {/* Due date */}
-      <Field className="flex-row items-center gap-3">
-        <FieldLabel className="text-xs font-medium text-muted-foreground">Due date</FieldLabel>
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-medium text-hint">Due date</span>
+        {/* Hidden native picker — sized to zero, browser uses it for date UI */}
         <input
           ref={dateRef}
           type="date"
           value={task.dueDate ?? ""}
-          onChange={(e) => onUpdate({ dueDate: e.target.value || null })}
-          className="rounded-md border border-input bg-input/30 px-2 py-1 text-sm outline-none focus-visible:border-ring"
+          tabIndex={-1}
+          onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
+          className="invisible absolute size-0"
         />
+        <button
+          onClick={() => dateRef.current?.showPicker()}
+          className="text-sm transition-colors"
+          aria-label="Set due date"
+        >
+          {task.dueDate ? (
+            <span className="text-date hover:text-foreground">
+              {new Date(task.dueDate + "T00:00:00").toLocaleDateString("en", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          ) : (
+            <span className="text-hint hover:text-foreground">Set date…</span>
+          )}
+        </button>
         {task.dueDate && (
           <button
-            onClick={() => onUpdate({ dueDate: null })}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => updateTask(task.id, { dueDate: null })}
+            className="text-xs text-ghost transition-colors hover:text-hint"
           >
             clear
           </button>
         )}
-      </Field>
+      </div>
 
       {/* Subtasks */}
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
@@ -137,12 +158,12 @@ const TaskDetailContent = ({
 
       {/* Assignee — only when the task has been shared with someone */}
       {!task.parentId && task.shares.length > 0 && (
-        <AssigneeSection task={task} onUpdate={onUpdate} />
+        <AssigneeSection task={task} />
       )}
 
       {/* Notes */}
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium text-muted-foreground">Notes</p>
+        <p className="text-xs font-medium text-hint">Notes</p>
         {taskNotes.map((note) => (
           <NoteItem key={note.id} note={note} />
         ))}
@@ -150,9 +171,12 @@ const TaskDetailContent = ({
       </div>
 
       {/* Delete */}
-      <Button variant="destructive" size="sm" onClick={onDelete} className="self-start">
+      <button
+        onClick={() => { deleteTask(task.id); onClose(); }}
+        className="self-start text-xs text-hint transition-colors hover:text-destructive"
+      >
         Delete task
-      </Button>
+      </button>
     </div>
   );
 };
@@ -160,10 +184,11 @@ const TaskDetailContent = ({
 const NoteItem = ({ note }: { note: Note }) => {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(note.content ?? "");
+
   if (editing) {
     return (
       <div className="flex items-start gap-2">
-        <textarea
+        <TextArea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onBlur={() => {
@@ -171,9 +196,10 @@ const NoteItem = ({ note }: { note: Note }) => {
             if (val) updateNote(note.id, { content: val });
             setEditing(false);
           }}
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- inline edit, user just clicked
           autoFocus
           rows={2}
-          className="flex-1 resize-none rounded-md border border-input bg-input/30 px-2 py-1 text-sm outline-none focus-visible:border-ring"
+          className="flex-1 py-1"
         />
       </div>
     );
@@ -185,13 +211,13 @@ const NoteItem = ({ note }: { note: Note }) => {
       <div className="flex gap-1 opacity-0 group-hover/note:opacity-100">
         <button
           onClick={() => setEditing(true)}
-          className="text-xs text-muted-foreground hover:text-foreground"
+          className="text-xs text-hint transition-colors hover:text-foreground"
         >
           edit
         </button>
         <button
           onClick={() => deleteNote(note.id)}
-          className="text-xs text-destructive hover:underline"
+          className="text-xs text-hint transition-colors hover:text-destructive"
         >
           delete
         </button>
@@ -218,8 +244,8 @@ const AddNoteInput = ({ taskId }: { taskId: string }) => {
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Add a note..."
-        className="h-8 text-sm"
+        placeholder="Add a note…"
+        className="h-8 text-sm placeholder:text-hint"
       />
     </form>
   );
@@ -240,7 +266,7 @@ const SubtaskSection = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-medium text-hint">
         Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}
       </p>
       {subtasks.map((sub) => (
@@ -265,7 +291,7 @@ const SubtaskSection = ({
           </span>
           <button
             onClick={() => deleteTask(sub.id)}
-            className="text-xs text-destructive opacity-0 hover:underline group-hover/sub:opacity-100"
+            className="text-xs text-hint opacity-0 transition-colors hover:text-destructive group-hover/sub:opacity-100"
           >
             delete
           </button>
@@ -284,21 +310,15 @@ const SubtaskSection = ({
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Add a subtask..."
-          className="h-8 text-sm"
+          placeholder="Add a subtask…"
+          className="h-8 text-sm placeholder:text-hint"
         />
       </form>
     </div>
   );
 };
 
-const AssigneeSection = ({
-  task,
-  onUpdate,
-}: {
-  task: Task;
-  onUpdate: (fields: Partial<Task>) => void;
-}) => {
+const AssigneeSection = ({ task }: { task: Task }) => {
   const currentUserId = getCurrentUserId();
   const isOwner = currentUserId === task.userId;
 
@@ -310,22 +330,38 @@ const AssigneeSection = ({
   ];
 
   return (
-    <Field className="flex-row items-center gap-3">
-      <FieldLabel className="text-xs font-medium text-muted-foreground">Assignee</FieldLabel>
-      <select
-        value={task.assigneeId ?? ""}
-        onChange={(e) => onUpdate({ assigneeId: e.target.value || null })}
-        disabled={!isOwner}
-        className="rounded-md border border-input bg-input/30 px-2 py-1 text-sm outline-none focus-visible:border-ring disabled:cursor-default disabled:opacity-60"
-      >
-        <option value="">Unassigned</option>
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-medium text-hint">Assignee</span>
+      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Assignee">
+        <button
+          onClick={() => isOwner && updateTask(task.id, { assigneeId: null })}
+          disabled={!isOwner}
+          className={cn(
+            "rounded-full px-3 py-1 text-xs transition-colors",
+            !task.assigneeId ? "bg-primary/15 text-primary" : "text-hint hover:text-foreground",
+            !isOwner && "cursor-default",
+          )}
+        >
+          Unassigned
+        </button>
         {candidates.map((c) => (
-          <option key={c.id} value={c.id}>
+          <button
+            key={c.id}
+            onClick={() => isOwner && updateTask(task.id, { assigneeId: c.id })}
+            disabled={!isOwner}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs transition-colors",
+              task.assigneeId === c.id
+                ? "bg-primary/15 text-primary"
+                : "text-hint hover:text-foreground",
+              !isOwner && "cursor-default",
+            )}
+          >
             {c.label}
-          </option>
+          </button>
         ))}
-      </select>
-    </Field>
+      </div>
+    </div>
   );
 };
 
@@ -366,7 +402,7 @@ const ShareSection = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-medium text-hint">
         Shared with{shares.length > 0 ? ` (${shares.length})` : ""}
       </p>
       {shares.map((share) => (
@@ -374,15 +410,15 @@ const ShareSection = ({
           key={share.id}
           className="group/share flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
         >
-          <div className="size-7 shrink-0 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
             {(share.sharedWithUser?.name ?? "?").slice(0, 2).toUpperCase()}
           </div>
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-sm font-medium truncate">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-sm font-medium">
               {share.sharedWithUser?.name ?? share.sharedWithUserId}
             </span>
             {share.sharedWithUser?.username && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-hint">
                 @{share.sharedWithUser.username}
               </span>
             )}
@@ -390,7 +426,7 @@ const ShareSection = ({
           {isOwner && (
             <button
               onClick={() => removeTaskShare(share.id)}
-              className="text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/share:opacity-100"
+              className="text-xs text-hint opacity-0 transition-colors hover:text-destructive group-hover/share:opacity-100"
             >
               Remove
             </button>
@@ -399,21 +435,24 @@ const ShareSection = ({
       ))}
       {isOwner && addableContacts.length > 0 && (
         <div className="flex items-center gap-2">
-          <select
+          <Select
             value={selectedUsername}
-            onChange={(e) => {
-              setSelectedUsername(e.target.value);
+            onValueChange={(v) => {
+              setSelectedUsername(v as string);
               setError(null);
             }}
-            className="flex-1 rounded-md border border-input bg-input/30 px-2 py-1.5 text-sm outline-none focus-visible:border-ring"
           >
-            <option value="">Share with…</option>
-            {addableContacts.map((c) => (
-              <option key={c.contactUserId} value={c.contactUser!.username}>
-                {c.contactUser!.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="flex-1" aria-label="Share with">
+              <SelectValue placeholder="Share with…" />
+            </SelectTrigger>
+            <SelectContent>
+              {addableContacts.map((c) => (
+                <SelectItem key={c.contactUserId} value={c.contactUser!.username}>
+                  {c.contactUser!.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             variant="outline"
             size="sm"
@@ -425,7 +464,7 @@ const ShareSection = ({
         </div>
       )}
       {isOwner && allContacts.length === 0 && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-hint">
           No contacts yet.{" "}
           <Link to="/people" className="underline hover:text-foreground">
             Invite someone

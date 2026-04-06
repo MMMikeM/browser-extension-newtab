@@ -5,13 +5,9 @@ import type { Task } from "~/lib/types";
 
 export function DoneSection({
   tasks,
-  onToggle,
-  onDelete,
   onOpen,
 }: {
   tasks: Task[];
-  onToggle: (task: Task) => void;
-  onDelete: (id: string) => void;
   onOpen: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -31,7 +27,7 @@ export function DoneSection({
       </button>
       {open && (
         <div className="mt-2">
-          <TaskList tasks={tasks} onToggle={onToggle} onDelete={onDelete} onOpen={onOpen} />
+          <TaskList tasks={tasks} onOpen={onOpen} />
         </div>
       )}
     </div>
