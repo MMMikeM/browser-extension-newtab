@@ -14,19 +14,34 @@ export const Toasts = () => {
       // to assign viewTransitionName after flushSync renders the portal.
       data-toast-undo=""
       className={cn(
-        "relative overflow-hidden rounded-lg border border-border",
-        "bg-card px-4 py-2.5 shadow-lg w-[min(360px,90vw)]",
-        // Enter: non-morph path (toggle/category undos + Firefox fallback)
-        "data-[starting-style]:translate-y-3 data-[starting-style]:opacity-0",
-        // Exit: slide down + fade
-        "data-[ending-style]:translate-y-3 data-[ending-style]:opacity-0",
-        "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        // Stacking layout — Base UI sets --toast-index, --toast-height, etc.
+        "[--gap:0.75rem] [--peek:0.625rem]",
+        "[--scale:calc(max(0,1-(var(--toast-index)*0.075)))]",
+        "[--shrink:calc(1-var(--scale))]",
+        "[--height:var(--toast-frontmost-height,var(--toast-height))]",
+        "absolute bottom-0 left-0 right-0 w-full origin-bottom select-none",
+        "z-[calc(1000-var(--toast-index))]",
+        "[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)-(var(--toast-index)*var(--peek))-(var(--shrink)*var(--height))))_scale(var(--scale))]",
+        // Hover-gap bridge so pointer can reach lower toasts
+        "after:absolute after:top-full after:left-0 after:h-[calc(var(--gap)+1px)] after:w-full after:content-['']",
+        // Card styling
+        "overflow-hidden rounded-lg border border-border bg-card shadow-lg",
+        "h-[var(--height)]",
+        // Enter
+        "data-[starting-style]:[transform:translateY(150%)]",
+        // Exit: slide down + fade (non-swipe)
+        "data-[ending-style]:opacity-0",
+        "data-[limited]:opacity-0",
+        "[&[data-ending-style]:not([data-limited]):not([data-swipe-direction])]:[transform:translateY(150%)]",
         // Swipe exits
-        "data-[ending-style]:data-[swipe-direction=right]:[transform:translateX(110%)]",
-        "data-[ending-style]:data-[swipe-direction=left]:[transform:translateX(-110%)]",
+        "data-[ending-style]:data-[swipe-direction=right]:[transform:translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(0)]",
+        "data-[ending-style]:data-[swipe-direction=left]:[transform:translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(0)]",
+        "data-[ending-style]:data-[swipe-direction=up]:[transform:translateY(calc(var(--toast-swipe-movement-y)-150%))]",
+        "data-[ending-style]:data-[swipe-direction=down]:[transform:translateY(calc(var(--toast-swipe-movement-y)+150%))]",
+        "[transition:transform_0.5s_cubic-bezier(0.22,1,0.36,1),opacity_0.5s,height_0.15s]",
       )}
     >
-      <Toast.Content>
+      <Toast.Content className="px-4 py-2.5">
         <div className="flex items-center gap-3 text-sm">
           <Toast.Title className="flex-1 text-muted-foreground" />
           {toast.data?.onUndo && (

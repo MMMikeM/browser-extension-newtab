@@ -11,6 +11,14 @@ export const Route = createRootRoute({
 
 const SyncSettings = lazy(() => import("../components/SyncSettings"));
 
+// Module-level singleton so tests can inject toasts without going through React.
+// Exposed on window.__toastAdd in dev/test only — dead code in production builds.
+const toastManager = Toast.createToastManager();
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  (window as any).__toastAdd = (title: string) =>
+    toastManager.add({ title, timeout: 5000, data: {} });
+}
+
 export default function RootComponent() {
   useEffect(() => {
     // Dynamic import: SW registration is fire-and-forget, not needed for initial render.
@@ -19,7 +27,7 @@ export default function RootComponent() {
 
   return (
     <NavContextProvider>
-      <Toast.Provider limit={1}>
+      <Toast.Provider toastManager={toastManager} limit={3}>
         <AppShell
           right={
             <ClientOnly fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}>

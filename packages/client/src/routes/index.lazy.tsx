@@ -170,7 +170,7 @@ function TaskListView() {
         </div>
       </div>
       <Toast.Portal>
-        <Toast.Viewport className="fixed bottom-6 left-1/2 z-50 flex w-fit -translate-x-1/2 flex-col items-center">
+        <Toast.Viewport className="fixed bottom-4 left-1/2 z-50 w-[min(360px,90vw)] -translate-x-1/2 sm:bottom-6">
           <Toasts />
         </Toast.Viewport>
       </Toast.Portal>
