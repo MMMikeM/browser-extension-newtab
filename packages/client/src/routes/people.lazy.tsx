@@ -18,8 +18,11 @@ export function PeoplePage() {
     setInviting(true);
     try {
       const { token } = await createInvite();
-      const base = window.location.origin + window.location.pathname;
-      const url = `${base}#/invite/${token}`;
+      // Always use the server origin so the link works outside the extension.
+      // window.location.origin in extension context is chrome-extension://...
+      // which is unopenable by anyone else.
+      const serverOrigin = import.meta.env.SERVER_URL || window.location.origin;
+      const url = `${serverOrigin}/#/invite/${token}`;
       if (navigator.share) {
         navigator.share({ title: "Join me on Todo", url }).catch(() => {
           navigator.clipboard.writeText(url);
