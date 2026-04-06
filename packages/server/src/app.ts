@@ -19,14 +19,18 @@ app.onError((err, c) => {
     return c.json({ error: err.message }, err.status);
   }
   // FK constraint: referenced row doesn't exist (e.g. task with unknown categoryId).
+  // Drizzle wraps LibsqlError in DrizzleQueryError, so the SQLITE_CONSTRAINT code
+  // and "FOREIGN KEY" message live on err.cause, not err itself.
   // 422 is non-retriable on the client (treated same as 4xx by assertOk) so the
   // mutation is dropped rather than looping forever.
+  const cause = err.cause;
   if (
-    "code" in err &&
-    (err as { code: string }).code === "SQLITE_CONSTRAINT" &&
-    err.message.includes("FOREIGN KEY")
+    cause instanceof Error &&
+    "code" in cause &&
+    (cause as { code: string }).code === "SQLITE_CONSTRAINT" &&
+    cause.message.includes("FOREIGN KEY")
   ) {
-    console.error("[db] FK constraint failed:", err.message);
+    console.error("[db] FK constraint failed:", cause.message);
     return c.json({ error: "Referenced record does not exist" }, 422);
   }
   console.error(err);
