@@ -1,20 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-
-const AUTH_TOKEN = process.env.AUTH_TOKEN || "dev-token-change-me";
-
-// Seed localStorage so the app treats the session as authenticated
-async function seedAuth(page: Page) {
-  await page.evaluate((token) => {
-    localStorage.setItem("newtab-todo-token", token);
-    localStorage.setItem("newtab-todo-user-id", "sdcuvncpvl1i9vpch303nynb");
-    localStorage.setItem(
-      "newtab-todo-user-info",
-      JSON.stringify({ id: "sdcuvncpvl1i9vpch303nynb", name: "Mike", username: "mike" }),
-    );
-    localStorage.setItem("newtab-todo-active-category", "cat-work");
-  }, AUTH_TOKEN);
-}
+import { getOrCreateUser, signIn } from "./helpers/auth";
+import { USER_1 } from "./helpers/users";
 
 async function checkContrast(page: Page) {
   const results = await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze();
@@ -40,7 +27,7 @@ test("auth page — no contrast violations", async ({ page }) => {
 
 test("logged-in with tasks — no contrast violations", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await seedAuth(page);
+  await signIn(page, await getOrCreateUser(USER_1));
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForTimeout(3000);
   await checkContrast(page);
