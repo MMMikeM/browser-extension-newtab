@@ -99,7 +99,7 @@ export const SyncSettings = () => {
               ? "text-foreground hover:bg-muted"
               : hasPending || syncState === "connecting"
                 ? "text-hint hover:bg-muted hover:text-muted-foreground"
-                : "text-ghost hover:bg-muted hover:text-muted-foreground",
+                : "text-hint hover:bg-muted hover:text-muted-foreground",
         )}
         aria-label="Sync settings"
         aria-expanded={open}
