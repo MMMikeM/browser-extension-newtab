@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Input } from "~/components/ui/input";
+import { TextField } from "~/components/ui/text-field";
 
 // On touch devices (PWA mobile), skip autofocus — opening the keyboard on mount
 // is jarring and prevents the layout from settling before the user interacts.
@@ -22,13 +22,13 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         setValue("");
       }}
     >
-      <Input
+      <TextField
         id="add-task-input"
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="What needs doing?"
-        className="rounded-none border-0 border-b border-ghost/40 bg-transparent px-0 text-lg text-foreground placeholder:text-hint transition-colors duration-200 focus-visible:border-hint focus-visible:ring-0 focus-visible:ring-transparent"
+        className="text-lg"
         autoComplete="off"
         // eslint-disable-next-line jsx-a11y/no-autofocus -- new tab page, primary action; suppressed on mobile
         autoFocus={!IS_TOUCH}
