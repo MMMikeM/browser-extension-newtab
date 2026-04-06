@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
 import { ChevronDown, Ellipsis, Plus } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import { Drawer, DrawerContent } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
@@ -199,15 +200,17 @@ function CategorySidebar({
                   <PopoverContent>
                     {isOwned ? (
                       <>
-                        <button
-                          className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start rounded-sm"
                           onClick={() => {
                             setRenamingId(cat.id);
                             setRenameValue(cat.name);
                           }}
                         >
                           Rename
-                        </button>
+                        </Button>
                         <div className="px-2 py-1.5">
                           <span className="text-xs text-muted-foreground">Color</span>
                           <div className="mt-1 grid grid-cols-4 gap-1">
@@ -221,34 +224,43 @@ function CategorySidebar({
                               />
                             ))}
                           </div>
-                          <button
-                            className="mt-1 text-xs text-muted-foreground hover:text-foreground"
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            className="mt-1"
                             onClick={() => onSetColor(cat.id, null)}
                           >
                             None
-                          </button>
+                          </Button>
                         </div>
                         <div className="my-1 h-px bg-border" />
-                        <button
-                          className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                        <Button
+                          data-testid="category-share-btn"
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start rounded-sm"
                           onClick={() => setSharingCategoryId(cat.id)}
                         >
                           Share
-                        </button>
-                        <button
-                          className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="w-full justify-start rounded-sm"
                           onClick={() => onDeleteCategory(cat.id)}
                         >
                           Delete
-                        </button>
+                        </Button>
                       </>
                     ) : (
-                      <button
-                        className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full justify-start rounded-sm"
                         onClick={() => onLeaveCategory(cat.id)}
                       >
                         Leave
-                      </button>
+                      </Button>
                     )}
                   </PopoverContent>
                 </Popover>
@@ -506,15 +518,17 @@ function CategoryMobileSheet({
           <PopoverContent>
             {isOwned ? (
               <>
-                <button
-                  className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start rounded-sm"
                   onClick={() => {
                     setRenamingId(cat.id);
                     setRenameValue(cat.name);
                   }}
                 >
                   Rename
-                </button>
+                </Button>
                 <div className="px-2 py-1.5">
                   <span className="text-xs text-muted-foreground">Color</span>
                   <div className="mt-1 grid grid-cols-4 gap-1">
@@ -528,34 +542,43 @@ function CategoryMobileSheet({
                       />
                     ))}
                   </div>
-                  <button
-                    className="mt-1 text-xs text-muted-foreground"
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="mt-1"
                     onClick={() => onSetColor(cat.id, null)}
                   >
                     None
-                  </button>
+                  </Button>
                 </div>
                 <div className="my-1 h-px bg-border" />
-                <button
-                  className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                <Button
+                  data-testid="category-share-btn"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start rounded-sm"
                   onClick={() => setSharingCategoryId(cat.id)}
                 >
                   Share
-                </button>
-                <button
-                  className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full justify-start rounded-sm"
                   onClick={() => onDeleteCategory(cat.id)}
                 >
                   Delete
-                </button>
+                </Button>
               </>
             ) : (
-              <button
-                className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full justify-start rounded-sm"
                 onClick={() => onLeaveCategory(cat.id)}
               >
                 Leave
-              </button>
+              </Button>
             )}
           </PopoverContent>
         </Popover>
