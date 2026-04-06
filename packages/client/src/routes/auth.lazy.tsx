@@ -41,29 +41,36 @@ const AuthView = () => {
     defaultValues: { username: "", password: "", name: "" },
     onSubmit: async ({ value }) => {
       setServerError(null);
+      let result: { userId: string; token: string; name: string; username: string };
       try {
-        const result = await authenticate(mode, {
+        result = await authenticate(mode, {
           username: value.username.trim(),
           password: value.password,
           name: value.name.trim(),
         });
-        persistToken(result.token);
-        setCurrentUser({ id: result.userId, name: result.name, username: result.username });
-        const pendingInvite = sessionStorage.getItem("pending-invite");
-        if (pendingInvite) {
-          sessionStorage.removeItem("pending-invite");
-          router.navigate({ to: "/invite/$token", params: { token: pendingInvite } });
-        } else {
-          router.navigate({ to: "/" });
-        }
       } catch (err) {
         setServerError(err instanceof Error ? err.message : "Authentication failed");
+        return;
+      }
+      persistToken(result.token);
+      setCurrentUser({ id: result.userId, name: result.name, username: result.username });
+      let pendingInvite: string | null = null;
+      try {
+        pendingInvite = sessionStorage.getItem("pending-invite");
+        if (pendingInvite) sessionStorage.removeItem("pending-invite");
+      } catch {
+        // sessionStorage unavailable in some contexts; proceed without invite redirect
+      }
+      if (pendingInvite) {
+        router.navigate({ to: "/invite/$token", params: { token: pendingInvite } });
+      } else {
+        router.navigate({ to: "/" });
       }
     },
   });
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 min-h-[50vh] touch:min-h-0 touch:pt-[12vh] touch:pb-10">
+    <div className="flex flex-col items-center justify-center py-8 min-h-[50vh] touch:min-h-0 touch:flex-1 touch:overflow-y-auto touch:justify-start touch:pt-[12vh] touch:pb-10">
       <div className="w-full max-w-xs">
         <p className="text-center text-sm text-hint mb-6">
           {mode === "signup" ? "Create your account" : "Sign in to sync across devices"}
@@ -86,6 +93,7 @@ const AuthView = () => {
                     onBlur={field.handleBlur}
                     placeholder="Your name"
                     className="text-sm"
+                    autoComplete="name"
                     autoFocus
                   />
                 </FormField>
@@ -105,6 +113,8 @@ const AuthView = () => {
                   autoFocus={mode === "login"}
                   autoCapitalize="none"
                   autoCorrect="off"
+                  autoComplete="username"
+                  inputMode="text"
                 />
               </FormField>
             )}
@@ -119,11 +129,16 @@ const AuthView = () => {
                   onBlur={field.handleBlur}
                   placeholder="Password"
                   className="text-sm"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
                 />
               </FormField>
             )}
           </form.Field>
-          {serverError && <span className="text-xs text-destructive">{serverError}</span>}
+          {serverError && (
+            <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {serverError}
+            </div>
+          )}
           <div className="flex flex-col gap-2 mt-1">
             <Button
               type="submit"
@@ -131,7 +146,9 @@ const AuthView = () => {
               className="w-full"
               disabled={form.state.isSubmitting}
             >
-              {mode === "login" ? "Sign in" : "Create account"}
+              {form.state.isSubmitting
+                ? mode === "login" ? "Signing in…" : "Creating account…"
+                : mode === "login" ? "Sign in" : "Create account"}
             </Button>
             <div className="flex items-center justify-center gap-6">
               <Button

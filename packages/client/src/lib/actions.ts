@@ -80,13 +80,29 @@ export const authenticate = async (
   mode: "login" | "signup",
   fields: { username: string; password: string; name: string },
 ): Promise<{ userId: string; token: string; name: string; username: string }> => {
-  const endpoint = mode === "login" ? client.api.auth.login : client.api.auth.signup;
-  const res = await endpoint.$post({ json: fields });
-  if (!res.ok) {
-    const body = (await res.json()) as { error?: string };
-    throw new Error(body.error ?? "Authentication failed");
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(new Error("Request timed out — check your connection and try again")),
+    15_000,
+  );
+  try {
+    const endpoint = mode === "login" ? client.api.auth.login : client.api.auth.signup;
+    const res = await endpoint.$post({ json: fields }, { init: { signal: controller.signal } });
+    if (!res.ok) {
+      const body = (await res.json()) as { error?: string };
+      throw new Error(body.error ?? "Authentication failed");
+    }
+    return res.json() as Promise<{ userId: string; token: string; name: string; username: string }>;
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw controller.signal.reason instanceof Error
+        ? controller.signal.reason
+        : new Error("Request timed out — check your connection and try again");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json() as Promise<{ userId: string; token: string; name: string; username: string }>;
 };
 
 /** Signs out on the server (best-effort). Caller is responsible for clearing local state. */
