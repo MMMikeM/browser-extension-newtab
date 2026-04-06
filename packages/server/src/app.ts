@@ -52,6 +52,8 @@ app.use("*", (c, next) => {
 
 app.options("*", (c) => c.body(null, 204));
 
+app.get("/health", (c) => c.json({ ok: true }));
+
 const api = app
   .route("/api/auth", authRoutes)
   .route("/api/tasks", taskRoutes)
