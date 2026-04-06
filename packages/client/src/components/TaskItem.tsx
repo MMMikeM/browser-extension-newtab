@@ -76,7 +76,7 @@ export function TaskItem({
   };
 
   return (
-    <div>
+    <div data-task-id={task.id}>
       {/* Swipe container: clips the reveal drawer on touch, inert wrapper on desktop */}
       <div
         ref={swipe.containerRef}

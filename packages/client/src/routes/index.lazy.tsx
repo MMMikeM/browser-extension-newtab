@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { TaskInputBar } from "~/components/TaskInputBar";
 import { SyncHint } from "~/components/SyncHint";
-import UndoToast from "~/components/UndoToast";
+import { Toast, Toasts } from "~/components/ui/toast";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useTasks, updateTask, deleteTask, useCategories, updateCategory } from "~/lib/db/hooks";
 import { addTask } from "~/lib/db/add-task";
@@ -174,9 +174,11 @@ function TaskListView() {
           </DragDropProvider>
         </div>
       </div>
-      <Suspense fallback={null}>
-        <UndoToast />
-      </Suspense>
+      <Toast.Portal>
+        <Toast.Viewport className="fixed bottom-6 left-1/2 z-50 flex w-fit -translate-x-1/2 flex-col items-center">
+          <Toasts />
+        </Toast.Viewport>
+      </Toast.Portal>
     </>
   );
 }

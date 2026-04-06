@@ -1,4 +1,6 @@
-import { ComponentProps } from "react";
+import { useRef, ComponentProps } from "react";
+import { flushSync } from "react-dom";
+import { Toast } from "@base-ui/react/toast";
 import { DragDropProvider } from "@dnd-kit/react";
 import { isSortableOperation } from "@dnd-kit/react/sortable";
 import { generateKeyBetween } from "fractional-indexing";
@@ -12,7 +14,6 @@ import {
 import { tasksCollection, categoriesCollection } from "~/lib/db/collections";
 import { addTask } from "~/lib/db/add-task";
 import { setActiveCategoryId } from "~/lib/state/active-category";
-import { pushUndo } from "~/lib/state/undo";
 import { CATEGORY_DROP_PREFIX } from "~/components/CategoryTabs";
 import type { Task, Category } from "~/lib/types";
 
@@ -35,6 +36,18 @@ export const useTaskActions = ({
   activeTasks,
   userId,
 }: Params) => {
+  const toastManager = Toast.useToastManager();
+  const undoIdRef = useRef<string | undefined>(undefined);
+
+  const pushUndo = (message: string, onUndo: () => void) => {
+    if (undoIdRef.current !== undefined) toastManager.close(undoIdRef.current);
+    undoIdRef.current = toastManager.add({
+      title: message,
+      timeout: 5000,
+      data: { onUndo },
+    });
+  };
+
   const handleAdd = (title: string) => {
     addTask(title, activeCategoryId ?? null);
   };
@@ -64,10 +77,37 @@ export const useTaskActions = ({
   const handleDelete = (id: string) => {
     const task = allTasks.find((t) => t.id === id);
     if (!task) return;
-    deleteTask(id);
-    pushUndo("Task deleted", () => {
-      tasksCollection.insert(task);
-    });
+
+    const originEl = document.querySelector<HTMLElement>(`[data-task-id="${id}"]`);
+    const onUndo = () => tasksCollection.insert(task);
+
+    // Dynamic import: avoid referencing document.startViewTransition at module level
+    // since this file is imported during SSR prerender (see routes/CLAUDE.md).
+    if (originEl && typeof (document as any).startViewTransition === "function") {
+      originEl.style.viewTransitionName = "undo-morph";
+      const vt = (document as any).startViewTransition(() => {
+        flushSync(() => {
+          if (undoIdRef.current !== undefined) toastManager.close(undoIdRef.current);
+          deleteTask(id);
+          undoIdRef.current = toastManager.add({
+            title: "Task deleted",
+            timeout: 5000,
+            data: { onUndo },
+          });
+        });
+        // flushSync has committed: task gone from DOM, toast portal rendered to body
+        const toastEl = document.querySelector<HTMLElement>("[data-toast-undo]");
+        if (toastEl) toastEl.style.viewTransitionName = "undo-morph";
+      });
+      vt.finished.then(() => {
+        const toastEl = document.querySelector<HTMLElement>("[data-toast-undo]");
+        if (toastEl) toastEl.style.viewTransitionName = "";
+      });
+    } else {
+      // Fallback: Firefox or environments without View Transitions API
+      deleteTask(id);
+      pushUndo("Task deleted", onUndo);
+    }
   };
 
   const handleReorder = (taskId: string, newIndex: number, groupTasks: Task[]) => {
