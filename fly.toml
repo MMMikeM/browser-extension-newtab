@@ -9,7 +9,7 @@ VITE_VAPID_PUBLIC_KEY = 'BMqPDaTMUgZtFkfOlQdan2gbrl4SRxdO2MD6gRTC2yDcRiY60MjILnC
 [http_service]
 internal_port = 3000
 force_https = true
-auto_stop_machines = 'stop'
+auto_stop_machines = 'suspend'
 auto_start_machines = true
 min_machines_running = 0
 

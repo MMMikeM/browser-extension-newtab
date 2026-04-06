@@ -3,6 +3,12 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import app from "./app";
 
+// Prevent silent crashes from async errors (e.g. libsql background sync
+// firing on a just-restored network after Fly suspend/resume).
+process.on("unhandledRejection", (reason) => {
+  console.error("[unhandledRejection]", reason);
+});
+
 const clientDist =
   process.env.CLIENT_DIST_PATH || resolve(import.meta.dirname, "../../client/dist");
 

@@ -43,4 +43,8 @@ ENV CLIENT_DIST_PATH=/app/client/dist
 RUN echo "=== /app top-level ===" && du -sh /app/* && \
     echo "=== .pnpm top 20 ===" && du -sh /app/node_modules/.pnpm/* 2>/dev/null | sort -rh | head -20
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+# Restart loop: on resume from Fly suspend the Node process may crash
+# (libsql background sync fires on a just-restored network interface).
+# We restart immediately rather than leaving port 3000 dead until the
+# next health-check cycle kicks in.
+CMD ["sh", "-c", "while true; do node dist/index.js; echo \"server exited ($?), restarting in 1s\"; sleep 1; done"]
