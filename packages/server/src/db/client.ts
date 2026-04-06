@@ -1,33 +1,11 @@
-import { mkdirSync } from "node:fs";
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
+import { drizzle } from "drizzle-orm/libsql/http";
 import { relations } from "./schema";
 
-mkdirSync(".data", { recursive: true });
-
-const client = createClient({
-  url: "file:.data/local.db",
-  syncUrl: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+export const db = drizzle({
+  connection: {
+    url: process.env.TURSO_DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  },
+  relations,
+  casing: "snake_case",
 });
-
-export const syncNow = () => {
-  const t = Date.now();
-  return client
-    .sync()
-    .then(() => console.log(`[libsql] sync ok (${Date.now() - t}ms)`))
-    .catch((err) => console.error(`[libsql] sync failed (${Date.now() - t}ms):`, err));
-};
-
-// Sync in the background — do NOT await here. The embedded replica has the
-// last known good state and is immediately readable. Awaiting blocks the
-// entire module graph, which prevents the HTTP server from starting while
-// the Turso TCP connection is establishing (takes ~3 min on resume from
-// suspend due to OS-level ETIMEDOUT).
-syncNow();
-setInterval(syncNow, 60_000);
-
-// Enable foreign key enforcement (off by default in SQLite)
-await client.execute("PRAGMA foreign_keys = ON");
-
-export const db = drizzle({ client, relations, casing: "snake_case" });
