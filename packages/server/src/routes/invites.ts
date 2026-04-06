@@ -37,14 +37,27 @@ export const inviteRoutes = authed()
     async (c) => {
       const { token } = c.req.param();
       const userId = c.get("userId");
+      console.log(`[invite:accept] token=${token} userId=${userId}`);
 
       const invite = await inviteTokenRepo.findValid(token);
-      if (!invite)
+      if (!invite) {
+        const raw = await inviteTokenRepo.findById(token);
+        if (!raw) {
+          console.log(`[invite:accept] token not found in DB`);
+        } else if (raw.usedAt) {
+          console.log(`[invite:accept] token already used at=${raw.usedAt} by=${raw.usedByUserId}`);
+        } else {
+          console.log(`[invite:accept] token expired at=${raw.expiresAt}`);
+        }
         throw new HTTPException(410, { message: "Invite link has expired or already been used" });
-      if (invite.createdByUserId === userId)
+      }
+      if (invite.createdByUserId === userId) {
+        console.log(`[invite:accept] self-accept rejected`);
         throw new HTTPException(400, { message: "Cannot accept your own invite" });
+      }
 
       await inviteTokenRepo.consume(invite, userId);
+      console.log(`[invite:accept] success createdBy=${invite.createdByUserId} acceptedBy=${userId}`);
       return c.json({ ok: true as const }, 200);
     },
   );

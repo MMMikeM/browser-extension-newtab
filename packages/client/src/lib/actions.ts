@@ -23,7 +23,11 @@ export const acceptInvite = async (token: string) => {
     const body = (await res.json()) as { error?: string };
     throw new Error(body.error ?? "Failed to accept invite");
   }
-  await contactsCollection.utils.refetch();
+  // Fire-and-forget — the invite is accepted regardless of whether the
+  // local collection refreshes successfully. Awaiting this would surface
+  // a misleading error after a successful server-side acceptance, and the
+  // consumed token would then prevent any retry.
+  contactsCollection.utils.refetch().catch(console.error);
 };
 
 /** Removes a contact (both directions on the server), then refreshes contacts. */

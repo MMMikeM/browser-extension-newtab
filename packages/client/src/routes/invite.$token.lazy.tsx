@@ -54,11 +54,9 @@ export function InviteAcceptPage() {
             {errorMsg && (
               <p className="text-sm text-destructive">{errorMsg}</p>
             )}
-            {!errorMsg && (
-              <Button variant="outline" onClick={accept} disabled={isPending}>
-                {isPending ? "Accepting…" : "Accept invite"}
-              </Button>
-            )}
+            <Button variant="outline" onClick={accept} disabled={isPending}>
+              {isPending ? "Accepting…" : "Accept invite"}
+            </Button>
             <Button variant="subtle" size="xs" onClick={() => router.navigate({ to: "/" })}>
               Go to app
             </Button>

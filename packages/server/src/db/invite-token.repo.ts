@@ -14,6 +14,9 @@ const create = async (createdByUserId: string, expiresAt: string) => {
   return row;
 };
 
+const findById = async (token: string) =>
+  db.query.inviteTokens.findFirst({ where: { id: token } });
+
 const findValid = async (token: string) => {
   const now = new Date().toISOString();
   const row = await db.query.inviteTokens.findFirst({
@@ -56,4 +59,4 @@ const consume = async (invite: InviteToken, usedByUserId: string) => {
   });
 };
 
-export default { create, findValid, consume };
+export default { create, findById, findValid, consume };
