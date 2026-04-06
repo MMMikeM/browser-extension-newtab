@@ -12,7 +12,12 @@ const client = createClient({
   syncInterval: 60,
 });
 
-await client.sync();
+// Sync in the background — do NOT await here. The embedded replica has the
+// last known good state and is immediately readable. Awaiting blocks the
+// entire module graph, which prevents the HTTP server from starting while
+// the Turso TCP connection is establishing (takes ~3 min on resume from
+// suspend due to OS-level ETIMEDOUT). syncInterval: 60 keeps it current.
+client.sync().catch((err) => console.error("[libsql] initial sync failed:", err));
 
 // Enable foreign key enforcement (off by default in SQLite)
 await client.execute("PRAGMA foreign_keys = ON");
