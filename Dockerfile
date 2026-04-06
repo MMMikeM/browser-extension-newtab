@@ -35,17 +35,11 @@ RUN pnpm --filter @newtab-todo/server build
 RUN pnpm --filter @newtab-todo/server --prod deploy --legacy /app/deploy
 
 FROM node:24-alpine AS server
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates tini
 WORKDIR /app
 COPY --from=server-build /app/deploy .
 COPY --from=client /app/packages/client/dist ./client/dist
 ENV CLIENT_DIST_PATH=/app/client/dist
-RUN echo "=== /app top-level ===" && du -sh /app/* && \
-    echo "=== .pnpm top 20 ===" && du -sh /app/node_modules/.pnpm/* 2>/dev/null | sort -rh | head -20
 EXPOSE 3000
-# Restart loop: if Node crashes (e.g. libsql sync error on Fly resume)
-# bring it back up immediately rather than waiting for the next health
-# check to trigger a full machine restart.
-# Exit codes 130 (SIGINT) and 143 (SIGTERM) are deliberate stops —
-# don't restart, let the container exit cleanly for deploy/shutdown.
-CMD ["sh", "-c", "while true; do node dist/index.js; code=$?; [ $code -eq 130 ] || [ $code -eq 143 ] && exit $code; echo \"server exited ($code), restarting in 1s\"; sleep 1; done"]
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "dist/index.js"]
