@@ -10,6 +10,7 @@ import { pushRoutes } from "./routes/push";
 import { eventsRoute } from "./routes/events";
 import { inviteRoutes } from "./routes/invites";
 import { contactRoutes } from "./routes/contacts";
+import { syncNow } from "./db/client";
 
 const app = new OpenAPIHono();
 
@@ -53,6 +54,14 @@ app.use("*", (c, next) => {
 app.options("*", (c) => c.body(null, 204));
 
 app.get("/health", (c) => c.json({ ok: true }));
+
+app.post("/admin/sync", async (c) => {
+  const token = c.req.header("authorization")?.replace(/^Bearer\s+/i, "");
+  if (token !== process.env.AUTH_TOKEN) return c.json({ error: "Unauthorized" }, 401);
+  console.log("[admin] manual sync triggered");
+  await syncNow();
+  return c.json({ ok: true });
+});
 
 const api = app
   .route("/api/auth", authRoutes)
