@@ -9,12 +9,15 @@ export const Route = createRootRoute({
   component: RootComponent,
 });
 
-const SyncSettings = lazy(() => import("../components/SyncSettings"));
+// Import starts immediately — lazy() avoids the SSR prerender crash, not on-demand loading
+const syncSettingsModule = import("../components/SyncSettings");
+const SyncSettings = lazy(() => syncSettingsModule);
 
 // Module-level singleton so tests can inject toasts without going through React.
 // Exposed on window.__toastAdd in dev/test only — dead code in production builds.
 const toastManager = Toast.createToastManager();
 if (import.meta.env.DEV && typeof window !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__toastAdd = (title: string) =>
     toastManager.add({ title, timeout: 5000, data: {} });
 }

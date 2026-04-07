@@ -101,8 +101,6 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
-      // TEMP: force React dev bundle for readable hydration errors
-      "process.env.NODE_ENV": JSON.stringify("development"),
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     },
     plugins: [
@@ -120,12 +118,11 @@ export default defineConfig(({ mode }) => {
       babel({
         presets: [reactCompilerPreset()],
       }),
-      visualizer(),
     ],
     build: {
       outDir: "dist",
-      minify: false, // TEMP: non-minified deploy to verify hydration fix
-
+      minify: true,
+      sourcemap: "hidden",
       rolldownOptions: {
         output: {
           codeSplitting: {
@@ -147,11 +144,18 @@ export default defineConfig(({ mode }) => {
               // 3. TanStack Routing & Data Fetching
               {
                 name: "tanstack-core",
-                test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
+                test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core)[\\/]/,
                 priority: 35,
               },
 
-              // 4. UI Primitives & Styling
+              // 4a. Heavy UI overlays — only loaded by lazy routes/components
+              {
+                name: "ui-overlay",
+                test: /node_modules[\\/]@base-ui[\\/]react[\\/]esm[\\/](drawer|select|dialog|menu|context-menu)[\\/]/,
+                priority: 32,
+              },
+
+              // 4b. UI Primitives & Styling
               {
                 name: "ui-primitives",
                 test: /node_modules[\\/](@base-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,

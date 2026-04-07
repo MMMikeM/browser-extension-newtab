@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { CategorySidebar } from "./CategorySidebar";
-import { CategoryMobileSheet } from "./CategoryMobileSheet";
 
 export { CATEGORY_DROP_PREFIX } from "./CategorySidebar";
+
+const categoryMobileSheetModule = import("./CategoryMobileSheet");
+const CategoryMobileSheet = lazy(() => categoryMobileSheetModule);
 
 const useIsTouch = () =>
   useState(
@@ -11,6 +13,11 @@ const useIsTouch = () =>
 
 export function CategoryNav() {
   const isTouch = useIsTouch();
-  if (isTouch) return <CategoryMobileSheet />;
+  if (isTouch)
+    return (
+      <Suspense>
+        <CategoryMobileSheet />
+      </Suspense>
+    );
   return <CategorySidebar />;
 }
