@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from "react";
 const DRAWER_WIDTH = 148;
 const OPEN_THRESHOLD = 60;
 
+// Module-level registry: when one row opens, all others close
+const closeRegistry = new Set<() => void>();
+
 /**
  * Swipe-to-reveal hook for mobile list rows.
  *
@@ -45,6 +48,8 @@ export const useSwipeReveal = (disabled = false) => {
     if (disabled) return;
     const container = containerRef.current;
     if (!container) return;
+
+    closeRegistry.add(close);
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartX.current = e.touches[0].clientX;
@@ -91,6 +96,12 @@ export const useSwipeReveal = (disabled = false) => {
         ? currentPx.current > -(DRAWER_WIDTH - OPEN_THRESHOLD) // swipe right past threshold to close
         : currentPx.current < -OPEN_THRESHOLD; // swipe left past threshold to open
 
+      if (shouldOpen) {
+        closeRegistry.forEach((fn) => {
+          if (fn !== close) fn();
+        });
+      }
+
       const el = contentRef.current;
       if (el) {
         el.style.transition = "transform 200ms ease-out";
@@ -112,6 +123,7 @@ export const useSwipeReveal = (disabled = false) => {
       container.removeEventListener("touchstart", onTouchStart);
       container.removeEventListener("touchmove", onTouchMove);
       container.removeEventListener("touchend", onTouchEnd);
+      closeRegistry.delete(close);
     };
   }, [disabled]);
 
