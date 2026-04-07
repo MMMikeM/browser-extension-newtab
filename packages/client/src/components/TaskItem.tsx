@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { Task } from "~/lib/types";
 import { Checkbox } from "~/components/ui/checkbox";
-import { Input } from "~/components/ui/input";
+import { Input } from "~/components/ui/field";
 import { cn } from "~/lib/utils";
 import { Calendar, GripVertical, Plus, X } from "lucide-react";
 import { useSwipeReveal } from "~/lib/hooks/use-swipe-reveal";

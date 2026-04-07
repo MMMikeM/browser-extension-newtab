@@ -15,8 +15,8 @@ import {
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldLabel } from "~/components/ui/field";
-import { TextField } from "~/components/ui/text-field";
-import { TextArea } from "~/components/ui/text-area";
+import { Input } from "~/components/ui/field";
+import { TextArea } from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -80,7 +80,7 @@ const TaskDetailContent = ({
         />
         <Field className="flex-1">
           <FieldLabel className="sr-only">Title</FieldLabel>
-          <TextField
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -239,7 +239,7 @@ const AddNoteInput = ({ taskId }: { taskId: string }) => {
         setValue("");
       }}
     >
-      <TextField
+      <Input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -305,7 +305,7 @@ const SubtaskSection = ({
           setValue("");
         }}
       >
-        <TextField
+        <Input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}

@@ -1,10 +1,11 @@
 import { Field as FieldPrimitive } from "@base-ui/react/field";
-import { type ReactNode } from "react";
+import { Input as InputPrimitive } from "@base-ui/react/input";
+import { type ComponentProps, type ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
 
 // ---------------------------------------------------------------------------
-// Primitives
+// Field wrappers — Base UI Field primitives
 // ---------------------------------------------------------------------------
 
 const Field = ({ className, ...props }: FieldPrimitive.Root.Props) => (
@@ -38,6 +39,58 @@ const FieldError = ({ className, ...props }: FieldPrimitive.Error.Props) => (
   <FieldPrimitive.Error
     data-slot="field-error"
     className={cn("text-xs text-destructive", className)}
+    {...props}
+  />
+);
+
+// ---------------------------------------------------------------------------
+// Input — underline single-line text input (the only input style in this app)
+//
+// Transparent background, bottom border only: ghost/40 at rest → hint on
+// focus. No ring — the border upgrade is the sole focus signal.
+// Wraps Base UI Input for accessible label association via Field context.
+// ---------------------------------------------------------------------------
+
+const Input = ({ className, ...props }: ComponentProps<"input">) => (
+  <InputPrimitive
+    data-slot="input"
+    className={cn(
+      "w-full min-w-0 px-0",
+      "rounded-none border-0 border-b bg-transparent",
+      "text-foreground outline-none",
+      "border-ghost/40 focus-visible:border-hint",
+      "focus-visible:ring-0 focus-visible:ring-transparent",
+      "placeholder:text-hint",
+      "transition-colors duration-150",
+      "disabled:pointer-events-none disabled:opacity-50",
+      className,
+    )}
+    {...props}
+  />
+);
+
+// ---------------------------------------------------------------------------
+// TextArea — underline multi-line input
+//
+// Same visual language as Input — no box, bottom border only.
+// Base UI has no Textarea primitive; this wraps raw <textarea>.
+// ---------------------------------------------------------------------------
+
+const TextArea = ({ className, ...props }: ComponentProps<"textarea">) => (
+  <textarea
+    data-slot="text-area"
+    className={cn(
+      "w-full min-w-0 px-0 py-1.5",
+      "rounded-none border-0 border-b bg-transparent",
+      "text-sm text-foreground outline-none",
+      "resize-none",
+      "border-ghost/40 focus-visible:border-hint",
+      "focus-visible:ring-0",
+      "placeholder:text-hint",
+      "transition-colors duration-150",
+      "disabled:pointer-events-none disabled:opacity-50",
+      className,
+    )}
     {...props}
   />
 );
@@ -83,10 +136,10 @@ interface FormFieldProps {
   children: ReactNode;
 }
 
-// Wraps Field.Root + Field.Label + Field.Error, wired to a TanStack field.
-// Field.Label ↔ control association and aria-invalid/aria-describedby are
-// handled automatically by the Field context — no id/htmlFor/aria-* needed
-// on the input.
+// Wraps Field + FieldLabel + FieldError, wired to a TanStack form field.
+// Label ↔ control association and aria-invalid/aria-describedby are handled
+// automatically by the Field context — no id/htmlFor/aria-* needed on the
+// input.
 const FormField = ({ field, label, description, className, children }: FormFieldProps) => {
   const { isTouched, isValid, isDirty, errors } = field.state.meta;
   const isInvalid = isTouched && !isValid;
@@ -97,10 +150,9 @@ const FormField = ({ field, label, description, className, children }: FormField
       <FieldLabel>{label}</FieldLabel>
       {children}
       {description && <FieldDescription>{description}</FieldDescription>}
-      {/* match={isInvalid} hands visibility control to us: true = show, false = hide */}
       <FieldError match={isInvalid}>{errorMessage}</FieldError>
     </Field>
   );
 };
 
-export { Field, FieldLabel, FieldDescription, FieldError, FormField };
+export { Field, FieldLabel, FieldDescription, FieldError, Input, TextArea, FormField };

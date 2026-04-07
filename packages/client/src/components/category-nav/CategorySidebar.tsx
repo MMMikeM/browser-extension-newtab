@@ -6,7 +6,7 @@ import { Ellipsis, Plus } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
-import { Input } from "~/components/ui/input";
+import { Input } from "~/components/ui/field";
 import { setActiveCategoryId } from "~/lib/state/active-category";
 import { cn } from "~/lib/utils";
 import type { Category } from "~/lib/types";

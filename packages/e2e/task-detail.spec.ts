@@ -116,14 +116,14 @@ test.describe("task detail — visual language", () => {
     expect(slot).not.toBe("button");
   });
 
-  test("title input is a TextField primitive (underline, no box)", async ({
+  test("title input is an Input primitive (underline, no box)", async ({
     user1Page: page,
   }) => {
     await createTask(page, "Test task");
     await page.waitForSelector("[data-task-id]");
     await openFirstTaskDetail(page);
 
-    const titleInput = drawer(page).locator('[data-slot="text-field"]');
+    const titleInput = drawer(page).locator('[data-slot="input"]');
     await expect(titleInput).toBeVisible();
 
     const cls = (await titleInput.getAttribute("class")) ?? "";
@@ -163,7 +163,7 @@ test.describe("task detail — functionality", () => {
     await openFirstTaskDetail(page);
 
     const d = drawer(page);
-    const titleInput = d.locator('[data-slot="text-field"]');
+    const titleInput = d.locator('[data-slot="input"]');
     await expect(titleInput).toBeVisible();
     await titleInput.click({ clickCount: 3 });
     await titleInput.fill("Updated title");

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TextField } from "~/components/ui/text-field";
+import { Input } from "~/components/ui/field";
 
 // On touch devices (PWA mobile), skip autofocus — opening the keyboard on mount
 // is jarring and prevents the layout from settling before the user interacts.
@@ -22,7 +22,7 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         setValue("");
       }}
     >
-      <TextField
+      <Input
         id="add-task-input"
         type="text"
         value={value}

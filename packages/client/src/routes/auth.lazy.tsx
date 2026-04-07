@@ -7,7 +7,7 @@ import { setCurrentUser } from "~/lib/auth/current-user";
 import { authenticate } from "~/lib/actions";
 import { Button } from "~/components/ui/button";
 import { FormField } from "~/components/ui/field";
-import { TextField } from "~/components/ui/text-field";
+import { Input } from "~/components/ui/field";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
@@ -86,7 +86,7 @@ const AuthView = () => {
             <form.Field name="name" validators={{ onChange: signupSchema.shape.name }}>
               {(field) => (
                 <FormField field={field} label="Name">
-                  <TextField
+                  <Input
                     type="text"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -103,7 +103,7 @@ const AuthView = () => {
           <form.Field name="username" validators={{ onChange: schema.shape.username }}>
             {(field) => (
               <FormField field={field} label="Username">
-                <TextField
+                <Input
                   type="text"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -122,7 +122,7 @@ const AuthView = () => {
           <form.Field name="password" validators={{ onChange: schema.shape.password }}>
             {(field) => (
               <FormField field={field} label="Password">
-                <TextField
+                <Input
                   type="password"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}

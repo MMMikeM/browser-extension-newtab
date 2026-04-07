@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Drawer, DrawerContent } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
-import { Input } from "~/components/ui/input";
+import { Input } from "~/components/ui/field";
 import { setActiveCategoryId } from "~/lib/state/active-category";
 import { useNavContext } from "~/lib/state/nav-context";
 import { cn } from "~/lib/utils";
