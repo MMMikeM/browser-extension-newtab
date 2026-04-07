@@ -57,9 +57,6 @@ export function CategoryOptionsContent({
             />
           ))}
         </div>
-        <Button variant="ghost" size="xs" className="mt-1" onClick={() => onSetColor(cat.id, null)}>
-          None
-        </Button>
       </div>
       <div className="my-1 h-px bg-border" />
       <Button
