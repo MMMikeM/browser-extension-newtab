@@ -1,8 +1,9 @@
 import { Field as FieldPrimitive } from "@base-ui/react/field";
-import { Input as InputPrimitive } from "@base-ui/react/input";
 import { type ComponentProps, type ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
+import { Input as InputPrimitive } from "~/components/ui/input";
+import { Textarea as TextareaPrimitive } from "~/components/ui/textarea";
 
 // ---------------------------------------------------------------------------
 // Field wrappers — Base UI Field primitives
@@ -44,25 +45,23 @@ const FieldError = ({ className, ...props }: FieldPrimitive.Error.Props) => (
 );
 
 // ---------------------------------------------------------------------------
-// Input — underline single-line text input (the only input style in this app)
+// Input — app-styled single-line input (underline, no box)
 //
-// Transparent background, bottom border only: ghost/40 at rest → hint on
-// focus. No ring — the border upgrade is the sole focus signal.
-// Wraps Base UI Input for accessible label association via Field context.
+// Composed on top of the raw shadcn Input primitive (ui/input.tsx).
+// Overrides the box style with the app's underline language:
+//   transparent bg, bottom border only, ghost/40 → hint on focus, no ring.
 // ---------------------------------------------------------------------------
 
 const Input = ({ className, ...props }: ComponentProps<"input">) => (
   <InputPrimitive
-    data-slot="input"
     className={cn(
-      "w-full min-w-0 px-0",
-      "rounded-none border-0 border-b bg-transparent",
-      "text-foreground outline-none",
+      // Strip the box style from the primitive
+      "rounded-none border-0 border-b shadow-none",
+      // Underline style
+      "bg-transparent px-0",
       "border-ghost/40 focus-visible:border-hint",
       "focus-visible:ring-0 focus-visible:ring-transparent",
       "placeholder:text-hint",
-      "transition-colors duration-150",
-      "disabled:pointer-events-none disabled:opacity-50",
       className,
     )}
     {...props}
@@ -70,25 +69,22 @@ const Input = ({ className, ...props }: ComponentProps<"input">) => (
 );
 
 // ---------------------------------------------------------------------------
-// TextArea — underline multi-line input
+// Textarea — app-styled multi-line input (underline, no box)
 //
-// Same visual language as Input — no box, bottom border only.
-// Base UI has no Textarea primitive; this wraps raw <textarea>.
+// Composed on top of the raw shadcn Textarea primitive (ui/textarea.tsx).
 // ---------------------------------------------------------------------------
 
-const TextArea = ({ className, ...props }: ComponentProps<"textarea">) => (
-  <textarea
-    data-slot="text-area"
+const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
+  <TextareaPrimitive
     className={cn(
-      "w-full min-w-0 px-0 py-1.5",
-      "rounded-none border-0 border-b bg-transparent",
-      "text-sm text-foreground outline-none",
-      "resize-none",
+      // Strip the box style
+      "rounded-none border-0 border-b shadow-none",
+      // Underline style
+      "min-h-0 bg-transparent px-0 py-1.5",
+      "resize-none field-sizing-content",
       "border-ghost/40 focus-visible:border-hint",
       "focus-visible:ring-0",
       "placeholder:text-hint",
-      "transition-colors duration-150",
-      "disabled:pointer-events-none disabled:opacity-50",
       className,
     )}
     {...props}
@@ -155,4 +151,4 @@ const FormField = ({ field, label, description, className, children }: FormField
   );
 };
 
-export { Field, FieldLabel, FieldDescription, FieldError, Input, TextArea, FormField };
+export { Field, FieldLabel, FieldDescription, FieldError, Input, Textarea, FormField };

@@ -45,14 +45,14 @@ test.describe("task detail — visual language", () => {
     await page.waitForSelector("[data-task-id]");
     await openFirstTaskDetail(page);
 
-    const textarea = drawer(page).locator('[data-slot="text-area"]').first();
+    const textarea = drawer(page).locator('[data-slot="textarea"]').first();
     await expect(textarea).toBeVisible();
 
     const cls = (await textarea.getAttribute("class")) ?? "";
     // Must NOT have box-style classes
     expect(cls).not.toContain("bg-input");
     expect(cls).not.toContain("rounded-md");
-    // Must have the underline-style classes from TextArea
+    // Must have the underline-style classes from Textarea
     expect(cls).toContain("border-b");
     expect(cls).toContain("bg-transparent");
   });
@@ -169,7 +169,7 @@ test.describe("task detail — functionality", () => {
     await titleInput.fill("Updated title");
 
     // Blur by clicking the description area
-    await d.locator('[data-slot="text-area"]').first().click();
+    await d.locator('[data-slot="textarea"]').first().click();
     await page.waitForTimeout(400);
 
     // Title input should have the updated value
@@ -226,7 +226,7 @@ test.describe("task detail — functionality", () => {
     await openFirstTaskDetail(page);
 
     const d = drawer(page);
-    const desc = d.locator('[data-slot="text-area"]').first();
+    const desc = d.locator('[data-slot="textarea"]').first();
     await desc.click();
     await desc.fill("My description");
 
@@ -240,6 +240,6 @@ test.describe("task detail — functionality", () => {
 
     // Reopen and verify persistence
     await openFirstTaskDetail(page);
-    await expect(d.locator('[data-slot="text-area"]').first()).toHaveValue("My description");
+    await expect(d.locator('[data-slot="textarea"]').first()).toHaveValue("My description");
   });
 });

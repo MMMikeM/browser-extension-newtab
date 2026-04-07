@@ -16,7 +16,7 @@ import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/field";
-import { TextArea } from "~/components/ui/field";
+import { Textarea } from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -96,7 +96,7 @@ const TaskDetailContent = ({
       {/* Description */}
       <Field>
         <FieldLabel className="text-xs font-medium text-hint">Description</FieldLabel>
-        <TextArea
+        <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={() => {
@@ -187,7 +187,7 @@ const NoteItem = ({ note }: { note: Note }) => {
   if (editing) {
     return (
       <div className="flex items-start gap-2">
-        <TextArea
+        <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onBlur={() => {

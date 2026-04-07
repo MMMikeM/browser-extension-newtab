@@ -42,5 +42,31 @@ export default defineConfig({
         ],
       },
     },
+    // Raw input primitives are shadcn baselines — app code should use the
+    // app-styled Input/Textarea exported from ~/components/ui/field, which
+    // applies the underline language and composes with Field/FormField.
+    // Only ui/field.tsx should import these directly.
+    {
+      files: ["packages/client/src/routes/**", "packages/client/src/components/[!u]*/**", "packages/client/src/components/[!u]*.tsx"],
+      rules: {
+        "no-restricted-imports": [
+          "warn",
+          {
+            paths: [
+              {
+                name: "~/components/ui/input",
+                message:
+                  "Use Input from ~/components/ui/field (underline style). ui/input is the raw shadcn primitive — only ui/field.tsx should import it directly.",
+              },
+              {
+                name: "~/components/ui/textarea",
+                message:
+                  "Use Textarea from ~/components/ui/field (underline style). ui/textarea is the raw shadcn primitive — only ui/field.tsx should import it directly.",
+              },
+            ],
+          },
+        ],
+      },
+    },
   ],
 });
