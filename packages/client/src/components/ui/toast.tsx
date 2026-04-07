@@ -45,16 +45,11 @@ export const Toasts = () => {
         <div className="flex items-center gap-3 text-sm">
           <Toast.Title className="flex-1 text-muted-foreground" />
           {toast.data?.onUndo && (
-            <Toast.Action
-              render={<Button variant="link" />}
-              onClick={() => toast.data.onUndo()}
-            >
+            <Toast.Action render={<Button variant="link" />} onClick={() => toast.data.onUndo()}>
               Undo
             </Toast.Action>
           )}
-          <Toast.Close
-            render={<Button variant="subtle" size="icon-xs" aria-label="Dismiss" />}
-          >
+          <Toast.Close render={<Button variant="subtle" size="icon-xs" aria-label="Dismiss" />}>
             ×
           </Toast.Close>
         </div>

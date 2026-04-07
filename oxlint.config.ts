@@ -47,7 +47,11 @@ export default defineConfig({
     // applies the underline language and composes with Field/FormField.
     // Only ui/field.tsx should import these directly.
     {
-      files: ["packages/client/src/routes/**", "packages/client/src/components/[!u]*/**", "packages/client/src/components/[!u]*.tsx"],
+      files: [
+        "packages/client/src/routes/**",
+        "packages/client/src/components/[!u]*/**",
+        "packages/client/src/components/[!u]*.tsx",
+      ],
       rules: {
         "no-restricted-imports": [
           "warn",

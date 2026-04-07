@@ -27,7 +27,8 @@ test.beforeEach(async ({ user1Auth }) => {
   type Task = { id: string; parentId: string | null };
   const tasks = await apiRequest<Task[]>("GET", "/api/tasks", undefined, user1Auth.token);
   // Delete only top-level tasks — subtasks cascade-delete on the server
-  await Promise.all(
+  // allSettled: parallel workers may have already deleted some tasks (404 is fine)
+  await Promise.allSettled(
     tasks
       .filter((t) => !t.parentId)
       .map((t) => apiRequest("DELETE", "/api/tasks", { id: t.id }, user1Auth.token)),
@@ -79,9 +80,7 @@ test.describe("task detail — visual language", () => {
     await expect(d.getByText("Set date…")).toBeVisible();
   });
 
-  test("section labels use text-hint, not text-muted-foreground", async ({
-    user1Page: page,
-  }) => {
+  test("section labels use text-hint, not text-muted-foreground", async ({ user1Page: page }) => {
     await createTask(page, "Test task");
     await page.waitForSelector("[data-task-id]");
     await openFirstTaskDetail(page);
@@ -116,14 +115,14 @@ test.describe("task detail — visual language", () => {
     expect(slot).not.toBe("button");
   });
 
-  test("title input is an Input primitive (underline, no box)", async ({
-    user1Page: page,
-  }) => {
+  test("title input is an Input primitive (underline, no box)", async ({ user1Page: page }) => {
     await createTask(page, "Test task");
     await page.waitForSelector("[data-task-id]");
     await openFirstTaskDetail(page);
 
-    const titleInput = drawer(page).locator('[data-slot="input"]');
+    // The title input is accessible via its sr-only label; avoids matching
+    // the subtask and note inputs that also carry data-slot="input".
+    const titleInput = drawer(page).getByRole("textbox", { name: "Title" });
     await expect(titleInput).toBeVisible();
 
     const cls = (await titleInput.getAttribute("class")) ?? "";
@@ -163,7 +162,7 @@ test.describe("task detail — functionality", () => {
     await openFirstTaskDetail(page);
 
     const d = drawer(page);
-    const titleInput = d.locator('[data-slot="input"]');
+    const titleInput = d.getByRole("textbox", { name: "Title" });
     await expect(titleInput).toBeVisible();
     await titleInput.click({ clickCount: 3 });
     await titleInput.fill("Updated title");
@@ -203,9 +202,7 @@ test.describe("task detail — functionality", () => {
     await expect(d.getByText("Set date…")).toBeVisible();
   });
 
-  test("delete task closes drawer and removes task from list", async ({
-    user1Page: page,
-  }) => {
+  test("delete task closes drawer and removes task from list", async ({ user1Page: page }) => {
     await createTask(page, "Task to delete");
     await page.waitForSelector("[data-task-id]");
     const tasksBefore = await page.locator("[data-task-id]").count();
@@ -234,9 +231,12 @@ test.describe("task detail — functionality", () => {
     await desc.blur();
     await page.waitForTimeout(500);
 
-    // Close drawer by clicking the handle/backdrop area
+    // Close drawer and wait for it to fully detach (close animation is ~400ms)
     await page.keyboard.press("Escape");
-    await page.waitForTimeout(400);
+    await page.waitForSelector('[data-slot="drawer-content"]', {
+      state: "detached",
+      timeout: 3000,
+    });
 
     // Reopen and verify persistence
     await openFirstTaskDetail(page);

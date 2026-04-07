@@ -78,7 +78,6 @@ app.get("/health/db", async (c) => {
   return c.json({ ok: true, ms });
 });
 
-
 const api = app
   .route("/api/auth", authRoutes)
   .route("/api/tasks", taskRoutes)

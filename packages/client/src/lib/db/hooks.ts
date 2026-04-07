@@ -1,5 +1,10 @@
 import { useLiveQuery } from "@tanstack/react-db";
-import { tasksCollection, categoriesCollection, notesCollection, contactsCollection } from "~/lib/db/collections";
+import {
+  tasksCollection,
+  categoriesCollection,
+  notesCollection,
+  contactsCollection,
+} from "~/lib/db/collections";
 import { offline } from "~/lib/db/offline";
 import type { Task, Category, Note } from "~/lib/types";
 import { now } from "~/lib/utils";
@@ -25,12 +30,20 @@ export const deleteTask = (id: string) => {
   console.log("[mutation] optimistic applied, tx queued");
 };
 
-export const addCategory = (fields: Omit<Category, "id" | "createdAt" | "updatedAt" | "collaborators">) => {
+export const addCategory = (
+  fields: Omit<Category, "id" | "createdAt" | "updatedAt" | "collaborators">,
+) => {
   const id = crypto.randomUUID();
   console.log(`[mutation] addCategory id=${id}`, fields);
   const tx = offline.createOfflineTransaction({ mutationFnName: "syncCategories" });
   tx.mutate(() =>
-    categoriesCollection.insert({ ...fields, id, createdAt: now(), updatedAt: now(), collaborators: [] }),
+    categoriesCollection.insert({
+      ...fields,
+      id,
+      createdAt: now(),
+      updatedAt: now(),
+      collaborators: [],
+    }),
   );
   console.log("[mutation] optimistic applied, tx queued");
   return { id };

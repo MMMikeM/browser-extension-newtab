@@ -95,17 +95,11 @@ function TaskListView() {
                   {emptyPhrase}
                 </p>
               )}
-              {doneTasks.length > 0 && (
-                <DoneSection tasks={doneTasks} onOpen={setSelectedTaskId} />
-              )}
+              {doneTasks.length > 0 && <DoneSection tasks={doneTasks} onOpen={setSelectedTaskId} />}
             </div>
             {selectedTask && (
               <Suspense>
-                <TaskDetail
-                  task={selectedTask}
-                  open
-                  onClose={() => setSelectedTaskId(null)}
-                />
+                <TaskDetail task={selectedTask} open onClose={() => setSelectedTaskId(null)} />
               </Suspense>
             )}
           </DragDropProvider>

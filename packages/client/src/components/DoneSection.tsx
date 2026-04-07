@@ -3,13 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { TaskList } from "~/components/TaskList";
 import type { Task } from "~/lib/types";
 
-export function DoneSection({
-  tasks,
-  onOpen,
-}: {
-  tasks: Task[];
-  onOpen: (id: string) => void;
-}) {
+export function DoneSection({ tasks, onOpen }: { tasks: Task[]; onOpen: (id: string) => void }) {
   const [open, setOpen] = useState(false);
 
   return (

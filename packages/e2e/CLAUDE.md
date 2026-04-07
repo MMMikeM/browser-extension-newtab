@@ -10,14 +10,14 @@ Playwright test suite. Two projects: `desktop` (Chrome) and `mobile` (iPhone 14 
 
 ## Helpers (`helpers/`)
 
-| File | What it exports |
-|------|----------------|
-| `users.ts` | `USER_1`, `USER_2` — dedicated e2e accounts (Alice / Bob) |
-| `auth.ts` | `getOrCreateUser(user)` — signup on first run, login thereafter; `signIn(page, auth)` — seeds localStorage |
-| `api.ts` | `apiRequest()` — raw fetch with Bearer token; `deleteAllTasksInCategory(token, categoryId)` |
-| `app.ts` | `waitForAppReady`, `createTask`, `createCategory`, `clearLocalStorage`, `clearIDB` |
-| `sync.ts` | `createSyncTracker(page)` — tracks non-GET `/api/*` mutations, exposes `waitForSync()` + `assertNoFailures()` |
-| `screenshot.ts` | `takeScreenshot`, `forBothViewports`, `reportViolations` — used by the screenshot script |
+| File            | What it exports                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
+| `users.ts`      | `USER_1`, `USER_2` — dedicated e2e accounts (Alice / Bob)                                                     |
+| `auth.ts`       | `getOrCreateUser(user)` — signup on first run, login thereafter; `signIn(page, auth)` — seeds localStorage    |
+| `api.ts`        | `apiRequest()` — raw fetch with Bearer token; `deleteAllTasksInCategory(token, categoryId)`                   |
+| `app.ts`        | `waitForAppReady`, `createTask`, `createCategory`, `clearLocalStorage`, `clearIDB`                            |
+| `sync.ts`       | `createSyncTracker(page)` — tracks non-GET `/api/*` mutations, exposes `waitForSync()` + `assertNoFailures()` |
+| `screenshot.ts` | `takeScreenshot`, `forBothViewports`, `reportViolations` — used by the screenshot script                      |
 
 ## Fixtures (`fixtures.ts`)
 

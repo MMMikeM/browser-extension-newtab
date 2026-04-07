@@ -51,7 +51,9 @@ export const authRoutes = new OpenAPIHono()
         setAuthCookie(c, result.token);
         return c.json(result, 200);
       } catch (e) {
-        console.log(`[login] failed username=${data.username} error=${e instanceof Error ? e.message : e}`);
+        console.log(
+          `[login] failed username=${data.username} error=${e instanceof Error ? e.message : e}`,
+        );
         throw e;
       }
     },

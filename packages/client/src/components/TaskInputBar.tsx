@@ -11,7 +11,7 @@ export function TaskInputBar() {
   const { setNavOpen } = useNavContext();
 
   const activeCategory = activeCategoryId
-    ? (rawCategories ?? []).find((c) => c.id === activeCategoryId) ?? null
+    ? ((rawCategories ?? []).find((c) => c.id === activeCategoryId) ?? null)
     : null;
 
   const handleAdd = (title: string) => addTask(title, activeCategoryId ?? null);

@@ -45,7 +45,10 @@ test.describe("toast stacking", () => {
     // Close-up clipped to the toast stack so the peek effect is visible
     const clip = await page.evaluate(() => {
       const els = document.querySelectorAll("[data-toast-undo]");
-      let minY = Infinity, maxY = -Infinity, minX = Infinity, maxX = -Infinity;
+      let minY = Infinity,
+        maxY = -Infinity,
+        minX = Infinity,
+        maxX = -Infinity;
       els.forEach((el) => {
         const r = (el as HTMLElement).getBoundingClientRect();
         minY = Math.min(minY, r.top);
@@ -53,7 +56,12 @@ test.describe("toast stacking", () => {
         minX = Math.min(minX, r.left);
         maxX = Math.max(maxX, r.right);
       });
-      return { x: Math.max(0, minX - 30), y: Math.max(0, minY - 30), width: maxX - minX + 60, height: maxY - minY + 50 };
+      return {
+        x: Math.max(0, minX - 30),
+        y: Math.max(0, minY - 30),
+        width: maxX - minX + 60,
+        height: maxY - minY + 50,
+      };
     });
     await page.screenshot({ path: ".filmstrip/toast-three-stacked-closeup.png", clip });
   });

@@ -23,7 +23,9 @@ export const getOrCreateUser = async (user: TestUser): Promise<AuthResult> => {
 
   if (signupRes.ok) return signupRes.json() as Promise<AuthResult>;
   if (signupRes.status !== 409) {
-    throw new Error(`Signup failed for ${user.username}: ${signupRes.status} ${await signupRes.text()}`);
+    throw new Error(
+      `Signup failed for ${user.username}: ${signupRes.status} ${await signupRes.text()}`,
+    );
   }
 
   const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -33,7 +35,9 @@ export const getOrCreateUser = async (user: TestUser): Promise<AuthResult> => {
   });
 
   if (!loginRes.ok) {
-    throw new Error(`Login failed for ${user.username}: ${loginRes.status} ${await loginRes.text()}`);
+    throw new Error(
+      `Login failed for ${user.username}: ${loginRes.status} ${await loginRes.text()}`,
+    );
   }
   return loginRes.json() as Promise<AuthResult>;
 };

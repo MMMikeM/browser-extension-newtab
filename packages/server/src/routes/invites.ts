@@ -57,7 +57,9 @@ export const inviteRoutes = authed()
       }
 
       await inviteTokenRepo.consume(invite, userId);
-      console.log(`[invite:accept] success createdBy=${invite.createdByUserId} acceptedBy=${userId}`);
+      console.log(
+        `[invite:accept] success createdBy=${invite.createdByUserId} acceptedBy=${userId}`,
+      );
       return c.json({ ok: true as const }, 200);
     },
   );

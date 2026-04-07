@@ -73,9 +73,7 @@ export function AppShell({ right, children }: { right?: ReactNode; children?: Re
       <div className="mb-5 flex items-center justify-between shrink-0">
         <h1 className="font-display text-2xl tracking-[0.28em] text-foreground uppercase">Ajot</h1>
         {mobileNavContent && (
-          <div className="hidden touch:flex flex-1 justify-center">
-            {mobileNavContent}
-          </div>
+          <div className="hidden touch:flex flex-1 justify-center">{mobileNavContent}</div>
         )}
         {right}
       </div>

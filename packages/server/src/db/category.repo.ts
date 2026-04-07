@@ -23,9 +23,7 @@ const collaboratorUserSchema = z.object({
 // nullish() allows these keys to be absent so all routes satisfy this schema.
 export const categoryResponseSchema = createSelectSchema(categories).extend({
   user: z.object({ name: z.string() }).nullish(),
-  collaborators: z
-    .array(z.object({ user: collaboratorUserSchema.nullable() }))
-    .nullish(),
+  collaborators: z.array(z.object({ user: collaboratorUserSchema.nullable() })).nullish(),
 });
 export const categoryInsertSchema = createInsertSchema(categories, {
   createdAt: isoDatetime,

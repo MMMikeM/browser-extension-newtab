@@ -57,7 +57,10 @@ export const categoryRoutes = authed()
 
       const cat = await categoryRepo.findByIdWithCollaborators(id);
       if (cat.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
-      const catUserIds = [cat.userId, ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : []))];
+      const catUserIds = [
+        cat.userId,
+        ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : [])),
+      ];
 
       const result = await categoryRepo.update(id, updatedAt, fields);
       broadcast(c, "categories", "update", result, catUserIds);
@@ -83,7 +86,10 @@ export const categoryRoutes = authed()
       // before the row is deleted — after deletion we can't look up collaborators.
       const cat = await categoryRepo.findByIdWithCollaborators(id);
       if (cat.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
-      const catUserIds = [cat.userId, ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : []))];
+      const catUserIds = [
+        cat.userId,
+        ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : [])),
+      ];
 
       const taskCount = await taskRepo.countByCategory(id);
       if (taskCount > 0)
@@ -186,7 +192,8 @@ export const categoryRoutes = authed()
       const isSelf = targetUserId === userId;
 
       const cat = await categoryRepo.findById(id);
-      if (cat.userId !== userId && !isSelf) throw new HTTPException(403, { message: "Not authorized" });
+      if (cat.userId !== userId && !isSelf)
+        throw new HTTPException(403, { message: "Not authorized" });
 
       await categoryCollaboratorRepo.remove(id, targetUserId);
       // Notify the removed user so the category disappears from their collection

@@ -30,7 +30,9 @@ export default function RootComponent() {
       <Toast.Provider toastManager={toastManager} limit={3}>
         <AppShell
           right={
-            <ClientOnly fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}>
+            <ClientOnly
+              fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}
+            >
               <Suspense fallback={<span className="text-muted-foreground">&#x2699;</span>}>
                 <SyncSettings />
               </Suspense>

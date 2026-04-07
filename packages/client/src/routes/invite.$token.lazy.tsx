@@ -51,9 +51,7 @@ export function InviteAcceptPage() {
         ) : (
           <>
             <p className="text-sm text-muted-foreground">You've been invited to connect.</p>
-            {errorMsg && (
-              <p className="text-sm text-destructive">{errorMsg}</p>
-            )}
+            {errorMsg && <p className="text-sm text-destructive">{errorMsg}</p>}
             <Button variant="outline" onClick={accept} disabled={isPending}>
               {isPending ? "Accepting…" : "Accept invite"}
             </Button>

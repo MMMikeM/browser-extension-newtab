@@ -55,7 +55,9 @@ export const login = async (username: string, password: string) => {
     user = await userRepo.findByUsernameWithPassword(normalized);
     console.log(`[login] found user id=${user.id} username=${user.username}`);
   } catch (e) {
-    console.log(`[login] user not found username=${normalized} error=${e instanceof Error ? e.message : e}`);
+    console.log(
+      `[login] user not found username=${normalized} error=${e instanceof Error ? e.message : e}`,
+    );
     throw new HTTPException(401, { message: "Invalid username or password" });
   }
 

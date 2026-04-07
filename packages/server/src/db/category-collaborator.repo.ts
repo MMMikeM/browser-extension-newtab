@@ -43,12 +43,18 @@ const removeAllBetweenUsers = async (userAId: string, userBId: string) => {
     db
       .delete(categoryCollaborators)
       .where(
-        and(eq(categoryCollaborators.userId, userBId), inArray(categoryCollaborators.categoryId, aCategoryIds)),
+        and(
+          eq(categoryCollaborators.userId, userBId),
+          inArray(categoryCollaborators.categoryId, aCategoryIds),
+        ),
       ),
     db
       .delete(categoryCollaborators)
       .where(
-        and(eq(categoryCollaborators.userId, userAId), inArray(categoryCollaborators.categoryId, bCategoryIds)),
+        and(
+          eq(categoryCollaborators.userId, userAId),
+          inArray(categoryCollaborators.categoryId, bCategoryIds),
+        ),
       ),
   ]);
 };

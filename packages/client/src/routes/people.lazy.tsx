@@ -48,7 +48,13 @@ export function PeoplePage() {
         <h1 className="text-lg font-semibold">People</h1>
       </div>
 
-      <Button variant="outline" size="sm" onClick={invite} disabled={inviting} className="self-start">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={invite}
+        disabled={inviting}
+        className="self-start"
+      >
         {inviting ? "Generating link…" : "Invite someone"}
       </Button>
 
