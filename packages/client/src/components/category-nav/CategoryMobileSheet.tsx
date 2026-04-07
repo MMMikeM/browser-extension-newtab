@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, Ellipsis, Plus } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
+import { INBOX_COLOR } from "~/lib/constants";
 import { Drawer, DrawerContent } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
@@ -39,7 +40,7 @@ export function CategoryMobileSheet() {
     startRename,
     renameRef,
   } = useCategoryNavState(handleRename);
-  const { navOpen, setNavOpen, setMobileNavContent } = useNavContext();
+  const { navOpen, setNavOpen } = useNavContext();
 
   useEffect(() => {
     if (adding) addRef.current?.focus();
@@ -52,44 +53,6 @@ export function CategoryMobileSheet() {
 
   const ownedCategories = categories.filter((c) => c.userId === currentUserId);
   const sharedCategories = categories.filter((c) => c.userId !== currentUserId);
-
-  const activeCategory = activeCategoryId
-    ? categories.find((c) => c.id === activeCategoryId)
-    : null;
-  const showBadge = inboxCount > 0 && activeCategoryId !== null;
-
-  useLayoutEffect(() => {
-    setMobileNavContent(
-      <button
-        data-testid="category-nav-trigger"
-        onClick={() => setNavOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-medium text-foreground transition-colors active:text-hint"
-      >
-        {activeCategory?.color && (
-          <span
-            className="size-1.5 shrink-0 rounded-full"
-            style={{ backgroundColor: activeCategory.color }}
-          />
-        )}
-        <span>{activeCategory?.name ?? "Inbox"}</span>
-        <ChevronDown size={13} className="text-hint" />
-        {showBadge && (
-          <span className="size-4 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
-            {inboxCount > 9 ? "9+" : inboxCount}
-          </span>
-        )}
-      </button>,
-    );
-    return () => setMobileNavContent(null);
-  }, [
-    activeCategory?.id,
-    activeCategory?.name,
-    activeCategory?.color,
-    showBadge,
-    inboxCount,
-    setNavOpen,
-    setMobileNavContent,
-  ]);
 
   const renderRow = (cat: Category) => {
     const isOwned = cat.userId === currentUserId;
@@ -186,10 +149,8 @@ export function CategoryMobileSheet() {
               )}
             >
               <span
-                className={cn(
-                  "size-1.5 shrink-0 rounded-full",
-                  activeCategoryId === null ? "bg-primary" : "bg-transparent",
-                )}
+                className="size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: INBOX_COLOR }}
               />
               Inbox
               {inboxCount > 0 && activeCategoryId !== null && (

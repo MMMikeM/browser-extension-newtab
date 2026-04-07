@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import { useNavContext } from "~/lib/state/nav-context";
 
 export function AppShell({ right, children }: { right?: ReactNode; children?: ReactNode }) {
-  const { mobileNavContent } = useNavContext();
   return (
     <div
       className="mx-auto min-h-screen max-w-sm px-6 pt-8 pb-8 relative z-1
@@ -12,9 +10,6 @@ export function AppShell({ right, children }: { right?: ReactNode; children?: Re
     >
       <div className="mb-5 flex items-center justify-between shrink-0">
         <h1 className="font-display text-2xl tracking-[0.28em] text-foreground uppercase">Ajot</h1>
-        {mobileNavContent && (
-          <div className="hidden touch:flex flex-1 justify-center">{mobileNavContent}</div>
-        )}
         {right}
       </div>
       {children}

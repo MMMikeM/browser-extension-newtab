@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
 import { Ellipsis, Plus } from "lucide-react";
+import { INBOX_COLOR } from "~/lib/constants";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { Input } from "~/components/ui/field";
@@ -190,7 +191,7 @@ export function CategorySidebar() {
             {activeCategoryId === null && (
               <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 rounded-full bg-primary" />
             )}
-            <span className="size-1.5 shrink-0 rounded-full bg-ghost" />
+            <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: INBOX_COLOR }} />
             Inbox
           </button>
         )}
