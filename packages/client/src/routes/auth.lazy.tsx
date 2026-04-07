@@ -91,7 +91,6 @@ const AuthView = () => {
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Your name"
                     className="text-sm"
                     autoComplete="name"
                     autoFocus
@@ -108,7 +107,6 @@ const AuthView = () => {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="Username"
                   className="text-sm"
                   autoFocus={mode === "login"}
                   autoCapitalize="none"
@@ -127,7 +125,6 @@ const AuthView = () => {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="Password"
                   className="text-sm"
                   autoComplete={mode === "login" ? "current-password" : "new-password"}
                 />
@@ -135,7 +132,10 @@ const AuthView = () => {
             )}
           </form.Field>
           {serverError && (
-            <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
               {serverError}
             </div>
           )}
@@ -147,8 +147,12 @@ const AuthView = () => {
               disabled={form.state.isSubmitting}
             >
               {form.state.isSubmitting
-                ? mode === "login" ? "Signing in…" : "Creating account…"
-                : mode === "login" ? "Sign in" : "Create account"}
+                ? mode === "login"
+                  ? "Signing in…"
+                  : "Creating account…"
+                : mode === "login"
+                  ? "Sign in"
+                  : "Create account"}
             </Button>
             <div className="flex items-center justify-center gap-6">
               <Button

@@ -56,10 +56,9 @@ const Input = ({ className, ...props }: ComponentProps<"input">) => (
   <InputPrimitive
     className={cn(
       // Strip the box style from the primitive
-      "rounded-none border-0 border-b shadow-none",
-      // Underline style
+      "rounded-none border-0 border-b shadow-none h-auto py-2",
       "bg-transparent px-0",
-      "border-ghost/40 focus-visible:border-hint",
+      "border-ghost focus-visible:border-hint",
       "focus-visible:ring-0 focus-visible:ring-transparent",
       "placeholder:text-hint",
       className,
@@ -79,10 +78,9 @@ const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
     className={cn(
       // Strip the box style
       "rounded-none border-0 border-b shadow-none",
-      // Underline style
       "min-h-0 bg-transparent px-0 py-1.5",
       "resize-none field-sizing-content",
-      "border-ghost/40 focus-visible:border-hint",
+      "border-ghost focus-visible:border-hint",
       "focus-visible:ring-0",
       "placeholder:text-hint",
       className,

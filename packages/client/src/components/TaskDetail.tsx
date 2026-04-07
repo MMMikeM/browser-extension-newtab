@@ -1,10 +1,18 @@
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type { Task, Note } from "~/lib/types";
-import { useNotes, useContacts, updateTask, deleteTask, addNote, updateNote, deleteNote } from "~/lib/db/hooks";
+import {
+  useNotes,
+  useContacts,
+  updateTask,
+  deleteTask,
+  addNote,
+  updateNote,
+  deleteNote,
+} from "~/lib/db/hooks";
 import { shareTask, removeTaskShare } from "~/lib/actions";
 import { addTask } from "~/lib/db/add-task";
-import { getCurrentUserId } from "~/lib/auth/current-user";
+import { getCurrentUserId, useOptimisticUserId } from "~/lib/auth/current-user";
 import {
   Drawer,
   DrawerContent,
@@ -50,13 +58,7 @@ export function TaskDetail({
   );
 }
 
-const TaskDetailContent = ({
-  task,
-  onClose,
-}: {
-  task: Task;
-  onClose: () => void;
-}) => {
+const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void }) => {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const isDone = task.status === "done";
@@ -88,14 +90,14 @@ const TaskDetailContent = ({
               const trimmed = title.trim();
               if (trimmed && trimmed !== task.title) updateTask(task.id, { title: trimmed });
             }}
-            className="border-transparent text-lg font-semibold focus-visible:border-hint"
+            className="border-ghost text-lg font-semibold focus-visible:border-hint"
           />
         </Field>
       </div>
 
       {/* Description */}
       <Field>
-        <FieldLabel className="text-xs font-medium text-hint">Description</FieldLabel>
+        <FieldLabel className="text-sm font-medium text-hint">Description</FieldLabel>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -110,7 +112,7 @@ const TaskDetailContent = ({
 
       {/* Due date */}
       <div className="flex items-center gap-3">
-        <span className="text-xs font-medium text-hint">Due date</span>
+        <span className="text-sm font-medium text-hint">Due date</span>
         {/* Hidden native picker — sized to zero, browser uses it for date UI */}
         <input
           ref={dateRef}
@@ -156,13 +158,11 @@ const TaskDetailContent = ({
       )}
 
       {/* Assignee — only when the task has been shared with someone */}
-      {!task.parentId && task.shares.length > 0 && (
-        <AssigneeSection task={task} />
-      )}
+      {!task.parentId && task.shares.length > 0 && <AssigneeSection task={task} />}
 
       {/* Notes */}
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium text-hint">Notes</p>
+        <p className="text-sm font-medium text-hint">Notes</p>
         {taskNotes.map((note) => (
           <NoteItem key={note.id} note={note} />
         ))}
@@ -171,7 +171,10 @@ const TaskDetailContent = ({
 
       {/* Delete */}
       <button
-        onClick={() => { deleteTask(task.id); onClose(); }}
+        onClick={() => {
+          deleteTask(task.id);
+          onClose();
+        }}
         className="self-start text-xs text-hint transition-colors hover:text-destructive"
       >
         Delete task
@@ -233,9 +236,7 @@ const AddNoteInput = ({ taskId }: { taskId: string }) => {
         e.preventDefault();
         const content = value.trim();
         if (!content) return;
-        const userId = getCurrentUserId();
-        if (!userId) return;
-        addNote({ userId, taskId, title: content, content });
+        addNote({ userId: getCurrentUserId(), taskId, title: content, content });
         setValue("");
       }}
     >
@@ -265,7 +266,7 @@ const SubtaskSection = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-hint">
+      <p className="text-sm font-medium text-hint">
         Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}
       </p>
       {subtasks.map((sub) => (
@@ -318,7 +319,7 @@ const SubtaskSection = ({
 };
 
 const AssigneeSection = ({ task }: { task: Task }) => {
-  const currentUserId = getCurrentUserId();
+  const currentUserId = useOptimisticUserId();
   const isOwner = currentUserId === task.userId;
 
   const candidates = [
@@ -330,7 +331,7 @@ const AssigneeSection = ({ task }: { task: Task }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-medium text-hint">Assignee</span>
+      <span className="text-sm font-medium text-hint">Assignee</span>
       <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Assignee">
         <button
           onClick={() => isOwner && updateTask(task.id, { assigneeId: null })}
@@ -373,7 +374,7 @@ const ShareSection = ({
   taskUserId: string;
   shares: Task["shares"];
 }) => {
-  const currentUserId = getCurrentUserId();
+  const currentUserId = useOptimisticUserId();
   const isOwner = currentUserId === taskUserId;
   const [selectedUsername, setSelectedUsername] = useState("");
   const [adding, setAdding] = useState(false);
@@ -401,7 +402,7 @@ const ShareSection = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs font-medium text-hint">
+      <p className="text-sm font-medium text-hint">
         Shared with{shares.length > 0 ? ` (${shares.length})` : ""}
       </p>
       {shares.map((share) => (
@@ -417,9 +418,7 @@ const ShareSection = ({
               {share.sharedWithUser?.name ?? share.sharedWithUserId}
             </span>
             {share.sharedWithUser?.username && (
-              <span className="text-xs text-hint">
-                @{share.sharedWithUser.username}
-              </span>
+              <span className="text-xs text-hint">@{share.sharedWithUser.username}</span>
             )}
           </div>
           {isOwner && (
@@ -441,7 +440,10 @@ const ShareSection = ({
               setError(null);
             }}
           >
-            <SelectTrigger className="flex-1" aria-label="Share with">
+            <SelectTrigger
+              className="flex-1 rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
+              aria-label="Share with"
+            >
               <SelectValue placeholder="Share with…" />
             </SelectTrigger>
             <SelectContent>

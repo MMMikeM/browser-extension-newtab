@@ -6,14 +6,14 @@ Shadcn/Base UI component primitives. Two-tier architecture:
 
 These are unmodified shadcn output. Do not add app opinions here.
 
-| File | Component | Notes |
-|------|-----------|-------|
-| `input.tsx` | `Input` | Box-style, Base UI InputPrimitive |
-| `textarea.tsx` | `Textarea` | Box-style, raw `<textarea>` |
-| `button.tsx` | `Button` | — |
-| `checkbox.tsx` | `Checkbox` | — |
-| `select.tsx` | `Select`, `SelectTrigger`, … | — |
-| `drawer.tsx` | `Drawer`, `DrawerContent`, … | — |
+| File           | Component                    | Notes                             |
+| -------------- | ---------------------------- | --------------------------------- |
+| `input.tsx`    | `Input`                      | Box-style, Base UI InputPrimitive |
+| `textarea.tsx` | `Textarea`                   | Box-style, raw `<textarea>`       |
+| `button.tsx`   | `Button`                     | —                                 |
+| `checkbox.tsx` | `Checkbox`                   | —                                 |
+| `select.tsx`   | `Select`, `SelectTrigger`, … | —                                 |
+| `drawer.tsx`   | `Drawer`, `DrawerContent`, … | —                                 |
 
 Regenerate any of these with: `npx shadcn@latest add <name> --overwrite`
 
@@ -22,8 +22,15 @@ Regenerate any of these with: `npx shadcn@latest add <name> --overwrite`
 `field.tsx` is the single import for all text-input work in this app:
 
 ```ts
-import { Field, FieldLabel, FieldDescription, FieldError, Input, Textarea, FormField }
-  from "~/components/ui/field"
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  Input,
+  Textarea,
+  FormField,
+} from "~/components/ui/field";
 ```
 
 - **`Input`** / **`Textarea`** — app-styled underline variants, composed on top of the raw shadcn primitives. Use these everywhere.
@@ -36,22 +43,22 @@ import { Field, FieldLabel, FieldDescription, FieldError, Input, Textarea, FormF
 
 ```ts
 // ❌ Wrong — box style, no app language
-import { Input } from "~/components/ui/input"
-import { Textarea } from "~/components/ui/textarea"
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 
 // ✅ Correct — underline style, app-styled
-import { Input, Textarea } from "~/components/ui/field"
+import { Input, Textarea } from "~/components/ui/field";
 ```
 
 A lint rule enforces this. The only file that may import from `ui/input` or `ui/textarea` directly is `ui/field.tsx` itself.
 
 ### When to use Field vs bare Input
 
-| Pattern | When |
-|---------|------|
-| `FormField` + `Input` | TanStack Form field — has label, validation, error display |
-| `Field` + `FieldLabel` + `Input`/`Textarea` | Static labeled field — no TanStack, but needs accessible label |
-| Bare `Input` with `aria-label` | Inline editing only — label is implicit from surrounding UI (e.g. task title). Suppress lint warning with a comment. |
+| Pattern                                     | When                                                                                                                 |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `FormField` + `Input`                       | TanStack Form field — has label, validation, error display                                                           |
+| `Field` + `FieldLabel` + `Input`/`Textarea` | Static labeled field — no TanStack, but needs accessible label                                                       |
+| Bare `Input` with `aria-label`              | Inline editing only — label is implicit from surrounding UI (e.g. task title). Suppress lint warning with a comment. |
 
 ### Abstractions stay out of the `ui/` folder
 

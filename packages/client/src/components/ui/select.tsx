@@ -30,9 +30,9 @@ const SelectTrigger = ({
       // Sizing
       "px-3 py-1.5 text-sm",
       // Surface & colour
-      "border border-border/50 bg-transparent text-hint",
+      "border border-ghost bg-transparent text-hint",
       // Interaction
-      "hover:border-border hover:text-foreground",
+      "hover:border-hint hover:text-foreground",
       "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
       "aria-expanded:border-border aria-expanded:text-foreground",
       // Misc
@@ -45,7 +45,7 @@ const SelectTrigger = ({
   >
     {children}
     <ChevronDown
-      className="size-3 shrink-0 opacity-60 transition-transform duration-150 group-aria-expanded:rotate-180"
+      className="size-3 shrink-0 text-ghost transition-transform duration-150 group-aria-expanded:rotate-180"
       aria-hidden="true"
     />
   </SelectPrimitive.Trigger>
@@ -79,6 +79,7 @@ const SelectContent = ({
     sideOffset={sideOffset}
     alignItemWithTrigger={false}
     align="start"
+    className="z-50"
     // Popup is at least as wide as the trigger — avoids the narrow/centred look
     style={{ minWidth: "var(--anchor-width)" }}
   >
