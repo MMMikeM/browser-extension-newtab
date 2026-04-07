@@ -1,14 +1,45 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
+import { signIn } from "./helpers/auth";
 import { createCategory } from "./helpers/app";
+import { apiRequest } from "./helpers/api";
 
 // CategoryNav renders either CategorySidebar (desktop, pointer:fine) or
 // CategoryMobileSheet (mobile, pointer:coarse) — never both simultaneously.
 // The `touch:` Tailwind variant activates on pointer:coarse; Playwright's
 // mobile project (iPhone 14) emulates this.
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, user1Auth }) => {
+  // Clean server state: delete tasks first (categories require empty tasks), then categories
+  const tasks = await apiRequest<{ id: string; parentId: string | null }[]>(
+    "GET",
+    "/api/tasks",
+    undefined,
+    user1Auth.token,
+  );
+  await Promise.allSettled(
+    tasks
+      .filter((t) => !t.parentId)
+      .map((t) => apiRequest("DELETE", "/api/tasks", { id: t.id }, user1Auth.token)),
+  );
+  const categories = await apiRequest<{ id: string }[]>(
+    "GET",
+    "/api/categories",
+    undefined,
+    user1Auth.token,
+  );
+  await Promise.allSettled(
+    categories.map((c) => apiRequest("DELETE", "/api/categories", { id: c.id }, user1Auth.token)),
+  );
+
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await signIn(page, user1Auth);
+  await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector("#add-task-input", { timeout: 10000 });
+  // CategoryMobileSheet is lazy — wait for trigger on mobile (no-op on desktop)
+  await page
+    .locator('[data-testid="category-nav-trigger"]')
+    .waitFor({ timeout: 3000 })
+    .catch(() => {});
 });
 
 // ─── Single-component guarantee ─────────────────────────────────────────────
@@ -157,7 +188,11 @@ test("desktop: clicking Rename in category options starts rename flow", async ({
   await createCategory(page, "RenameMe", "sidebar");
   await openCategoryOptionsPopover(page, "RenameMe");
 
-  await page.getByRole("button", { name: "Rename" }).first().click();
+  const renameBtn = page.getByRole("button", { name: "Rename" }).first();
+  await expect(renameBtn).toBeVisible({ timeout: 3000 });
+  // locator.click() dispatches CDP pointer events which interfere with
+  // floating-ui's useDismiss insideReactTree flag. Use element.click() instead.
+  await renameBtn.evaluate((el) => (el as HTMLElement).click());
 
   // Rename form should appear in the sidebar
   const sidebar = page.getByTestId("category-sidebar");
@@ -173,10 +208,14 @@ test("desktop: clicking Delete in category options removes the category", async 
   await createCategory(page, "DeleteMe", "sidebar");
   await openCategoryOptionsPopover(page, "DeleteMe");
 
-  await page.getByRole("button", { name: "Delete" }).first().click();
-  await page.waitForTimeout(300);
+  const deleteBtn = page.getByRole("button", { name: "Delete" }).first();
+  await expect(deleteBtn).toBeVisible({ timeout: 3000 });
+  // Same floating-ui/CDP issue as Rename above — use element.click()
+  await deleteBtn.evaluate((el) => (el as HTMLElement).click());
 
-  await expect(page.getByTestId("category-sidebar").getByText("DeleteMe")).toHaveCount(0);
+  await expect(page.getByTestId("category-sidebar").getByText("DeleteMe")).toHaveCount(0, {
+    timeout: 5000,
+  });
 });
 
 // ─── Mobile bottom sheet ─────────────────────────────────────────────────────
