@@ -1,10 +1,10 @@
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { CategorySidebar } from "./CategorySidebar";
 
 export { CATEGORY_DROP_PREFIX } from "./CategorySidebar";
 
-const categoryMobileSheetModule = import("./CategoryMobileSheet");
-const CategoryMobileSheet = lazy(() => categoryMobileSheetModule);
+// Dynamic import — CategoryMobileSheet is only needed on touch devices
+const CategoryMobileSheet = lazy(() => import("./CategoryMobileSheet"));
 
 const useIsTouch = () =>
   useState(

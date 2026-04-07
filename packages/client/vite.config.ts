@@ -9,7 +9,6 @@ import { injectFontPreloads } from "./plugins/inject-font-preloads";
 import { prerender } from "./plugins/prerender";
 import { injectCriticalCss } from "./plugins/inject-critical-css";
 import babel from "@rolldown/plugin-babel";
-import { visualizer } from "rollup-plugin-visualizer";
 import { globSync } from "node:fs";
 
 const OPFS_WORKER_SRC = resolve(
@@ -101,6 +100,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
+      // TEMP: force React dev bundle for readable hydration errors
+      "process.env.NODE_ENV": JSON.stringify("development"),
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     },
     plugins: [
@@ -121,8 +122,7 @@ export default defineConfig(({ mode }) => {
     ],
     build: {
       outDir: "dist",
-      minify: true,
-      sourcemap: "hidden",
+      minify: false, // TEMP: non-minified deploy to verify hydration fix
       rolldownOptions: {
         output: {
           codeSplitting: {
@@ -144,18 +144,11 @@ export default defineConfig(({ mode }) => {
               // 3. TanStack Routing & Data Fetching
               {
                 name: "tanstack-core",
-                test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core)[\\/]/,
+                test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
                 priority: 35,
               },
 
-              // 4a. Heavy UI overlays — only loaded by lazy routes/components
-              {
-                name: "ui-overlay",
-                test: /node_modules[\\/]@base-ui[\\/]react[\\/]esm[\\/](drawer|select|dialog|menu|context-menu)[\\/]/,
-                priority: 32,
-              },
-
-              // 4b. UI Primitives & Styling
+              // 4. UI Primitives & Styling
               {
                 name: "ui-primitives",
                 test: /node_modules[\\/](@base-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,

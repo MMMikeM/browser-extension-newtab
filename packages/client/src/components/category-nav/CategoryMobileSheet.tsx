@@ -268,3 +268,5 @@ export function CategoryMobileSheet() {
     </>
   );
 }
+
+export default CategoryMobileSheet;
