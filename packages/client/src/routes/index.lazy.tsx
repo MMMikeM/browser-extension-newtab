@@ -75,16 +75,22 @@ function TaskListView() {
        * Fragment children become direct flex children of AppShell via <Outlet />.
        */}
       <TaskInputBar />
-      <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0">
+      <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0 touch:flex touch:flex-col">
         <Suspense fallback={null}>
           <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
         </Suspense>
-        <div className="mt-2 flex flex-col gap-4">
+        <div className="mt-2 flex flex-col gap-4 flex-1">
           <DragDropProvider onDragEnd={handleDragEnd}>
             <CategoryNav />
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 flex-1">
               <TaskList tasks={activeTasks} onOpen={setSelectedTaskId} sortable />
-              {activeTasks.length === 0 && (
+              {activeTasks.length === 0 && doneTasks.length === 0 && (
+                <div className="flex-1 flex flex-col items-center justify-center pb-8 touch:pb-0 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                  <p className="text-base text-hint">{emptyPhrase}</p>
+                  <p className="mt-1 text-sm text-hint">type something above to begin</p>
+                </div>
+              )}
+              {activeTasks.length === 0 && doneTasks.length > 0 && (
                 <p className="text-sm text-hint animate-in fade-in slide-in-from-bottom-1 duration-300">
                   {emptyPhrase}
                 </p>
