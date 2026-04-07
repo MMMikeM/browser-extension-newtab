@@ -5,6 +5,13 @@ import { addCollaborator, removeCollaborator } from "~/lib/actions";
 import { useAuthToken } from "~/lib/auth/token";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "~/components/ui/drawer";
 import { Button } from "~/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export function CategoryCollabSheet({
   categoryId,
@@ -92,21 +99,24 @@ export function CategoryCollabSheet({
             <div className="flex flex-col gap-2">
               <p className="text-xs font-medium text-muted-foreground">Add collaborator</p>
               <div className="flex items-center gap-2">
-                <select
+                <Select
                   value={selectedUsername}
-                  onChange={(e) => {
-                    setSelectedUsername(e.target.value);
+                  onValueChange={(v) => {
+                    setSelectedUsername(v as string);
                     setError(null);
                   }}
-                  className="flex-1 rounded-md border border-input bg-input/30 px-2 py-1.5 text-sm outline-none focus-visible:border-ring"
                 >
-                  <option value="">Select a contact…</option>
-                  {addableContacts.map((c) => (
-                    <option key={c.contactUserId} value={c.contactUser!.username}>
-                      {c.contactUser!.name} (@{c.contactUser!.username})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="flex-1" aria-label="Add collaborator">
+                    <SelectValue placeholder="Select a contact…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {addableContacts.map((c) => (
+                      <SelectItem key={c.contactUserId} value={c.contactUser!.username}>
+                        {c.contactUser!.name} (@{c.contactUser!.username})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"
