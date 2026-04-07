@@ -23,7 +23,7 @@ function TaskListView() {
        * Fragment children become direct flex children of AppShell via <Outlet />.
        */}
       <TaskInputBar />
-      <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:min-h-0 touch:flex touch:flex-col">
+      <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:overflow-x-hidden touch:min-h-0 touch:flex touch:flex-col">
         <Suspense fallback={null}>
           <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
         </Suspense>
