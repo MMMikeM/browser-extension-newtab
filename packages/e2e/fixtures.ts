@@ -32,11 +32,11 @@ export const test = base.extend<Fixtures>({
     await use(page);
   },
 
-  user1Auth: async ({}, use) => {
+  user1Auth: async (_, use) => {
     await use(await getOrCreateUser(USER_1));
   },
 
-  user2Auth: async ({}, use) => {
+  user2Auth: async (_, use) => {
     await use(await getOrCreateUser(USER_2));
   },
 

@@ -26,28 +26,22 @@ const formatDueDate = (dateStr: string) => {
 
 export function TaskItem({
   task,
-  subtasks,
+  onOpen,
   onToggle,
   onDelete,
-  onOpen,
   onSetDueDate,
   onAddSubtask,
-  onToggleSubtask,
-  onDeleteSubtask,
-  onOpenSubtask,
+  subtasks = [],
   hideDate,
   isSubtask,
 }: {
   task: Task;
+  onOpen?: (id: string) => void;
+  onToggle: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  onSetDueDate: (task: Task, date: string | null) => void;
+  onAddSubtask: (task: Task, title: string) => void;
   subtasks?: Task[];
-  onToggle: () => void;
-  onDelete: () => void;
-  onOpen?: () => void;
-  onSetDueDate?: (date: string | null) => void;
-  onAddSubtask?: (title: string) => void;
-  onToggleSubtask?: (task: Task) => void;
-  onDeleteSubtask?: (id: string) => void;
-  onOpenSubtask?: (id: string) => void;
   hideDate?: boolean;
   isSubtask?: boolean;
 }) {
@@ -58,18 +52,15 @@ export function TaskItem({
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskTitle, setSubtaskTitle] = useState("");
 
-  // Swipe is only active on touch devices for top-level tasks
   const swipe = useSwipeReveal(!IS_TOUCH || !!isSubtask);
   const swipeEnabled = IS_TOUCH && !isSubtask;
 
-  const openPicker = () => {
-    dateRef.current?.showPicker();
-  };
+  const openPicker = () => dateRef.current?.showPicker();
 
   const submitSubtask = () => {
     const title = subtaskTitle.trim();
-    if (title && onAddSubtask) {
-      onAddSubtask(title);
+    if (title) {
+      onAddSubtask(task, title);
       setSubtaskTitle("");
       setAddingSubtask(false);
     }
@@ -88,19 +79,17 @@ export function TaskItem({
             className="absolute right-0 top-0 h-full w-[148px] flex items-stretch"
             aria-hidden="true"
           >
-            {onSetDueDate && (
-              <button
-                onClick={() => {
-                  openPicker();
-                  swipe.close();
-                }}
-                className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
-              >
-                <Calendar size={15} />
-                <span className="text-[10px]">Date</span>
-              </button>
-            )}
-            {onAddSubtask && !isDone && (
+            <button
+              onClick={() => {
+                openPicker();
+                swipe.close();
+              }}
+              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
+            >
+              <Calendar size={15} />
+              <span className="text-[10px]">Date</span>
+            </button>
+            {!isDone && (
               <button
                 onClick={() => {
                   setAddingSubtask(true);
@@ -114,7 +103,7 @@ export function TaskItem({
             )}
             <button
               onClick={() => {
-                onDelete();
+                onDelete(task);
                 swipe.close();
               }}
               className="flex flex-1 flex-col items-center justify-center gap-0.5 text-destructive transition-colors active:bg-destructive/10"
@@ -140,56 +129,71 @@ export function TaskItem({
           {!isSubtask && (
             <span
               className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-hint active:cursor-grabbing"
-              // Stop swipe gesture from activating when the user intends to drag-reorder
               onTouchStart={(e) => e.stopPropagation()}
             >
               <GripVertical size={14} />
             </span>
           )}
           {isSubtask && <span className="w-3.5" />}
-          <Checkbox checked={isDone} onCheckedChange={onToggle} className="mt-0.5" />
-          <div
-            className={cn("flex min-w-0 flex-1 flex-col", onOpen && "cursor-pointer")}
-            onClick={onOpen}
-          >
-            <span
-              className={cn(
-                "truncate font-medium",
-                isDone && "text-muted-foreground line-through",
-                isSubtask && "text-sm",
-              )}
+          <Checkbox checked={isDone} onCheckedChange={() => onToggle(task)} className="mt-0.5" />
+          {onOpen ? (
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 flex-col cursor-pointer text-left"
+              onClick={() => onOpen(task.id)}
             >
-              {task.title}
-            </span>
-            {task.description && (
-              <span className="truncate text-xs text-muted-foreground">{task.description}</span>
-            )}
-          </div>
-          {onSetDueDate && (
-            <input
-              ref={dateRef}
-              type="date"
-              className="invisible absolute size-0"
-              value={task.dueDate ?? ""}
-              tabIndex={-1}
-              onChange={(e) => onSetDueDate(e.target.value || null)}
-            />
+              <span
+                className={cn(
+                  "truncate font-medium",
+                  isDone && "text-muted-foreground line-through",
+                  isSubtask && "text-sm",
+                )}
+              >
+                {task.title}
+              </span>
+              {task.description && (
+                <span className="truncate text-xs text-muted-foreground">{task.description}</span>
+              )}
+            </button>
+          ) : (
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span
+                className={cn(
+                  "truncate font-medium",
+                  isDone && "text-muted-foreground line-through",
+                  isSubtask && "text-sm",
+                )}
+              >
+                {task.title}
+              </span>
+              {task.description && (
+                <span className="truncate text-xs text-muted-foreground">{task.description}</span>
+              )}
+            </div>
           )}
+          <input
+            ref={dateRef}
+            type="date"
+            className="invisible absolute size-0"
+            value={task.dueDate ?? ""}
+            tabIndex={-1}
+            onChange={(e) => onSetDueDate(task, e.target.value || null)}
+          />
           {due && showDate ? (
             <button
-              onClick={onSetDueDate ? openPicker : undefined}
+              type="button"
+              onClick={openPicker}
               className={cn(
-                "mt-0.5 whitespace-nowrap text-xs",
-                onSetDueDate && "cursor-pointer hover:underline",
+                "mt-0.5 whitespace-nowrap text-xs cursor-pointer hover:underline",
                 isDone ? "text-muted-foreground" : due.overdue ? "text-destructive" : "text-date",
               )}
             >
               {due.label}
             </button>
           ) : (
-            onSetDueDate &&
             !isDone && (
               <button
+                type="button"
                 onClick={openPicker}
                 className="mt-0.5 whitespace-nowrap text-xs text-muted-foreground opacity-0 transition-opacity hover:underline group-hover/task:opacity-100 touch:hidden"
               >
@@ -200,22 +204,24 @@ export function TaskItem({
           {task.assignee && (
             <span
               title={task.assignee.name}
-              className="mt-0.5 shrink-0 size-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center"
+              className="mt-0.5 shrink-0 size-5 rounded-full bg-primary-subtle text-primary text-[10px] font-semibold flex items-center justify-center"
             >
               {task.assignee.name.slice(0, 2).toUpperCase()}
             </span>
           )}
-          {onAddSubtask && !isSubtask && !isDone && (
+          {!isSubtask && !isDone && (
             <button
+              type="button"
               onClick={() => setAddingSubtask(true)}
               className="mt-1 text-transparent transition-colors hover:text-foreground group-hover/task:text-ghost touch:hidden"
-              title="Add subtask"
+              aria-label="Add subtask"
             >
               <Plus size={14} />
             </button>
           )}
           <button
-            onClick={onDelete}
+            type="button"
+            onClick={() => onDelete(task)}
             className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:text-hint touch:hover:text-destructive"
             aria-label="Delete task"
           >
@@ -224,16 +230,18 @@ export function TaskItem({
         </div>
       </div>
 
-      {subtasks && subtasks.length > 0 && (
+      {!isSubtask && subtasks.length > 0 && (
         <div className="ml-6 border-l border-ghost pl-2">
           {subtasks.map((sub) => (
             <TaskItem
               key={sub.id}
               task={sub}
               isSubtask
-              onToggle={() => onToggleSubtask?.(sub)}
-              onDelete={() => onDeleteSubtask?.(sub.id)}
-              onOpen={onOpenSubtask ? () => onOpenSubtask(sub.id) : undefined}
+              onOpen={onOpen}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onSetDueDate={onSetDueDate}
+              onAddSubtask={onAddSubtask}
             />
           ))}
         </div>
@@ -252,6 +260,7 @@ export function TaskItem({
             onChange={(e) => setSubtaskTitle(e.target.value)}
             placeholder="Subtask title..."
             className="h-7 text-xs"
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             onBlur={() => {
               if (!subtaskTitle.trim()) setAddingSubtask(false);

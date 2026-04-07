@@ -93,6 +93,7 @@ const AuthView = () => {
                     onBlur={field.handleBlur}
                     className="text-sm"
                     autoComplete="name"
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
                   />
                 </FormField>
@@ -108,6 +109,7 @@ const AuthView = () => {
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                   className="text-sm"
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus={mode === "login"}
                   autoCapitalize="none"
                   autoCorrect="off"

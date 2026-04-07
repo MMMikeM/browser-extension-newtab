@@ -33,17 +33,24 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { cn } from "~/lib/utils";
+import { useTasks } from "~/lib/db/hooks";
 
 export function TaskDetail({
-  task,
+  taskId,
   open,
   onClose,
 }: {
-  task: Task | null;
+  taskId: string | null;
   open: boolean;
   onClose: () => void;
 }) {
-  if (!task) return null;
+  const { data: allTasks, isLoading: tasksLoading } = useTasks();
+
+  if (!taskId || !open) return null;
+
+  const task = allTasks?.find((t) => t.id === taskId);
+
+  if (tasksLoading || !task) return null;
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>

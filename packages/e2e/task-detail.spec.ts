@@ -1,7 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createTask } from "./helpers/app";
 import { apiRequest } from "./helpers/api";
-import { USER_1 } from "./helpers/users";
 
 // ---------------------------------------------------------------------------
 // Helpers

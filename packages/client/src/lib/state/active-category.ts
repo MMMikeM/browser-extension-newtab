@@ -5,8 +5,6 @@ const store = createExternalStore<string | null>(
   typeof localStorage !== "undefined" ? localStorage.getItem(KEY) : null,
 );
 
-export const getActiveCategoryId = store.get;
-
 export const setActiveCategoryId = (id: string | null) => {
   if (id) localStorage.setItem(KEY, id);
   else localStorage.removeItem(KEY);

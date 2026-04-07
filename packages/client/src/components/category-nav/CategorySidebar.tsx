@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
 import { Ellipsis, Plus } from "lucide-react";
-import { Button } from "~/components/ui/button";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { Input } from "~/components/ui/field";

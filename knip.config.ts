@@ -1,7 +1,7 @@
 import type { KnipConfig } from "knip";
 
 export default {
-  ignore: ["packages/e2e/**"],
+  ignore: ["packages/e2e/**", "packages/client/src/lib/gradients.ts"],
   workspaces: {
     "packages/client": {
       entry: [

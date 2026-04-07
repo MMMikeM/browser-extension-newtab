@@ -9,6 +9,7 @@ export const now = (): ISODateString => new Date().toISOString() as ISODateStrin
  * Replaces base-ui's render-prop className with a plain string and
  * merges in the variant props from tv().
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type StyledProps<TPrimitive, TVariants extends (...args: any[]) => unknown> = Omit<
   TPrimitive,
   "className"
