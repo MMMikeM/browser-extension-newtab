@@ -111,7 +111,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
     <DragDropProvider onDragEnd={handleDragEnd}>
       <CategoryNav />
       <div className="flex flex-col gap-4 flex-1">
-        <ul className="flex flex-col">
+        <ul className="flex flex-col gap-1">
           {activeTasks.map((task, index) => (
             <SortableTask key={task.id} id={task.id} index={index}>
               {(ref) => (

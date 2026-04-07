@@ -71,7 +71,7 @@ export function TaskItem({
       {/* Swipe container: clips the reveal drawer on touch, inert wrapper on desktop */}
       <div
         ref={swipe.containerRef}
-        className={cn("-mx-2", swipeEnabled && "relative overflow-hidden rounded-lg")}
+        className={cn("-mx-2 animate-[task-enter_200ms_ease-out]", swipeEnabled && "relative overflow-hidden rounded-lg")}
       >
         {/* Action drawer — revealed as row slides left */}
         {swipeEnabled && (
@@ -119,8 +119,8 @@ export function TaskItem({
         <div
           ref={swipe.contentRef}
           className={cn(
-            "group/task flex items-start gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-muted/50 animate-[task-enter_200ms_ease-out]",
-            isSubtask && "py-1",
+            "group/task flex items-start gap-2 px-2 py-2.5 rounded-lg transition-colors hover:bg-muted/50",
+            isSubtask && "py-1.5",
             // relative + bg-card: positions this row above the absolute drawer in the CSS
             // stacking order (static < absolute, so without relative the drawer bleeds through)
             swipeEnabled && "relative bg-card",
@@ -128,14 +128,14 @@ export function TaskItem({
         >
           {!isSubtask && (
             <span
-              className="mt-0.5 flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-hint active:cursor-grabbing"
+              className="self-center flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-hint active:cursor-grabbing"
               onTouchStart={(e) => e.stopPropagation()}
             >
               <GripVertical size={14} />
             </span>
           )}
-          {isSubtask && <span className="w-3.5" />}
-          <Checkbox checked={isDone} onCheckedChange={() => onToggle(task)} className="mt-0.5" />
+          {isSubtask && <span className="w-1" />}
+          <Checkbox checked={isDone} onCheckedChange={() => onToggle(task)} className="self-center" />
           {onOpen ? (
             <button
               type="button"
@@ -222,7 +222,7 @@ export function TaskItem({
           <button
             type="button"
             onClick={() => onDelete(task)}
-            className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:text-hint touch:hover:text-destructive"
+            className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:hidden"
             aria-label="Delete task"
           >
             <X size={14} />
@@ -231,7 +231,7 @@ export function TaskItem({
       </div>
 
       {!isSubtask && subtasks.length > 0 && (
-        <div className="ml-6 border-l border-ghost pl-2">
+        <div className="mt-1 ml-6 border-l border-ghost pl-2">
           {subtasks.map((sub) => (
             <TaskItem
               key={sub.id}
