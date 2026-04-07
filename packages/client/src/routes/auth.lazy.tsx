@@ -7,7 +7,7 @@ import { setCurrentUser } from "~/lib/auth/current-user";
 import { authenticate } from "~/lib/actions";
 import { Button } from "~/components/ui/button";
 import { FormField } from "~/components/ui/field";
-import { Input } from "~/components/ui/input";
+import { TextField } from "~/components/ui/text-field";
 import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 
@@ -70,7 +70,7 @@ const AuthView = () => {
   });
 
   return (
-    <div className="flex flex-col items-center pt-[18vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
+    <div className="flex flex-col items-center justify-start pt-[20vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
       <div className="w-full max-w-xs">
         <p className="text-center text-sm text-hint mb-6">
           {mode === "signup" ? "Create your account" : "Sign in to sync across devices"}
@@ -86,7 +86,7 @@ const AuthView = () => {
             <form.Field name="name" validators={{ onChange: signupSchema.shape.name }}>
               {(field) => (
                 <FormField field={field} label="Name">
-                  <Input
+                  <TextField
                     type="text"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
@@ -103,7 +103,7 @@ const AuthView = () => {
           <form.Field name="username" validators={{ onChange: schema.shape.username }}>
             {(field) => (
               <FormField field={field} label="Username">
-                <Input
+                <TextField
                   type="text"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -122,7 +122,7 @@ const AuthView = () => {
           <form.Field name="password" validators={{ onChange: schema.shape.password }}>
             {(field) => (
               <FormField field={field} label="Password">
-                <Input
+                <TextField
                   type="password"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}

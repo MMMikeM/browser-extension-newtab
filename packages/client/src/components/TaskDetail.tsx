@@ -12,7 +12,6 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "~/components/ui/drawer";
-import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Field, FieldLabel } from "~/components/ui/field";
@@ -72,7 +71,7 @@ const TaskDetailContent = ({
   const taskNotes = allNotes.filter((n) => n.taskId === task.id);
 
   return (
-    <div className="flex flex-col gap-6 px-6 pb-8 pt-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pb-8 pt-4">
       {/* Title */}
       <div className="flex items-center gap-3">
         <Checkbox
@@ -240,12 +239,12 @@ const AddNoteInput = ({ taskId }: { taskId: string }) => {
         setValue("");
       }}
     >
-      <Input
+      <TextField
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Add a note…"
-        className="h-8 text-sm placeholder:text-hint"
+        className="h-8 text-sm"
       />
     </form>
   );
@@ -306,12 +305,12 @@ const SubtaskSection = ({
           setValue("");
         }}
       >
-        <Input
+        <TextField
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Add a subtask…"
-          className="h-8 text-sm placeholder:text-hint"
+          className="h-8 text-sm"
         />
       </form>
     </div>
