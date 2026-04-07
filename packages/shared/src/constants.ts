@@ -1,5 +1,8 @@
 export const TOKEN_KEY = "newtab-todo-token";
 
+// Inbox has no user-assigned colour — use warm off-white to distinguish it from categories
+export const INBOX_COLOR = "oklch(0.90 0.008 80)";
+
 // Warm-toned palette — chosen to harmonise with the app's oklch(0.155 0.012 55) background.
 // Lower chroma than standard palettes; all work as text on dark bg and as bg with white text.
 export const CATEGORY_COLORS = [
