@@ -57,12 +57,16 @@ export const removeCollaborator = async (categoryId: string, userId: string) => 
   await categoriesCollection.utils.refetch();
 };
 
-/** Leaves a shared category (self-remove), then refreshes categories. */
+/** Leaves a shared category (self-remove), then removes it from the local collection. */
 export const leaveCategory = async (categoryId: string, userId: string) => {
-  await client.api.categories[":id"].collaborators[":userId"].$delete({
+  const res = await client.api.categories[":id"].collaborators[":userId"].$delete({
     param: { id: categoryId, userId },
   });
-  await categoriesCollection.utils.refetch();
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? "Failed to leave category");
+  }
+  categoriesCollection.utils.writeDelete(categoryId as never);
 };
 
 /** Shares a task with another user by username. */

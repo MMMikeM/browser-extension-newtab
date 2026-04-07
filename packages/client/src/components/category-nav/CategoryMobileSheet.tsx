@@ -54,7 +54,9 @@ export function CategoryMobileSheet() {
   const ownedCategories = categories.filter((c) => c.userId === currentUserId);
   const sharedCategories = categories.filter((c) => c.userId !== currentUserId);
 
-  const activeCategory = activeCategoryId ? categories.find((c) => c.id === activeCategoryId) : null;
+  const activeCategory = activeCategoryId
+    ? categories.find((c) => c.id === activeCategoryId)
+    : null;
   const showBadge = inboxCount > 0 && activeCategoryId !== null;
 
   useLayoutEffect(() => {
@@ -128,7 +130,12 @@ export function CategoryMobileSheet() {
           {cat.color ? (
             <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cat.color }} />
           ) : (
-            <span className={cn("size-2 shrink-0 rounded-full", isActive ? "bg-primary" : "bg-transparent")} />
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                isActive ? "bg-primary" : "bg-transparent",
+              )}
+            />
           )}
           <span className="flex-1 text-left">
             {cat.name}

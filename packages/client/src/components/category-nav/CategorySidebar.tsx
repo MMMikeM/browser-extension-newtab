@@ -177,7 +177,7 @@ export function CategorySidebar() {
     <>
       <aside
         data-testid="category-sidebar"
-        className="touch:hidden fixed top-0 flex flex-col w-40 h-screen py-8 overflow-y-auto"
+        className="touch:hidden fixed top-0 flex flex-col w-40 h-screen py-8 overflow-y-auto z-10"
         style={{ left: "calc(50vw - 22.5rem)" }}
       >
         {showInbox && (

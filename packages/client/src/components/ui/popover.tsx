@@ -17,10 +17,10 @@ const PopoverContent = ({
 }: PopoverPrimitive.Popup.Props & { sideOffset?: number }) => {
   return (
     <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Positioner sideOffset={sideOffset}>
+      <PopoverPrimitive.Positioner sideOffset={sideOffset} className="z-50">
         <PopoverPrimitive.Popup
           className={cn(
-            "z-50 min-w-[8rem] rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none",
+            "min-w-[8rem] rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none",
             "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity",
             className,
           )}

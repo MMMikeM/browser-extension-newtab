@@ -30,9 +30,7 @@ export function CategoryCollabSheet({
   const { data: allContacts = [] } = useContacts();
 
   const category = allCategories.find((c) => c.id === categoryId);
-  const collabs = (category?.collaborators ?? []).flatMap((c) =>
-    c.user ? [c.user] : [],
-  );
+  const collabs = (category?.collaborators ?? []).flatMap((c) => (c.user ? [c.user] : []));
 
   const isAuthed = !!useAuthToken();
   const collabIds = new Set(collabs.map((c) => c.id));

@@ -55,3 +55,6 @@ export const useCurrentUser = store.useStore;
 
 export const useCurrentUserId = () =>
   useSyncExternalStore(store.subscribe, () => store.get()?.id ?? null);
+
+export const useOptimisticUserId = () =>
+  useSyncExternalStore(store.subscribe, () => store.get()?.id ?? getOrCreateDeviceId());

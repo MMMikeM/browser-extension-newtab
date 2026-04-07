@@ -44,7 +44,10 @@ test("desktop: sidebar shows added category", async ({ page, isMobile }) => {
   await expect(sidebar.getByText("Personal")).toBeVisible();
 });
 
-test("desktop: clicking a sidebar category switches the active list", async ({ page, isMobile }) => {
+test("desktop: clicking a sidebar category switches the active list", async ({
+  page,
+  isMobile,
+}) => {
   test.skip(!!isMobile, "desktop only");
 
   const sidebar = page.getByTestId("category-sidebar");
@@ -65,6 +68,115 @@ test("desktop: People link visible in sidebar", async ({ page, isMobile }) => {
   await expect(
     page.getByTestId("category-sidebar").getByRole("link", { name: "People" }),
   ).toBeVisible();
+});
+
+// ─── Category options popover — stacking context ─────────────────────────────
+
+/**
+ * Opens the options popover for a category pill.
+ * The ellipsis trigger is opacity-0 until hover — use force:true to click it
+ * regardless of computed opacity.
+ */
+const openCategoryOptionsPopover = async (
+  page: Parameters<typeof createCategory>[0],
+  categoryName: string,
+) => {
+  const sidebar = page.getByTestId("category-sidebar");
+  // The category name lives inside a <button> whose direct parent is the pill div.
+  // Navigate: text node → <span> → <button> → pill <div>
+  const categoryBtn = sidebar.locator(`button:has-text("${categoryName}")`).first();
+  const pill = categoryBtn.locator("..");
+  await pill.hover();
+  // force:true bypasses the opacity-0 visibility check
+  await pill.getByRole("button", { name: "Category options" }).click({ force: true });
+};
+
+test("desktop: category options popover is visible above main content", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!!isMobile, "desktop only");
+
+  await createCategory(page, "StackTest", "sidebar");
+  await openCategoryOptionsPopover(page, "StackTest");
+
+  // Popover must be visible
+  await expect(
+    page.getByRole("menuitem", { name: "Rename" }).or(page.getByText("Rename")),
+  ).toBeVisible({ timeout: 3000 });
+});
+
+test("desktop: category options popover Rename item is not obscured by main content", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!!isMobile, "desktop only");
+
+  await createCategory(page, "LayerTest", "sidebar");
+  await openCategoryOptionsPopover(page, "LayerTest");
+
+  const renameBtn = page.getByRole("button", { name: "Rename" }).first();
+  await expect(renameBtn).toBeVisible({ timeout: 3000 });
+
+  // elementFromPoint at the center of the Rename button must resolve to an
+  // element inside the popover — not the AppShell content behind it.
+  const box = await renameBtn.boundingBox();
+  if (!box) throw new Error("Rename button has no bounding box");
+
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+
+  const topElement = await page.evaluate(
+    ([x, y]) => {
+      const el = document.elementFromPoint(x, y);
+      // Walk up to find a meaningful ancestor for identification
+      let cur: Element | null = el;
+      while (cur) {
+        if (cur.getAttribute("data-popup") !== null) return "popover";
+        if (cur.getAttribute("data-slot") === "button") return "popover";
+        if (cur.textContent?.trim() === "Rename") return "popover";
+        if (cur.getAttribute("data-testid") === "category-sidebar") return "popover";
+        // AppShell main content wrapper
+        if (cur.classList.contains("max-w-sm")) return "main-content";
+        cur = cur.parentElement;
+      }
+      return "unknown";
+    },
+    [cx, cy] as [number, number],
+  );
+
+  expect(topElement).toBe("popover");
+});
+
+test("desktop: clicking Rename in category options starts rename flow", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!!isMobile, "desktop only");
+
+  await createCategory(page, "RenameMe", "sidebar");
+  await openCategoryOptionsPopover(page, "RenameMe");
+
+  await page.getByRole("button", { name: "Rename" }).first().click();
+
+  // Rename form should appear in the sidebar
+  const sidebar = page.getByTestId("category-sidebar");
+  await expect(sidebar.locator('input[type="text"]')).toBeVisible({ timeout: 3000 });
+});
+
+test("desktop: clicking Delete in category options removes the category", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!!isMobile, "desktop only");
+
+  await createCategory(page, "DeleteMe", "sidebar");
+  await openCategoryOptionsPopover(page, "DeleteMe");
+
+  await page.getByRole("button", { name: "Delete" }).first().click();
+  await page.waitForTimeout(300);
+
+  await expect(page.getByTestId("category-sidebar").getByText("DeleteMe")).toHaveCount(0);
 });
 
 // ─── Mobile bottom sheet ─────────────────────────────────────────────────────

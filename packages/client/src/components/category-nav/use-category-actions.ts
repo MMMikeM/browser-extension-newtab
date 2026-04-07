@@ -1,16 +1,24 @@
 import { useEffect, useRef } from "react";
 import { Toast } from "@base-ui/react/toast";
-import { useTasks, useCategories, addCategory, updateCategory, deleteCategory, updateTask } from "~/lib/db/hooks";
+import {
+  useTasks,
+  useCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  updateTask,
+} from "~/lib/db/hooks";
 import { tasksCollection, categoriesCollection } from "~/lib/db/collections";
 import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-category";
-import { useCurrentUserId, getCurrentUserId } from "~/lib/auth/current-user";
+import { useCurrentUserId, useOptimisticUserId } from "~/lib/auth/current-user";
 import { leaveCategory } from "~/lib/actions";
 
 export const useCategoryActions = () => {
   const { data: rawCategories } = useCategories();
   const { data: allTasks } = useTasks();
   const activeCategoryId = useActiveCategoryId();
-  const currentUserId = useCurrentUserId();
+  const authUserId = useCurrentUserId();
+  const currentUserId = useOptimisticUserId();
   const toastManager = Toast.useToastManager();
   const undoIdRef = useRef<string | undefined>(undefined);
 
@@ -36,7 +44,13 @@ export const useCategoryActions = () => {
   };
 
   const handleAdd = (name: string) => {
-    const cat = addCategory({ name, userId: getCurrentUserId(), color: null, sortOrder: null, user: null });
+    const cat = addCategory({
+      name,
+      userId: currentUserId,
+      color: null,
+      sortOrder: null,
+      user: null,
+    });
     setActiveCategoryId(cat.id);
   };
 
@@ -69,8 +83,10 @@ export const useCategoryActions = () => {
   };
 
   const handleLeave = async (categoryId: string) => {
-    if (!currentUserId) return;
-    await leaveCategory(categoryId, currentUserId);
+    if (!authUserId) return;
+    await leaveCategory(categoryId, authUserId);
+    const remaining = categories.filter((c) => c.id !== categoryId);
+    setActiveCategoryId(remaining.length > 0 ? remaining[0].id : null);
   };
 
   return {
