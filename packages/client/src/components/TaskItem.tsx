@@ -4,7 +4,9 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/field";
 import { cn } from "~/lib/utils";
 import { Calendar, GripVertical, Plus, X } from "lucide-react";
+import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { useSwipeReveal } from "~/lib/hooks/use-swipe-reveal";
+import { useOptimisticUserId } from "~/lib/auth/current-user";
 
 // Evaluated once at module init — pointer type doesn't change during a session
 const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -24,14 +26,20 @@ const formatDueDate = (dateStr: string) => {
   };
 };
 
-const ShareAvatar = ({ name }: { name: string }) => (
-  <span
-    className="shrink-0 size-4 rounded-full text-[8px] font-semibold flex items-center justify-center bg-muted text-hint"
-    title={name}
-  >
-    {name.slice(0, 2).toUpperCase()}
-  </span>
-);
+function ShareBadges({ task, currentUserId, isOwned }: { task: Task; currentUserId: string; isOwned: boolean }) {
+  const otherShares = task.shares.filter((s) => s.sharedWithUser?.id !== currentUserId);
+  const names: string[] = [];
+  if (!isOwned && task.user?.name) names.push(task.user.name);
+  for (const s of otherShares) if (s.sharedWithUser?.name) names.push(s.sharedWithUser.name);
+  if (names.length === 0) return null;
+  return (
+    <div className="mt-0.5 flex items-center [&>:not(:first-child)]:-ml-1">
+      {names.map((name) => (
+        <InitialsAvatar key={name} name={name} className="bg-muted text-hint" />
+      ))}
+    </div>
+  );
+}
 
 export function TaskItem({
   task,
@@ -56,6 +64,8 @@ export function TaskItem({
   isSubtask?: boolean;
   isInSharedCategory?: boolean;
 }) {
+  const currentUserId = useOptimisticUserId();
+  const isOwned = task.userId === currentUserId;
   const isDone = task.status === "done";
   const due = task.dueDate ? formatDueDate(task.dueDate) : null;
   const showDate = !hideDate || (due && due.overdue);
@@ -220,13 +230,7 @@ export function TaskItem({
             )
           )}
           {!isSubtask && !isInSharedCategory && task.shares.length > 0 && (
-            <div className="mt-0.5 flex items-center">
-              {task.shares.map((share, i) => (
-                <span key={share.id} style={{ marginLeft: i === 0 ? 0 : -4 }}>
-                  <ShareAvatar name={share.sharedWithUser?.name ?? "?"} />
-                </span>
-              ))}
-            </div>
+            <ShareBadges task={task} currentUserId={currentUserId} isOwned={isOwned} />
           )}
           {task.assignee && (
             <span
