@@ -129,6 +129,20 @@ export const categoryCollaborators = sqliteTable(
   (t) => [uniqueIndex("category_collaborators_cat_user_idx").on(t.categoryId, t.userId)],
 );
 
+// --- Notification Queue ---
+
+export const notificationQueueTypes = ["reminder-due", "overdue-digest"] as const;
+
+export const notificationQueue = sqliteTable("notification_queue", {
+  id: pk(),
+  userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
+  type: oneOf("type", notificationQueueTypes),
+  taskId: nullableFk("task_id", () => tasks.id, { onDelete: "cascade" }),
+  scheduledFor: string("scheduled_for"),
+  sentAt: nullableString("sent_at"),
+  createdAt: createdAt(),
+});
+
 // --- Relations ---
 
 export const relations = defineRelations(
@@ -143,6 +157,7 @@ export const relations = defineRelations(
     contacts,
     inviteTokens,
     categoryCollaborators,
+    notificationQueue,
   },
   (r) => ({
     users: {
@@ -236,6 +251,16 @@ export const relations = defineRelations(
       user: r.one.users({
         from: r.categoryCollaborators.userId,
         to: r.users.id,
+      }),
+    },
+    notificationQueue: {
+      user: r.one.users({
+        from: r.notificationQueue.userId,
+        to: r.users.id,
+      }),
+      task: r.one.tasks({
+        from: r.notificationQueue.taskId,
+        to: r.tasks.id,
       }),
     },
   }),
