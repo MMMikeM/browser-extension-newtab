@@ -1,14 +1,16 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["*"],
+  "globalPassThroughEnv": ["*"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": ["SERVER_URL", "VITE_VAPID_PUBLIC_KEY", "GITHUB_SHA"]
     },
     "build:ext": {
       "dependsOn": ["build"],
-      "outputs": ["dist-extension/**"]
+      "outputs": ["dist-extension/**"],
+      "env": ["SERVER_URL"]
     },
     "dev": {
       "cache": false,
