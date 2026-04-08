@@ -36,6 +36,8 @@ import {
 import { cn } from "~/lib/utils";
 import { useTasks } from "~/lib/db/hooks";
 
+const INBOX_VALUE = "__inbox__";
+
 export function TaskDetail({
   taskId,
   open,
@@ -174,8 +176,12 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
         </div>
       )}
 
-      {/* Recipient category — only for shared tasks you don't own */}
-      {task.userId !== getCurrentUserId() && <RecipientCategorySection task={task} />}
+      {/* Category — own tasks get direct category picker, shared tasks get recipient category */}
+      {task.userId === getCurrentUserId() ? (
+        <OwnerCategorySection task={task} categories={rawCategories} />
+      ) : (
+        <RecipientCategorySection task={task} categoryName={taskCategory?.name} categories={rawCategories} />
+      )}
 
       {/* Subtasks */}
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
@@ -421,25 +427,26 @@ const AssigneeSection = ({ task }: { task: Task }) => {
   );
 };
 
-const RecipientCategorySection = ({ task }: { task: Task }) => {
-  const currentUserId = useOptimisticUserId();
-  const { data: rawCategories = [] } = useCategories();
-
-  const myShare = task.shares.find((s) => s.sharedWithUserId === currentUserId);
-  if (!myShare) return null;
-
-  const myCategories = rawCategories.filter((c) => c.userId === currentUserId);
-
-  const handleChange = async (categoryId: unknown) => {
-    const id = categoryId as string;
-    const value = id === "__inbox__" ? null : id;
-    await updateShareCategory(task.id, value);
-  };
+const OwnerCategorySection = ({
+  task,
+  categories,
+}: {
+  task: Task;
+  categories: { id: string; name: string; userId: string }[];
+}) => {
+  const myCategories = categories.filter((c) => c.userId === task.userId);
+  if (myCategories.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium text-hint">Category</span>
-      <Select value={myShare.categoryId ?? "__inbox__"} onValueChange={handleChange}>
+      <Select
+        value={task.categoryId ?? INBOX_VALUE}
+        onValueChange={(v) => {
+          const id = v as string;
+          updateTask(task.id, { categoryId: id === INBOX_VALUE ? null : id });
+        }}
+      >
         <SelectTrigger
           className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
           aria-label="Category"
@@ -447,7 +454,60 @@ const RecipientCategorySection = ({ task }: { task: Task }) => {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__inbox__">Inbox</SelectItem>
+          <SelectItem value={INBOX_VALUE}>Inbox</SelectItem>
+          {myCategories.map((cat) => (
+            <SelectItem key={cat.id} value={cat.id}>
+              {cat.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+const RecipientCategorySection = ({
+  task,
+  categoryName,
+  categories,
+}: {
+  task: Task;
+  categoryName?: string;
+  categories: { id: string; name: string; userId: string }[];
+}) => {
+  const currentUserId = useOptimisticUserId();
+
+  const myShare = task.shares.find((s) => s.sharedWithUserId === currentUserId);
+  if (!myShare) {
+    if (!categoryName) return null;
+    return (
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-hint">Category</span>
+        <span className="text-sm text-foreground">{categoryName}</span>
+      </div>
+    );
+  }
+
+  const myCategories = categories.filter((c) => c.userId === currentUserId);
+
+  const handleChange = async (categoryId: unknown) => {
+    const id = categoryId as string;
+    const value = id === INBOX_VALUE ? null : id;
+    await updateShareCategory(task.id, value);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-hint">Category</span>
+      <Select value={myShare.categoryId ?? INBOX_VALUE} onValueChange={handleChange}>
+        <SelectTrigger
+          className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
+          aria-label="Category"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={INBOX_VALUE}>Inbox</SelectItem>
           {myCategories.map((cat) => (
             <SelectItem key={cat.id} value={cat.id}>
               {cat.name}
