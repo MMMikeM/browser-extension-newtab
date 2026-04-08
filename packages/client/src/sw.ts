@@ -117,6 +117,12 @@ self.addEventListener("push", (event: PushEvent) => {
   const payload = event.data?.json();
   if (!payload?.type) return;
 
+  // Deploy push — check for new SW version in the background
+  if (payload.type === "deploy") {
+    event.waitUntil(self.registration.update());
+    return;
+  }
+
   // Silent sync — notify open clients to invalidate cache
   if (payload.type === "sync") {
     event.waitUntil(

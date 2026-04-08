@@ -28,6 +28,13 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
+      - name: Notify clients of deploy
+        run: |
+          curl -sf -X POST \
+            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_PUSH_SECRET }}" \
+            https://extension-sync-service.fly.dev/api/deploy/notify
+        continue-on-error: true
+
       - uses: actions/upload-artifact@v4
         with:
           name: extension

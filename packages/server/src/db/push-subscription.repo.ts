@@ -29,4 +29,6 @@ const findForUsers = async (userIds: string[]) =>
     where: { OR: [{ userId: { in: userIds } }, { userId: { isNull: true } }] },
   });
 
-export default { upsert, remove, findForUsers };
+const findAll = async () => db.query.pushSubscriptions.findMany();
+
+export default { upsert, remove, findForUsers, findAll };
