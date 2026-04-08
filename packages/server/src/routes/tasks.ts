@@ -15,6 +15,8 @@ import contactRepo from "../db/contact.repo";
 import categoryCollaboratorRepo from "../db/category-collaborator.repo";
 import { authed } from "../middleware";
 import { broadcast } from "../broadcast";
+import { sendNotification, getUserName } from "../notify";
+import notificationQueueRepo from "../db/notification-queue.repo";
 import { errorSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent, withAuth } from "./crud";
 
@@ -94,6 +96,78 @@ export const taskRoutes = authed()
 
       const result = await taskRepo.update(id, updatedAt, fields);
       broadcast(c, "tasks", "update", result, taskUserIds(task));
+
+      // --- Notifications (fire-and-forget) ---
+      const notifiableFields = ["title", "description", "status", "dueDate"] as const;
+      const changedNotifiable = notifiableFields.filter((f) => f in fields);
+      const assigneeChanged = fields.assigneeId && fields.assigneeId !== task.assigneeId;
+
+      if (changedNotifiable.length > 0 || assigneeChanged) {
+        const actorName = await getUserName(userId);
+
+        // Collect recipients: task owner + share recipients + category collaborators, excluding actor
+        const shareUserIds = await taskRepo.listShareUserIds(id).catch(() => []);
+        const allRecipients = [
+          ...new Set([
+            task.userId,
+            ...(task.category?.collaborators.map((c) => c.userId) ?? []),
+            ...shareUserIds,
+          ]),
+        ].filter((uid) => uid !== userId);
+
+        if (fields.status === "done" && task.status !== "done") {
+          // Task completed (only if it wasn't already done)
+          for (const recipientId of allRecipients) {
+            sendNotification(recipientId, {
+              type: "task-completed",
+              taskId: id,
+              taskTitle: result.title,
+              byUser: actorName,
+            }).catch(() => {});
+          }
+        } else if (assigneeChanged) {
+          // Task assigned — independent trigger, not gated on notifiable fields
+          sendNotification(fields.assigneeId!, {
+            type: "task-assigned",
+            taskId: id,
+            taskTitle: result.title,
+            fromUser: actorName,
+          }).catch(() => {});
+        } else if (changedNotifiable.length > 0 && allRecipients.length > 0) {
+          // General update — describe what changed
+          const changeDescriptions = changedNotifiable.map((f) => {
+            if (f === "status") return `status → ${result.status}`;
+            if (f === "dueDate")
+              return result.dueDate ? `due ${result.dueDate}` : "due date removed";
+            return f;
+          });
+          for (const recipientId of allRecipients) {
+            sendNotification(recipientId, {
+              type: "task-updated",
+              taskId: id,
+              taskTitle: result.title,
+              fromUser: actorName,
+              changes: changeDescriptions.join(", "),
+            }).catch(() => {});
+          }
+        }
+      }
+
+      // --- Notification queue: due date reminders ---
+      if ("dueDate" in fields) {
+        // Always clear old pending reminders for this task
+        await notificationQueueRepo.deleteByTask(id);
+        // If a new due date was set, queue a reminder
+        if (fields.dueDate) {
+          await notificationQueueRepo.insert({
+            userId: task.userId,
+            type: "reminder-due",
+            taskId: id,
+            scheduledFor: new Date(fields.dueDate).toISOString(),
+          });
+        }
+      }
+
       return c.json(result, 200);
     },
   )
@@ -145,6 +219,15 @@ export const taskRoutes = authed()
         permission: data.permission,
       });
       broadcast(c, "tasks", "update", { id: data.taskId }, [task.userId, targetUser.id]);
+
+      const actorName = await getUserName(userId);
+      sendNotification(targetUser.id, {
+        type: "task-shared",
+        taskId: data.taskId,
+        taskTitle: task.title,
+        fromUser: actorName,
+      }).catch(() => {});
+
       return c.json(result, 200);
     },
   )

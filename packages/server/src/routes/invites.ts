@@ -1,6 +1,8 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
 import inviteTokenRepo from "../db/invite-token.repo";
+import { sendNotification } from "../notify";
+import userRepo from "../db/user.repo";
 import { authed } from "../middleware";
 import { errorSchema, okSchema } from "./openapi-schemas";
 import { jsonContent, withAuth } from "./crud";
@@ -57,6 +59,16 @@ export const inviteRoutes = authed()
       }
 
       await inviteTokenRepo.consume(invite, userId);
+
+      const accepterName = await userRepo
+        .findById(userId)
+        .then((u) => u.name)
+        .catch(() => "Someone");
+      sendNotification(invite.createdByUserId, {
+        type: "contact-accepted",
+        contactName: accepterName,
+      }).catch(() => {});
+
       console.log(
         `[invite:accept] success createdBy=${invite.createdByUserId} acceptedBy=${userId}`,
       );

@@ -131,6 +131,25 @@ const removeShare = async (id: string) => {
 const countByCategory = async (categoryId: string): Promise<number> =>
   db.$count(tasks, eq(tasks.categoryId, categoryId));
 
+/** Returns userIds of everyone a task is shared with. */
+const listShareUserIds = async (taskId: string) => {
+  const rows = await db.query.taskShares.findMany({
+    where: { taskId },
+    columns: { sharedWithUserId: true },
+  });
+  return rows.map((r) => r.sharedWithUserId);
+};
+
+/** Returns overdue tasks (dueDate < today, not done) with minimal columns. */
+const findOverdue = async (beforeDate: string) =>
+  db.query.tasks.findMany({
+    where: {
+      dueDate: { lt: beforeDate },
+      status: { in: ["todo", "in_progress"] },
+    },
+    columns: { id: true, title: true, dueDate: true, userId: true },
+  });
+
 export default {
   list,
   findById,
@@ -141,4 +160,6 @@ export default {
   insertShare,
   removeShare,
   countByCategory,
+  listShareUserIds,
+  findOverdue,
 };

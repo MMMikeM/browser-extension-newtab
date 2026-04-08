@@ -12,6 +12,7 @@ import userRepo, { userPublicSchema } from "../db/user.repo";
 import contactRepo from "../db/contact.repo";
 import { authed } from "../middleware";
 import { broadcast } from "../broadcast";
+import { sendNotification, getUserName } from "../notify";
 import { errorSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent, withAuth } from "./crud";
 
@@ -166,6 +167,15 @@ export const categoryRoutes = authed()
         throw new HTTPException(400, { message: "Can only add contacts as collaborators" });
 
       await categoryCollaboratorRepo.add(id, targetUser.id);
+
+      const actorName = await getUserName(userId);
+      sendNotification(targetUser.id, {
+        type: "category-shared",
+        categoryId: id,
+        categoryName: cat.name,
+        fromUser: actorName,
+      }).catch(() => {});
+
       return c.json(
         {
           id: targetUser.id,
