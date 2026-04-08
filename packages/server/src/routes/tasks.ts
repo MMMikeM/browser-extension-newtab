@@ -26,6 +26,11 @@ const shareSchema = z.object({
   permission: z.enum(["view", "edit"]).default("edit"),
 });
 
+const shareCategorySchema = z.object({
+  taskId: z.string(),
+  categoryId: z.string().nullable(),
+});
+
 /** Returns deduplicated userIds that should receive broadcast events for this task. */
 const taskUserIds = (task: {
   userId: string;
@@ -245,6 +250,21 @@ export const taskRoutes = authed()
         task.userId,
         result.sharedWithUserId,
       ]);
+      return c.json(result, 200);
+    },
+  )
+  .openapi(
+    createRoute({
+      method: "put",
+      path: "/share",
+      request: jsonBody(shareCategorySchema),
+      responses: withAuth({ 200: jsonContent(taskShareResponseSchema) }),
+    }),
+    async (c) => {
+      const { taskId, categoryId } = c.req.valid("json");
+      const userId = c.get("userId");
+      const result = await taskRepo.updateShareCategory(taskId, userId, categoryId);
+      broadcast(c, "tasks", "update", { id: taskId }, [userId]);
       return c.json(result, 200);
     },
   );

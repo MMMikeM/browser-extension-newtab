@@ -83,6 +83,12 @@ export const removeTaskShare = async (shareId: string) => {
   await client.api.tasks.share.$delete({ json: { id: shareId } });
 };
 
+/** Updates the recipient's category for a shared task. */
+export const updateShareCategory = async (taskId: string, categoryId: string | null) => {
+  const res = await client.api.tasks.share.$put({ json: { taskId, categoryId } });
+  if (!res.ok) throw new Error("Failed to update category");
+};
+
 /** Authenticates (login or signup), returning the session result. */
 export const authenticate = async (
   mode: "login" | "signup",

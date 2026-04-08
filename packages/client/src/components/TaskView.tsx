@@ -88,8 +88,22 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
   // Computed before loading guard so useDndActions always receives stable values
   const categoryTasks = (allTasks ?? []).filter((t) => {
     if (t.parentId) return false;
-    if (t.userId !== userId) return !activeCategoryId; // shared tasks → Inbox only
-    return activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId;
+
+    const isOwner = t.userId === userId;
+
+    if (isOwner) {
+      // Own tasks: filter by the task's categoryId
+      return activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId;
+    }
+
+    // Shared tasks: find the current user's share and check THEIR categoryId
+    const myShare = t.shares.find((s) => s.sharedWithUserId === userId);
+    if (!myShare) {
+      // Category collaborator task — show when viewing that category
+      return activeCategoryId ? t.categoryId === activeCategoryId : false;
+    }
+
+    return activeCategoryId ? myShare.categoryId === activeCategoryId : !myShare.categoryId;
   });
 
   const activeTasks = categoryTasks

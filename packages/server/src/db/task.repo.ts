@@ -22,8 +22,9 @@ const sharedWithUserSchema = createSelectSchema(users).pick({
   username: true,
 });
 
-/** Response schema for task list — includes subtasks, shares, and assignee. */
+/** Response schema for task list — includes subtasks, shares, assignee, and owner user. */
 export const taskListItemSchema = taskResponseSchema.extend({
+  user: z.object({ id: z.string(), name: z.string() }).nullable(),
   subtasks: z.array(taskResponseSchema),
   shares: z.array(
     taskShareResponseSchema.extend({
@@ -51,6 +52,7 @@ const list = async (userId: string) =>
       ],
     },
     with: {
+      user: { columns: { id: true, name: true } },
       subtasks: true,
       shares: {
         with: {
@@ -128,6 +130,20 @@ const removeShare = async (id: string) => {
   return row;
 };
 
+const updateShareCategory = async (
+  taskId: string,
+  sharedWithUserId: string,
+  categoryId: string | null,
+) => {
+  const [row] = await db
+    .update(taskShares)
+    .set({ categoryId })
+    .where(and(eq(taskShares.taskId, taskId), eq(taskShares.sharedWithUserId, sharedWithUserId)))
+    .returning();
+  if (!row) throw new NotFoundError("task share", taskId);
+  return row;
+};
+
 const countByCategory = async (categoryId: string): Promise<number> =>
   db.$count(tasks, eq(tasks.categoryId, categoryId));
 
@@ -159,6 +175,7 @@ export default {
   remove,
   insertShare,
   removeShare,
+  updateShareCategory,
   countByCategory,
   listShareUserIds,
   findOverdue,

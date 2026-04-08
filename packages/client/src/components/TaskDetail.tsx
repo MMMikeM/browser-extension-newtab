@@ -4,13 +4,14 @@ import type { Task, Note } from "~/lib/types";
 import {
   useNotes,
   useContacts,
+  useCategories,
   updateTask,
   deleteTask,
   addNote,
   updateNote,
   deleteNote,
 } from "~/lib/db/hooks";
-import { shareTask, removeTaskShare } from "~/lib/actions";
+import { shareTask, removeTaskShare, updateShareCategory } from "~/lib/actions";
 import { addTask } from "~/lib/db/add-task";
 import { getCurrentUserId, useOptimisticUserId } from "~/lib/auth/current-user";
 import {
@@ -158,6 +159,17 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
           </button>
         )}
       </div>
+
+      {/* Owner — only shown for tasks you don't own */}
+      {task.user && task.userId !== getCurrentUserId() && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-hint">Created by</span>
+          <span className="text-sm text-foreground">{task.user.name}</span>
+        </div>
+      )}
+
+      {/* Recipient category — only for shared tasks you don't own */}
+      {task.userId !== getCurrentUserId() && <RecipientCategorySection task={task} />}
 
       {/* Subtasks */}
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
@@ -371,6 +383,44 @@ const AssigneeSection = ({ task }: { task: Task }) => {
           </button>
         ))}
       </div>
+    </div>
+  );
+};
+
+const RecipientCategorySection = ({ task }: { task: Task }) => {
+  const currentUserId = useOptimisticUserId();
+  const { data: rawCategories = [] } = useCategories();
+
+  const myShare = task.shares.find((s) => s.sharedWithUserId === currentUserId);
+  if (!myShare) return null;
+
+  const myCategories = rawCategories.filter((c) => c.userId === currentUserId);
+
+  const handleChange = async (categoryId: unknown) => {
+    const id = categoryId as string;
+    const value = id === "__inbox__" ? null : id;
+    await updateShareCategory(task.id, value);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-hint">Category</span>
+      <Select value={myShare.categoryId ?? "__inbox__"} onValueChange={handleChange}>
+        <SelectTrigger
+          className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
+          aria-label="Category"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__inbox__">Inbox</SelectItem>
+          {myCategories.map((cat) => (
+            <SelectItem key={cat.id} value={cat.id}>
+              {cat.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

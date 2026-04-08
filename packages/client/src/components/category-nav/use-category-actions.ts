@@ -26,9 +26,16 @@ export const useCategoryActions = () => {
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
 
-  const inboxTasks = (allTasks ?? []).filter(
-    (t) => !t.parentId && t.status !== "done" && (!t.categoryId || t.userId !== currentUserId),
-  );
+  const inboxTasks = (allTasks ?? []).filter((t) => {
+    if (t.parentId) return false;
+    if (t.status === "done") return false;
+
+    const isOwner = t.userId === currentUserId;
+    if (isOwner) return !t.categoryId;
+
+    const myShare = t.shares.find((s) => s.sharedWithUserId === currentUserId);
+    return myShare ? !myShare.categoryId : false;
+  });
   const showInbox = inboxTasks.length > 0;
   const inboxCount = inboxTasks.length;
 

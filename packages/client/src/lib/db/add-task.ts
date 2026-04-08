@@ -37,6 +37,7 @@ export const addTask = (title: string, categoryId?: string | null, parentId?: st
       subtasks: [],
       shares: [],
       assignee: null,
+      user: null,
     }),
   );
 };

@@ -75,6 +75,7 @@ export const taskShares = sqliteTable("task_shares", {
   id: pk(),
   taskId: fk("task_id", () => tasks.id, { onDelete: "cascade" }),
   sharedWithUserId: fk("shared_with_user_id", () => users.id, { onDelete: "cascade" }),
+  categoryId: nullableFk("category_id", () => categories.id, { onDelete: "set null" }),
   permission: oneOf("permission", sharePermissions).default("edit"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -211,6 +212,10 @@ export const relations = defineRelations(
       sharedWithUser: r.one.users({
         from: r.taskShares.sharedWithUserId,
         to: r.users.id,
+      }),
+      category: r.one.categories({
+        from: r.taskShares.categoryId,
+        to: r.categories.id,
       }),
     },
     notes: {
