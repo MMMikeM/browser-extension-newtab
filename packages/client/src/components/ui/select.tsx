@@ -1,8 +1,10 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { Check, ChevronDown } from "lucide-react";
 import { type ComponentProps } from "react";
+import { tv } from "tailwind-variants";
 
 import { cn } from "~/lib/utils";
+import type { StyledProps } from "~/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Root — pass-through, no styling needed
@@ -13,34 +15,49 @@ const Select = ({ ...props }: ComponentProps<typeof SelectPrimitive.Root>) => (
 );
 
 // ---------------------------------------------------------------------------
-// Trigger — pill-style: subtle border, text-hint at rest, foreground on hover.
-// The pill shape (vs an underline) signals "this opens a dropdown".
+// Trigger — two variants:
+//   pill (default): rounded pill with subtle border, signals "dropdown".
+//   underline: bottom-border only, matches app's underline input language.
 // ---------------------------------------------------------------------------
 
-const SelectTrigger = ({
-  className,
-  children,
-  ...props
-}: ComponentProps<typeof SelectPrimitive.Trigger>) => (
+const selectTriggerVariants = tv({
+  base: [
+    "inline-flex items-center gap-1.5",
+    "bg-transparent text-sm",
+    "transition-colors outline-none",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "whitespace-nowrap select-none",
+  ],
+  variants: {
+    variant: {
+      pill: [
+        "rounded-full",
+        "px-3 py-1.5",
+        "border border-ghost text-hint",
+        "hover:border-hint hover:text-foreground",
+        "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "aria-expanded:border-border aria-expanded:text-foreground",
+      ],
+      underline: [
+        "rounded-none border-0 border-b border-ghost",
+        "px-0 py-2 text-foreground shadow-none",
+        "hover:border-hint",
+        "focus-visible:border-hint focus-visible:ring-0",
+      ],
+    },
+  },
+  defaultVariants: { variant: "pill" },
+});
+
+type SelectTriggerProps = StyledProps<
+  ComponentProps<typeof SelectPrimitive.Trigger>,
+  typeof selectTriggerVariants
+>;
+
+const SelectTrigger = ({ className, variant, children, ...props }: SelectTriggerProps) => (
   <SelectPrimitive.Trigger
     data-slot="select-trigger"
-    className={cn(
-      // Shape
-      "inline-flex items-center gap-1.5 rounded-full",
-      // Sizing
-      "px-3 py-1.5 text-sm",
-      // Surface & colour
-      "border border-ghost bg-transparent text-hint",
-      // Interaction
-      "hover:border-hint hover:text-foreground",
-      "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
-      "aria-expanded:border-border aria-expanded:text-foreground",
-      // Misc
-      "outline-none transition-colors",
-      "disabled:pointer-events-none disabled:opacity-50",
-      "select-none whitespace-nowrap",
-      className,
-    )}
+    className={selectTriggerVariants({ variant, class: className })}
     {...props}
   >
     {children}
@@ -91,8 +108,8 @@ const SelectContent = ({
         "p-1 text-popover-foreground shadow-lg outline-none",
         // Enter/exit animation — opacity + slight upward slide
         "transition-[opacity,translate] duration-150",
-        "data-[starting-style]:opacity-0 data-[starting-style]:-translate-y-1",
-        "data-[ending-style]:opacity-0 data-[ending-style]:-translate-y-1",
+        "data-[starting-style]:-translate-y-1 data-[starting-style]:opacity-0",
+        "data-[ending-style]:-translate-y-1 data-[ending-style]:opacity-0",
         className,
       )}
       {...props}
@@ -164,5 +181,6 @@ export {
   SelectGroupLabel,
   SelectItem,
   SelectTrigger,
+  selectTriggerVariants,
   SelectValue,
 };
