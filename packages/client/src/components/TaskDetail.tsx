@@ -194,8 +194,10 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
         )
       )}
 
-      {/* Assignee — only when the task has been shared with someone */}
-      {!task.parentId && task.shares.length > 0 && <AssigneeSection task={task} />}
+      {/* Assignee — when task involves other people (shared or in shared category) */}
+      {!task.parentId && (task.shares.length > 0 || isInSharedCategory) && (
+        <AssigneeSection task={task} />
+      )}
 
       {/* Notes */}
       <div className="flex flex-col gap-2">
@@ -357,14 +359,31 @@ const SubtaskSection = ({
 
 const AssigneeSection = ({ task }: { task: Task }) => {
   const currentUserId = useOptimisticUserId();
+  const { data: rawCategories = [] } = useCategories();
   const isOwner = currentUserId === task.userId;
 
-  const candidates = [
-    { id: task.userId, label: "Owner" },
-    ...task.shares
-      .filter((s) => s.sharedWithUser)
-      .map((s) => ({ id: s.sharedWithUserId, label: s.sharedWithUser!.name })),
-  ];
+  // Build candidate list from shares + category collaborators (deduplicated)
+  const seen = new Set<string>([task.userId]);
+  const others: { id: string; label: string }[] = [];
+
+  for (const s of task.shares) {
+    if (s.sharedWithUser && !seen.has(s.sharedWithUserId)) {
+      seen.add(s.sharedWithUserId);
+      others.push({ id: s.sharedWithUserId, label: s.sharedWithUser.name });
+    }
+  }
+
+  if (task.categoryId) {
+    const cat = rawCategories.find((c) => c.id === task.categoryId);
+    for (const collab of cat?.collaborators ?? []) {
+      if (collab.user && !seen.has(collab.user.id)) {
+        seen.add(collab.user.id);
+        others.push({ id: collab.user.id, label: collab.user.name });
+      }
+    }
+  }
+
+  const candidates = [{ id: task.userId, label: "Owner" }, ...others];
 
   return (
     <div className="flex flex-col gap-2">
