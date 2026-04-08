@@ -10,6 +10,7 @@ import { pushRoutes } from "./routes/push";
 import { eventsRoute } from "./routes/events";
 import { inviteRoutes } from "./routes/invites";
 import { contactRoutes } from "./routes/contacts";
+import { notificationRoutes } from "./routes/notifications";
 import { db } from "./db/client";
 
 const app = new OpenAPIHono();
@@ -86,7 +87,8 @@ const api = app
   .route("/api/push", pushRoutes)
   .route("/api/events", eventsRoute)
   .route("/api/invites", inviteRoutes)
-  .route("/api/contacts", contactRoutes);
+  .route("/api/contacts", contactRoutes)
+  .route("/api/notifications", notificationRoutes);
 
 app.doc("/api/openapi.json", {
   openapi: "3.0.0",
