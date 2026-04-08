@@ -27,10 +27,7 @@ const findPending = async (beforeOrAt: string) =>
 /** Mark rows as sent. */
 const markSent = async (ids: string[], sentAt: string) => {
   if (ids.length === 0) return;
-  await db
-    .update(notificationQueue)
-    .set({ sentAt })
-    .where(inArray(notificationQueue.id, ids));
+  await db.update(notificationQueue).set({ sentAt }).where(inArray(notificationQueue.id, ids));
 };
 
 /** Delete all pending reminder rows for a specific task. Used when dueDate changes or is removed. */

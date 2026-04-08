@@ -71,7 +71,10 @@ export function TaskItem({
       {/* Swipe container: clips the reveal drawer on touch, inert wrapper on desktop */}
       <div
         ref={swipe.containerRef}
-        className={cn("-mx-2 animate-[task-enter_200ms_ease-out]", swipeEnabled && "relative overflow-hidden rounded-lg")}
+        className={cn(
+          "-mx-2 animate-[task-enter_200ms_ease-out]",
+          swipeEnabled && "relative overflow-hidden rounded-lg",
+        )}
       >
         {/* Action drawer — revealed as row slides left */}
         {swipeEnabled && (
@@ -135,7 +138,11 @@ export function TaskItem({
             </span>
           )}
           {isSubtask && <span className="w-1" />}
-          <Checkbox checked={isDone} onCheckedChange={() => onToggle(task)} className="self-center" />
+          <Checkbox
+            checked={isDone}
+            onCheckedChange={() => onToggle(task)}
+            className="self-center"
+          />
           {onOpen ? (
             <button
               type="button"

@@ -191,7 +191,10 @@ export function CategorySidebar() {
             {activeCategoryId === null && (
               <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 rounded-full bg-primary" />
             )}
-            <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: INBOX_COLOR }} />
+            <span
+              className="size-1.5 shrink-0 rounded-full"
+              style={{ backgroundColor: INBOX_COLOR }}
+            />
             Inbox
           </button>
         )}

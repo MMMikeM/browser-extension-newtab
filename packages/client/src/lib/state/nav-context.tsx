@@ -12,11 +12,7 @@ const NavContext = createContext<NavContextValue>({
 
 export function NavContextProvider({ children }: { children: ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
-  return (
-    <NavContext.Provider value={{ navOpen, setNavOpen }}>
-      {children}
-    </NavContext.Provider>
-  );
+  return <NavContext.Provider value={{ navOpen, setNavOpen }}>{children}</NavContext.Provider>;
 }
 
 export const useNavContext = () => useContext(NavContext);

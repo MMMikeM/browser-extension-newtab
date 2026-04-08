@@ -19,8 +19,7 @@ export function SyncHint() {
 
   return (
     <p className="mt-1.5 text-xs text-muted-foreground">
-      Saved on this device.{" "}
-      <Link to="/auth">Sign in to sync across devices</Link>{" "}
+      Saved on this device. <Link to="/auth">Sign in to sync across devices</Link>{" "}
       <button
         onClick={() => {
           localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));

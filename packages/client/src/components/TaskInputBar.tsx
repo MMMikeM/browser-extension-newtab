@@ -28,7 +28,9 @@ export function TaskInputBar() {
           className="size-2 shrink-0 rounded-full"
           style={{ backgroundColor: activeCategory?.color ?? INBOX_COLOR }}
         />
-        <span className="text-sm font-medium text-foreground">{activeCategory?.name ?? "Inbox"}</span>
+        <span className="text-sm font-medium text-foreground">
+          {activeCategory?.name ?? "Inbox"}
+        </span>
         <ChevronDown size={12} className="text-hint" />
       </button>
       <AddTaskInput onAdd={handleAdd} />
