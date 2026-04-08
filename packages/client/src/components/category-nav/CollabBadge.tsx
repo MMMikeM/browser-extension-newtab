@@ -19,13 +19,11 @@ export function CollabBadge({
     const name = isOwned
       ? (others[0]?.user?.name ?? "?")
       : (category.user?.name ?? others[0]?.user?.name ?? "?");
-    return (
-      <InitialsAvatar name={name} className="bg-[oklch(0.55_0.07_228)] text-[oklch(0.95_0.01_80)]" />
-    );
+    return <InitialsAvatar name={name} className="bg-collab text-collab-foreground" />;
   }
 
   return (
-    <span className="shrink-0 size-4 flex items-center justify-center text-hint">
+    <span className="flex size-4 shrink-0 items-center justify-center text-hint">
       <Users size={12} />
     </span>
   );

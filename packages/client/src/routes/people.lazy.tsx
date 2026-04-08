@@ -4,6 +4,10 @@ import { useContacts } from "~/lib/db/hooks";
 import { createInvite, removeContact } from "~/lib/actions";
 import { getBuildTarget } from "~/lib/build-target";
 import { Button } from "~/components/ui/button";
+import { InitialsAvatar } from "~/components/ui/initials-avatar";
+import { ListRow } from "~/components/ui/list-row";
+import { RevealButton } from "~/components/ui/reveal-button";
+import { TextStack } from "~/components/ui/text-stack";
 
 export const Route = createLazyFileRoute("/people")({
   component: PeoplePage,
@@ -40,7 +44,7 @@ export function PeoplePage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 px-6 py-8 max-w-md mx-auto">
+    <div className="mx-auto flex max-w-md flex-col gap-6 px-6 py-8">
       <div className="flex items-center gap-3">
         <Button variant="subtle" size="sm" onClick={() => router.navigate({ to: "/" })}>
           ← Back
@@ -59,37 +63,25 @@ export function PeoplePage() {
       </Button>
 
       <div className="flex flex-col gap-1">
-        {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+        {isLoading && <p className="text-sm text-hint">Loading…</p>}
         {!isLoading && contacts.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No contacts yet. Invite someone to get started.
-          </p>
+          <p className="text-sm text-hint">No contacts yet. Invite someone to get started.</p>
         )}
         {contacts.map((contact) => (
-          <div
-            key={contact.id}
-            className="group/contact flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-muted"
-          >
-            <div className="size-8 shrink-0 rounded-full bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center">
-              {(contact.contactUser?.name ?? "?").slice(0, 2).toUpperCase()}
-            </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-medium truncate">
-                {contact.contactUser?.name ?? "Unknown"}
-              </span>
-              {contact.contactUser?.username && (
-                <span className="text-xs text-muted-foreground">
-                  @{contact.contactUser.username}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => removeContact(contact.id)}
-              className="text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/contact:opacity-100"
-            >
-              Remove
-            </button>
-          </div>
+          <ListRow key={contact.id} className="px-3">
+            <InitialsAvatar
+              name={contact.contactUser?.name ?? "?"}
+              size="md"
+              className="size-8 text-sm"
+            />
+            <TextStack
+              title={contact.contactUser?.name ?? "Unknown"}
+              subtitle={
+                contact.contactUser?.username ? `@${contact.contactUser.username}` : undefined
+              }
+            />
+            <RevealButton onClick={() => removeContact(contact.id)}>Remove</RevealButton>
+          </ListRow>
         ))}
       </div>
     </div>

@@ -33,6 +33,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { InitialsAvatar } from "~/components/ui/initials-avatar";
+import { ListRow } from "~/components/ui/list-row";
+import { DetailSection } from "~/components/ui/detail-section";
+import { SectionLabel } from "~/components/ui/section-label";
+import { RevealButton } from "~/components/ui/reveal-button";
+import { TextStack } from "~/components/ui/text-stack";
+import { TogglePill } from "~/components/ui/toggle-pill";
 import { cn } from "~/lib/utils";
 import { useTasks } from "~/lib/db/hooks";
 
@@ -83,13 +90,11 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
   const taskNotes = allNotes.filter((n) => n.taskId === task.id);
 
   const { data: rawCategories = [] } = useCategories();
-  const taskCategory = task.categoryId
-    ? rawCategories.find((c) => c.id === task.categoryId)
-    : null;
+  const taskCategory = task.categoryId ? rawCategories.find((c) => c.id === task.categoryId) : null;
   const isInSharedCategory = (taskCategory?.collaborators?.length ?? 0) > 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pb-8 pt-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pt-4 pb-8">
       {/* Title */}
       <div className="flex items-center gap-3">
         <Checkbox
@@ -180,25 +185,28 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
       {task.userId === getCurrentUserId() ? (
         <OwnerCategorySection task={task} categories={rawCategories} />
       ) : (
-        <RecipientCategorySection task={task} categoryName={taskCategory?.name} categories={rawCategories} />
+        <RecipientCategorySection
+          task={task}
+          categoryName={taskCategory?.name}
+          categories={rawCategories}
+        />
       )}
 
       {/* Subtasks */}
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
 
       {/* Sharing */}
-      {!task.parentId && (
-        isInSharedCategory ? (
+      {!task.parentId &&
+        (isInSharedCategory ? (
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-hint">Sharing</span>
+            <SectionLabel>Sharing</SectionLabel>
             <span className="text-xs text-ghost">
               Visible to all collaborators in this category
             </span>
           </div>
         ) : (
           <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
-        )
-      )}
+        ))}
 
       {/* Assignee — when task involves other people (shared or in shared category) */}
       {!task.parentId && (task.shares.length > 0 || isInSharedCategory) && (
@@ -206,13 +214,12 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
       )}
 
       {/* Notes */}
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium text-hint">Notes</p>
+      <DetailSection label="Notes">
         {taskNotes.map((note) => (
           <NoteItem key={note.id} note={note} />
         ))}
         <AddNoteInput taskId={task.id} />
-      </div>
+      </DetailSection>
 
       {/* Delete */}
       <button
@@ -253,23 +260,13 @@ const NoteItem = ({ note }: { note: Note }) => {
   }
 
   return (
-    <div className="group/note flex items-start gap-2 rounded-md px-2 py-1 hover:bg-muted">
+    <ListRow size="sm" className="items-start">
       <span className="flex-1 text-sm">{note.content || note.title}</span>
-      <div className="flex gap-1 opacity-0 group-hover/note:opacity-100">
-        <button
-          onClick={() => setEditing(true)}
-          className="text-xs text-hint transition-colors hover:text-foreground"
-        >
-          edit
-        </button>
-        <button
-          onClick={() => deleteNote(note.id)}
-          className="text-xs text-hint transition-colors hover:text-destructive"
-        >
-          delete
-        </button>
-      </div>
-    </div>
+      <RevealButton intent="neutral" onClick={() => setEditing(true)}>
+        edit
+      </RevealButton>
+      <RevealButton onClick={() => deleteNote(note.id)}>delete</RevealButton>
+    </ListRow>
   );
 };
 
@@ -310,15 +307,9 @@ const SubtaskSection = ({
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium text-hint">
-        Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}
-      </p>
+    <DetailSection label={<>Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}</>}>
       {subtasks.map((sub) => (
-        <div
-          key={sub.id}
-          className="group/sub flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
-        >
+        <ListRow key={sub.id} size="sm">
           <Checkbox
             checked={sub.status === "done"}
             onCheckedChange={() =>
@@ -334,13 +325,8 @@ const SubtaskSection = ({
           >
             {sub.title}
           </span>
-          <button
-            onClick={() => deleteTask(sub.id)}
-            className="text-xs text-hint opacity-0 transition-colors hover:text-destructive group-hover/sub:opacity-100"
-          >
-            delete
-          </button>
-        </div>
+          <RevealButton onClick={() => deleteTask(sub.id)}>delete</RevealButton>
+        </ListRow>
       ))}
       <form
         onSubmit={(e) => {
@@ -359,7 +345,7 @@ const SubtaskSection = ({
           className="h-8 text-sm"
         />
       </form>
-    </div>
+    </DetailSection>
   );
 };
 
@@ -392,38 +378,29 @@ const AssigneeSection = ({ task }: { task: Task }) => {
   const candidates = [{ id: task.userId, label: "Owner" }, ...others];
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-hint">Assignee</span>
+    <DetailSection label="Assignee">
       <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Assignee">
-        <button
+        <TogglePill
+          selected={!task.assigneeId}
           onClick={() => isOwner && updateTask(task.id, { assigneeId: null })}
           disabled={!isOwner}
-          className={cn(
-            "rounded-full px-3 py-1 text-xs transition-colors",
-            !task.assigneeId ? "bg-primary/15 text-primary" : "text-hint hover:text-foreground",
-            !isOwner && "cursor-default",
-          )}
+          className={!isOwner ? "cursor-default" : undefined}
         >
           Unassigned
-        </button>
+        </TogglePill>
         {candidates.map((c) => (
-          <button
+          <TogglePill
             key={c.id}
+            selected={task.assigneeId === c.id}
             onClick={() => isOwner && updateTask(task.id, { assigneeId: c.id })}
             disabled={!isOwner}
-            className={cn(
-              "rounded-full px-3 py-1 text-xs transition-colors",
-              task.assigneeId === c.id
-                ? "bg-primary/15 text-primary"
-                : "text-hint hover:text-foreground",
-              !isOwner && "cursor-default",
-            )}
+            className={!isOwner ? "cursor-default" : undefined}
           >
             {c.label}
-          </button>
+          </TogglePill>
         ))}
       </div>
-    </div>
+    </DetailSection>
   );
 };
 
@@ -443,8 +420,7 @@ const OwnerCategorySection = ({
   ];
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-hint">Category</span>
+    <DetailSection label="Category">
       <Select
         value={task.categoryId ?? INBOX_VALUE}
         onValueChange={(v) => {
@@ -453,10 +429,7 @@ const OwnerCategorySection = ({
         }}
         items={items}
       >
-        <SelectTrigger
-          className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
-          aria-label="Category"
-        >
+        <SelectTrigger variant="underline" aria-label="Category">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -468,7 +441,7 @@ const OwnerCategorySection = ({
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </DetailSection>
   );
 };
 
@@ -487,10 +460,9 @@ const RecipientCategorySection = ({
   if (!myShare) {
     if (!categoryName) return null;
     return (
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-hint">Category</span>
+      <DetailSection label="Category">
         <span className="text-sm text-foreground">{categoryName}</span>
-      </div>
+      </DetailSection>
     );
   }
 
@@ -508,13 +480,9 @@ const RecipientCategorySection = ({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-hint">Category</span>
+    <DetailSection label="Category">
       <Select value={myShare.categoryId ?? INBOX_VALUE} onValueChange={handleChange} items={items}>
-        <SelectTrigger
-          className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
-          aria-label="Category"
-        >
+        <SelectTrigger variant="underline" aria-label="Category">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -526,7 +494,7 @@ const RecipientCategorySection = ({
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </DetailSection>
   );
 };
 
@@ -566,35 +534,18 @@ const ShareSection = ({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium text-hint">
-        Shared with{shares.length > 0 ? ` (${shares.length})` : ""}
-      </p>
+    <DetailSection label={<>Shared with{shares.length > 0 ? ` (${shares.length})` : ""}</>}>
       {shares.map((share) => (
-        <div
-          key={share.id}
-          className="group/share flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
-        >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-            {(share.sharedWithUser?.name ?? "?").slice(0, 2).toUpperCase()}
-          </div>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-sm font-medium">
-              {share.sharedWithUser?.name ?? share.sharedWithUserId}
-            </span>
-            {share.sharedWithUser?.username && (
-              <span className="text-xs text-hint">@{share.sharedWithUser.username}</span>
-            )}
-          </div>
-          {isOwner && (
-            <button
-              onClick={() => removeTaskShare(share.id)}
-              className="text-xs text-hint opacity-0 transition-colors hover:text-destructive group-hover/share:opacity-100"
-            >
-              Remove
-            </button>
-          )}
-        </div>
+        <ListRow key={share.id}>
+          <InitialsAvatar name={share.sharedWithUser?.name ?? "?"} size="md" />
+          <TextStack
+            title={share.sharedWithUser?.name ?? share.sharedWithUserId}
+            subtitle={
+              share.sharedWithUser?.username ? `@${share.sharedWithUser.username}` : undefined
+            }
+          />
+          {isOwner && <RevealButton onClick={() => removeTaskShare(share.id)}>Remove</RevealButton>}
+        </ListRow>
       ))}
       {isOwner && addableContacts.length > 0 && (
         <div className="flex items-center gap-2">
@@ -605,10 +556,7 @@ const ShareSection = ({
               setError(null);
             }}
           >
-            <SelectTrigger
-              className="flex-1 rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
-              aria-label="Share with"
-            >
+            <SelectTrigger variant="underline" className="flex-1" aria-label="Share with">
               <SelectValue placeholder="Share with…" />
             </SelectTrigger>
             <SelectContent>
@@ -639,7 +587,7 @@ const ShareSection = ({
         </p>
       )}
       {error && <span className="text-xs text-destructive">{error}</span>}
-    </div>
+    </DetailSection>
   );
 };
 

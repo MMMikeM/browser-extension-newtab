@@ -45,7 +45,7 @@ export function CategoryOptionsContent({
         Rename
       </Button>
       <div className="px-2 py-1.5">
-        <span className="text-xs text-muted-foreground">Color</span>
+        <span className="text-xs text-hint">Color</span>
         <div className="mt-1 grid grid-cols-4 gap-1">
           {CATEGORY_COLORS.map((c) => (
             <button

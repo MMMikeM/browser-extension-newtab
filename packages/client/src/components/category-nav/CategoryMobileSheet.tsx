@@ -7,6 +7,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { CollabBadge } from "./CollabBadge";
 import { Input } from "~/components/ui/field";
+import { ColorDot } from "~/components/ui/color-dot";
 import { setActiveCategoryId } from "~/lib/state/active-category";
 import { useNavContext } from "~/lib/state/nav-context";
 import { cn } from "~/lib/utils";
@@ -91,21 +92,14 @@ export function CategoryMobileSheet() {
           )}
         >
           {cat.color ? (
-            <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: cat.color }} />
+            <ColorDot color={cat.color} />
           ) : (
-            <span
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                isActive ? "bg-primary" : "bg-transparent",
-              )}
-            />
+            <ColorDot className={isActive ? "bg-primary" : "bg-transparent"} />
           )}
           <span className="flex-1 text-left">
             {cat.name}
             {!isOwned && cat.user?.name && (
-              <span className="ml-1 text-xs font-normal text-muted-foreground">
-                · {cat.user.name}
-              </span>
+              <span className="ml-1 text-xs font-normal text-hint">· {cat.user.name}</span>
             )}
           </span>
         </button>
@@ -151,10 +145,7 @@ export function CategoryMobileSheet() {
                 activeCategoryId === null ? "font-medium text-foreground" : "text-hint",
               )}
             >
-              <span
-                className="size-2 shrink-0 rounded-full"
-                style={{ backgroundColor: INBOX_COLOR }}
-              />
+              <ColorDot color={INBOX_COLOR} />
               Inbox
               {inboxCount > 0 && activeCategoryId !== null && (
                 <span className="ml-auto text-xs text-primary">{inboxCount}</span>

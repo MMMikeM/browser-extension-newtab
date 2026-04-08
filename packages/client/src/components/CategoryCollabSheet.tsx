@@ -12,6 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { InitialsAvatar } from "~/components/ui/initials-avatar";
+import { ListRow } from "~/components/ui/list-row";
+import { RevealButton } from "~/components/ui/reveal-button";
+import { TextStack } from "~/components/ui/text-stack";
 
 export function CategoryCollabSheet({
   categoryId,
@@ -66,36 +70,23 @@ export function CategoryCollabSheet({
         <DrawerHeader>
           <DrawerTitle>Share category</DrawerTitle>
         </DrawerHeader>
-        <div className="flex flex-col gap-4 px-5 pb-8 pt-2">
+        <div className="flex flex-col gap-4 px-5 pt-2 pb-8">
           {collabs.length > 0 && (
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-medium text-muted-foreground">Shared with</p>
+              <p className="text-xs font-medium text-hint">Shared with</p>
               {collabs.map((collab) => (
-                <div
-                  key={collab.id}
-                  className="group/collab flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
-                >
-                  <div className="size-7 shrink-0 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center">
-                    {collab.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-sm font-medium truncate">{collab.name}</span>
-                    <span className="text-xs text-muted-foreground">@{collab.username}</span>
-                  </div>
-                  <button
-                    onClick={() => handleRemove(collab.id)}
-                    className="text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover/collab:opacity-100"
-                  >
-                    Remove
-                  </button>
-                </div>
+                <ListRow key={collab.id}>
+                  <InitialsAvatar name={collab.name} size="md" />
+                  <TextStack title={collab.name} subtitle={`@${collab.username}`} />
+                  <RevealButton onClick={() => handleRemove(collab.id)}>Remove</RevealButton>
+                </ListRow>
               ))}
             </div>
           )}
 
           {addableContacts.length > 0 && (
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-medium text-muted-foreground">Add collaborator</p>
+              <p className="text-xs font-medium text-hint">Add collaborator</p>
               <div className="flex items-center gap-2">
                 <Select
                   value={selectedUsername}
@@ -129,7 +120,7 @@ export function CategoryCollabSheet({
           )}
 
           {addableContacts.length === 0 && collabs.length === 0 && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-hint">
               No contacts yet.{" "}
               <Link to="/people" className="underline hover:text-foreground">
                 Invite someone

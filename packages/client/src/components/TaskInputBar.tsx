@@ -7,6 +7,7 @@ import { useOptimisticUserId } from "~/lib/auth/current-user";
 import { useActiveCategoryId } from "~/lib/state/active-category";
 import { useNavContext } from "~/lib/state/nav-context";
 import { INBOX_COLOR } from "~/lib/constants";
+import { ColorDot } from "~/components/ui/color-dot";
 
 export function TaskInputBar() {
   const activeCategoryId = useActiveCategoryId();
@@ -21,16 +22,13 @@ export function TaskInputBar() {
   const handleAdd = (title: string) => addTask(title, activeCategoryId ?? null);
 
   return (
-    <div className="touch:order-2 touch:shrink-0 touch:-mx-6 touch:px-6 touch:border-t touch:border-ghost touch:pt-3 touch:pb-[env(safe-area-inset-bottom,0px)]">
+    <div className="touch:order-2 touch:-mx-6 touch:shrink-0 touch:border-t touch:border-ghost touch:px-6 touch:pt-3 touch:pb-[env(safe-area-inset-bottom,0px)]">
       <button
         data-testid="category-input-chip"
         onClick={() => setNavOpen(true)}
-        className="hidden touch:flex items-center gap-2 mb-3 transition-colors active:opacity-70"
+        className="mb-3 hidden items-center gap-2 transition-colors active:opacity-70 touch:flex"
       >
-        <span
-          className="size-2 shrink-0 rounded-full"
-          style={{ backgroundColor: activeCategory?.color ?? INBOX_COLOR }}
-        />
+        <ColorDot color={activeCategory?.color ?? INBOX_COLOR} />
         <span className="text-sm font-medium text-foreground">
           {activeCategory?.name ?? "Inbox"}
         </span>

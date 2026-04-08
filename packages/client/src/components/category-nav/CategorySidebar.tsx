@@ -8,6 +8,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { CollabBadge } from "./CollabBadge";
 import { Input } from "~/components/ui/field";
+import { ColorDot } from "~/components/ui/color-dot";
 import { setActiveCategoryId } from "~/lib/state/active-category";
 import { cn } from "~/lib/utils";
 import type { Category } from "~/lib/types";
@@ -118,25 +119,22 @@ export function CategorySidebar() {
                   }}
                   onClick={() => setActiveCategoryId(cat.id)}
                   className={cn(
-                    "flex flex-1 items-center gap-2 px-3 py-1.5 text-sm transition-colors text-left min-w-0",
+                    "flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors",
                     isActive ? "text-foreground" : "text-hint hover:text-foreground",
-                    isDropTarget && "ring-1 ring-primary/30 rounded-md",
+                    isDropTarget && "rounded-md ring-1 ring-primary/30",
                   )}
                 >
                   {isActive && (
                     <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 rounded-full"
+                      className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full"
                       style={{ backgroundColor: cat.color ?? "oklch(0.60 0.18 118)" }}
                     />
                   )}
-                  <span
-                    className="size-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: cat.color ?? undefined }}
-                  />
-                  <span className="truncate flex-1">
+                  <ColorDot size="sm" color={cat.color ?? undefined} />
+                  <span className="flex-1 truncate">
                     {cat.name}
                     {!isOwned && cat.user?.name && (
-                      <span className="ml-1 text-xs font-normal text-ghost">
+                      <span className="ml-1 text-xs font-normal text-hint">
                         · {cat.user.name.split(" ")[0]}
                       </span>
                     )}
@@ -149,7 +147,7 @@ export function CategorySidebar() {
                   <PopoverTrigger
                     render={
                       <button
-                        className="mr-1 rounded p-0.5 text-transparent opacity-0 transition-opacity group-hover/pill:opacity-100 group-hover/pill:text-hint hover:text-foreground"
+                        className="mr-1 rounded p-0.5 text-transparent opacity-0 transition-opacity group-hover/pill:text-hint group-hover/pill:opacity-100 hover:text-foreground"
                         aria-label="Category options"
                       />
                     }
@@ -180,7 +178,7 @@ export function CategorySidebar() {
     <>
       <aside
         data-testid="category-sidebar"
-        className="touch:hidden fixed top-0 flex flex-col w-40 h-screen py-8 overflow-y-auto z-10"
+        className="fixed top-0 z-10 flex h-screen w-40 flex-col overflow-y-auto py-8 touch:hidden"
         style={{ left: "calc(50vw - 22.5rem)" }}
       >
         {showInbox && (
@@ -192,12 +190,9 @@ export function CategorySidebar() {
             )}
           >
             {activeCategoryId === null && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3.5 rounded-full bg-primary" />
+              <span className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
             )}
-            <span
-              className="size-1.5 shrink-0 rounded-full"
-              style={{ backgroundColor: INBOX_COLOR }}
-            />
+            <ColorDot size="sm" color={INBOX_COLOR} />
             Inbox
           </button>
         )}
@@ -233,7 +228,7 @@ export function CategorySidebar() {
           <button
             onClick={() => setAdding(true)}
             aria-label="Add category"
-            className="flex items-center gap-2 px-3 py-1.5 text-xs text-hint hover:text-foreground transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs text-hint transition-colors hover:text-foreground"
           >
             <Plus size={11} />
             <span>Add</span>
@@ -248,10 +243,10 @@ export function CategorySidebar() {
         )}
 
         <div className="flex-1" />
-        <div className="border-t border-ghost/15 mt-2 pt-2">
+        <div className="mt-2 border-t border-ghost/15 pt-2">
           <Link
             to="/people"
-            className="flex items-center px-3 py-1.5 text-sm text-hint hover:text-foreground transition-colors"
+            className="flex items-center px-3 py-1.5 text-sm text-hint transition-colors hover:text-foreground"
           >
             People
           </Link>

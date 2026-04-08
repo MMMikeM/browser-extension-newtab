@@ -26,7 +26,15 @@ const formatDueDate = (dateStr: string) => {
   };
 };
 
-function ShareBadges({ task, currentUserId, isOwned }: { task: Task; currentUserId: string; isOwned: boolean }) {
+function ShareBadges({
+  task,
+  currentUserId,
+  isOwned,
+}: {
+  task: Task;
+  currentUserId: string;
+  isOwned: boolean;
+}) {
   const otherShares = task.shares.filter((s) => s.sharedWithUser?.id !== currentUserId);
   const names: string[] = [];
   if (!isOwned && task.user?.name) names.push(task.user.name);
@@ -100,7 +108,7 @@ export function TaskItem({
         {/* Action drawer — revealed as row slides left */}
         {swipeEnabled && (
           <div
-            className="absolute right-0 top-0 h-full w-[148px] flex items-stretch"
+            className="absolute top-0 right-0 flex h-full w-[148px] items-stretch"
             aria-hidden="true"
           >
             <button
@@ -143,7 +151,7 @@ export function TaskItem({
         <div
           ref={swipe.contentRef}
           className={cn(
-            "group/task flex items-start gap-2 px-2 py-2.5 rounded-lg transition-colors hover:bg-muted/50",
+            "group/task flex items-start gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50",
             isSubtask && "py-1.5",
             // relative + bg-card: positions this row above the absolute drawer in the CSS
             // stacking order (static < absolute, so without relative the drawer bleeds through)
@@ -152,7 +160,7 @@ export function TaskItem({
         >
           {!isSubtask && (
             <span
-              className="self-center flex cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost touch:text-hint active:cursor-grabbing"
+              className="flex cursor-grab items-center self-center text-transparent transition-colors group-hover/task:text-ghost active:cursor-grabbing touch:text-hint"
               onTouchStart={(e) => e.stopPropagation()}
             >
               <GripVertical size={14} />
@@ -167,7 +175,7 @@ export function TaskItem({
           {onOpen ? (
             <button
               type="button"
-              className="flex min-w-0 flex-1 flex-col cursor-pointer text-left"
+              className="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
               onClick={() => onOpen(task.id)}
             >
               <span
@@ -180,7 +188,7 @@ export function TaskItem({
                 {task.title}
               </span>
               {task.description && (
-                <span className="truncate text-xs text-muted-foreground">{task.description}</span>
+                <span className="truncate text-xs text-hint">{task.description}</span>
               )}
             </button>
           ) : (
@@ -195,7 +203,7 @@ export function TaskItem({
                 {task.title}
               </span>
               {task.description && (
-                <span className="truncate text-xs text-muted-foreground">{task.description}</span>
+                <span className="truncate text-xs text-hint">{task.description}</span>
               )}
             </div>
           )}
@@ -212,7 +220,7 @@ export function TaskItem({
               type="button"
               onClick={openPicker}
               className={cn(
-                "mt-0.5 whitespace-nowrap text-xs cursor-pointer hover:underline",
+                "mt-0.5 cursor-pointer text-xs whitespace-nowrap hover:underline",
                 isDone ? "text-muted-foreground" : due.overdue ? "text-destructive" : "text-date",
               )}
             >
@@ -223,7 +231,7 @@ export function TaskItem({
               <button
                 type="button"
                 onClick={openPicker}
-                className="mt-0.5 whitespace-nowrap text-xs text-muted-foreground opacity-0 transition-opacity hover:underline group-hover/task:opacity-100 touch:hidden"
+                className="mt-0.5 text-xs whitespace-nowrap text-ghost opacity-0 transition-opacity group-hover/task:opacity-100 hover:underline touch:hidden"
               >
                 set date
               </button>
@@ -233,18 +241,13 @@ export function TaskItem({
             <ShareBadges task={task} currentUserId={currentUserId} isOwned={isOwned} />
           )}
           {task.assignee && (
-            <span
-              title={task.assignee.name}
-              className="mt-0.5 shrink-0 size-5 rounded-full bg-primary-subtle text-primary text-[10px] font-semibold flex items-center justify-center"
-            >
-              {task.assignee.name.slice(0, 2).toUpperCase()}
-            </span>
+            <InitialsAvatar name={task.assignee.name} size="sm" className="mt-0.5" />
           )}
           {!isSubtask && !isDone && (
             <button
               type="button"
               onClick={() => setAddingSubtask(true)}
-              className="mt-1 text-transparent transition-colors hover:text-foreground group-hover/task:text-ghost touch:hidden"
+              className="mt-1 text-transparent transition-colors group-hover/task:text-ghost hover:text-foreground touch:hidden"
               aria-label="Add subtask"
             >
               <Plus size={14} />
@@ -253,7 +256,7 @@ export function TaskItem({
           <button
             type="button"
             onClick={() => onDelete(task)}
-            className="mt-1 text-transparent transition-colors hover:text-destructive group-hover/task:text-ghost touch:hidden"
+            className="mt-1 text-transparent transition-colors group-hover/task:text-ghost hover:text-destructive touch:hidden"
             aria-label="Delete task"
           >
             <X size={14} />
@@ -279,7 +282,7 @@ export function TaskItem({
       )}
       {addingSubtask && (
         <form
-          className="ml-12 mb-1"
+          className="mb-1 ml-12"
           onSubmit={(e) => {
             e.preventDefault();
             submitSubtask();
