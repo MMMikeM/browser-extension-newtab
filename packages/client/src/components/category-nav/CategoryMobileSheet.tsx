@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Ellipsis, Plus, Users } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
 import { INBOX_COLOR } from "~/lib/constants";
 import { Drawer, DrawerContent } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
+import { CollabBadge } from "./CollabBadge";
 import { Input } from "~/components/ui/field";
 import { setActiveCategoryId } from "~/lib/state/active-category";
 import { useNavContext } from "~/lib/state/nav-context";
@@ -109,21 +110,7 @@ export function CategoryMobileSheet() {
           </span>
         </button>
 
-        {cat.collaborators && cat.collaborators.length > 0 && (
-          cat.collaborators.length === 1 ? (
-            <span
-              className="shrink-0 size-4 rounded-full text-[8px] font-semibold flex items-center justify-center"
-              style={{ backgroundColor: "oklch(0.55 0.07 228)", color: "oklch(0.95 0.01 80)" }}
-              title={cat.collaborators[0]?.user?.name ?? undefined}
-            >
-              {(cat.collaborators[0]?.user?.name ?? "?").slice(0, 2).toUpperCase()}
-            </span>
-          ) : (
-            <span className="shrink-0 size-4 flex items-center justify-center text-hint">
-              <Users size={12} />
-            </span>
-          )
-        )}
+        <CollabBadge category={cat} currentUserId={currentUserId} />
 
         <Popover>
           <PopoverTrigger

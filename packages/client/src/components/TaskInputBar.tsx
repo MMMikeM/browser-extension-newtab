@@ -1,13 +1,16 @@
-import { ChevronDown, Users } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { AddTaskInput } from "~/components/AddTaskInput";
 import { useCategories } from "~/lib/db/hooks";
+import { CollabBadge } from "~/components/category-nav/CollabBadge";
 import { addTask } from "~/lib/db/add-task";
+import { useOptimisticUserId } from "~/lib/auth/current-user";
 import { useActiveCategoryId } from "~/lib/state/active-category";
 import { useNavContext } from "~/lib/state/nav-context";
 import { INBOX_COLOR } from "~/lib/constants";
 
 export function TaskInputBar() {
   const activeCategoryId = useActiveCategoryId();
+  const currentUserId = useOptimisticUserId();
   const { data: rawCategories } = useCategories();
   const { setNavOpen } = useNavContext();
 
@@ -31,21 +34,7 @@ export function TaskInputBar() {
         <span className="text-sm font-medium text-foreground">
           {activeCategory?.name ?? "Inbox"}
         </span>
-        {activeCategory?.collaborators && activeCategory.collaborators.length > 0 && (
-          activeCategory.collaborators.length === 1 ? (
-            <span
-              className="shrink-0 size-4 rounded-full text-[8px] font-semibold flex items-center justify-center"
-              style={{ backgroundColor: "oklch(0.55 0.07 228)", color: "oklch(0.95 0.01 80)" }}
-              title={activeCategory.collaborators[0]?.user?.name ?? undefined}
-            >
-              {(activeCategory.collaborators[0]?.user?.name ?? "?").slice(0, 2).toUpperCase()}
-            </span>
-          ) : (
-            <span className="shrink-0 size-4 flex items-center justify-center text-hint">
-              <Users size={12} />
-            </span>
-          )
-        )}
+        {activeCategory && <CollabBadge category={activeCategory} currentUserId={currentUserId} />}
         <ChevronDown size={12} className="text-hint" />
       </button>
       <AddTaskInput onAdd={handleAdd} />
