@@ -55,9 +55,10 @@ registerRoute(
 );
 
 self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (event: ExtendableEvent) =>
-  event.waitUntil(self.clients.claim()),
-);
+self.addEventListener("activate", (event: ExtendableEvent) => {
+  console.log(`[sw] activated: ${__BUILD_VERSION__}`);
+  event.waitUntil(self.clients.claim());
+});
 
 // Map push payload type to notification display properties
 const getNotification = (

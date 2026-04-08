@@ -161,6 +161,8 @@ export const SyncSettings = () => {
           >
             Sign out
           </button>
+          <div className="h-px bg-border" />
+          <span className="text-[10px] text-hint/50">{__BUILD_VERSION__}</span>
         </div>
       )}
     </div>

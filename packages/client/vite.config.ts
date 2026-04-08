@@ -102,7 +102,10 @@ export default defineConfig(({ mode }) => {
       "import.meta.env.SERVER_URL": JSON.stringify(serverUrl),
       // TEMP: force React dev bundle for readable hydration errors
       "process.env.NODE_ENV": JSON.stringify("development"),
-      __BUILD_TIME__: JSON.stringify(new Date().toISOString()), // deploy bump
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+      __BUILD_VERSION__: JSON.stringify(
+        `${new Date().toISOString().slice(0, 16)}:${process.env.GITHUB_SHA?.slice(0, 7) ?? "dev"}`,
+      ),
     },
     plugins: [
       opfsWorker(),

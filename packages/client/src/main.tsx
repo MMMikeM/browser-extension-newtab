@@ -9,7 +9,7 @@ import "./app.css";
 
 initSync();
 
-console.log(`[build] ${__BUILD_TIME__}`);
+console.log(`[build] ${__BUILD_VERSION__}`);
 
 const root = document.getElementById("root")!;
 const router = getRouter();
