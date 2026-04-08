@@ -21,7 +21,7 @@ const FieldLabel = ({ className, ...props }: FieldPrimitive.Label.Props) => (
   <FieldPrimitive.Label
     data-slot="field-label"
     className={cn(
-      "text-sm font-medium leading-none group-data-[disabled]/field:cursor-not-allowed group-data-[disabled]/field:opacity-70",
+      "text-sm leading-none font-medium group-data-[disabled]/field:cursor-not-allowed group-data-[disabled]/field:opacity-70",
       className,
     )}
     {...props}
@@ -56,7 +56,7 @@ const Input = ({ className, ...props }: ComponentProps<"input">) => (
   <InputPrimitive
     className={cn(
       // Strip the box style from the primitive
-      "rounded-none border-0 border-b shadow-none h-auto py-2",
+      "h-auto rounded-none border-0 border-b py-2 shadow-none",
       "bg-transparent px-0",
       "border-ghost focus-visible:border-hint",
       "focus-visible:ring-0 focus-visible:ring-transparent",
@@ -79,7 +79,7 @@ const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
       // Strip the box style
       "rounded-none border-0 border-b shadow-none",
       "min-h-0 bg-transparent px-0 py-1.5",
-      "resize-none field-sizing-content",
+      "field-sizing-content resize-none",
       "border-ghost focus-visible:border-hint",
       "focus-visible:ring-0",
       "placeholder:text-hint",

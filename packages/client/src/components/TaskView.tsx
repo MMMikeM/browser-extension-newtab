@@ -22,7 +22,7 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+        className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
       >
         <ChevronRight
           size={14}
@@ -49,14 +49,14 @@ const EmptySection = ({ activeTasks, doneTasks }: { activeTasks: Task[]; doneTas
 
   if (doneTasks.length === 0)
     return (
-      <div className="flex-1 flex flex-col items-center justify-center pb-8 touch:pb-0 animate-in fade-in slide-in-from-bottom-1 duration-300">
+      <div className="flex flex-1 animate-in flex-col items-center justify-center pb-8 duration-300 fade-in slide-in-from-bottom-1 touch:pb-0">
         <p className="text-base text-hint">{getEmptyPhrase()}</p>
         <p className="mt-1 text-sm text-hint">type something above to begin</p>
       </div>
     );
 
   return (
-    <p className="text-sm text-hint animate-in fade-in slide-in-from-bottom-1 duration-300">
+    <p className="animate-in text-sm text-hint duration-300 fade-in slide-in-from-bottom-1">
       All done.
     </p>
   );
@@ -122,9 +122,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
   const { handleDragEnd } = useDndActions({ categories, activeCategoryId, activeTasks });
 
   const sharedCategoryIds = new Set(
-    categories
-      .filter((c) => c.collaborators && c.collaborators.length > 0)
-      .map((c) => c.id),
+    categories.filter((c) => c.collaborators && c.collaborators.length > 0).map((c) => c.id),
   );
 
   // While OPFS is initialising, data is undefined or the collection is loading.
@@ -139,7 +137,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
       <CategoryNav />
-      <div className="flex flex-col gap-4 flex-1">
+      <div className="flex flex-1 flex-col gap-4">
         <ul className="flex flex-col gap-1">
           {activeTasks.map((task, index) => (
             <SortableTask key={task.id} id={task.id} index={index}>

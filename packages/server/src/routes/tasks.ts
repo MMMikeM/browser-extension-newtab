@@ -135,9 +135,9 @@ export const taskRoutes = authed()
 
         // Collect recipients: task owner + share recipients + category collaborators, excluding actor
         const shareUserIds = await taskRepo.listShareUserIds(id).catch(() => []);
-        const allRecipients = [
-          ...new Set([...taskUserIds(task), ...shareUserIds]),
-        ].filter((uid) => uid !== userId);
+        const allRecipients = [...new Set([...taskUserIds(task), ...shareUserIds])].filter(
+          (uid) => uid !== userId,
+        );
 
         if (fields.status === "done" && task.status !== "done") {
           // Task completed (only if it wasn't already done)

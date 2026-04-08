@@ -22,11 +22,11 @@ function TaskListView() {
        * Fragment children become direct flex children of AppShell via <Outlet />.
        */}
       <TaskInputBar />
-      <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:overflow-x-hidden touch:min-h-0 touch:flex touch:flex-col">
+      <div className="touch:order-1 touch:flex touch:min-h-0 touch:flex-1 touch:flex-col touch:overflow-x-hidden touch:overflow-y-auto">
         <Suspense fallback={null}>
           <SyncHint />
         </Suspense>
-        <div className="mt-2 flex flex-col gap-4 flex-1">
+        <div className="mt-2 flex flex-1 flex-col gap-4">
           <TaskView onSelectTask={setSelectedTaskId} />
           <Suspense>
             <TaskDetail taskId={selectedTaskId} open onClose={() => setSelectedTaskId(null)} />

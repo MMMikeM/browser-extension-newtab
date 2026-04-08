@@ -21,7 +21,7 @@ const PopoverContent = ({
         <PopoverPrimitive.Popup
           className={cn(
             "min-w-[8rem] rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none",
-            "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 transition-opacity",
+            "transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
             className,
           )}
           {...props}
