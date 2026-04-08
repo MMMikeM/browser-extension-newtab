@@ -112,6 +112,12 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
 
   const { handleDragEnd } = useDndActions({ categories, activeCategoryId, activeTasks });
 
+  const sharedCategoryIds = new Set(
+    categories
+      .filter((c) => c.collaborators && c.collaborators.length > 0)
+      .map((c) => c.id),
+  );
+
   // While OPFS is initialising, data is undefined or the collection is loading.
   // Guard both: data===undefined catches the pre-ready state, isLoading catches
   // the brief window where the collection is ready but hasn't emitted yet.
@@ -138,6 +144,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
                     onDelete={actions.handleDelete}
                     onSetDueDate={actions.handleSetDueDate}
                     onAddSubtask={actions.handleAddSubtask}
+                    isInSharedCategory={!!task.categoryId && sharedCategoryIds.has(task.categoryId)}
                   />
                 </li>
               )}
@@ -159,6 +166,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
                   onDelete={actions.handleDelete}
                   onSetDueDate={actions.handleSetDueDate}
                   onAddSubtask={actions.handleAddSubtask}
+                  isInSharedCategory={!!task.categoryId && sharedCategoryIds.has(task.categoryId)}
                 />
               </li>
             ))}

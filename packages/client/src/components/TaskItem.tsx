@@ -24,6 +24,15 @@ const formatDueDate = (dateStr: string) => {
   };
 };
 
+const ShareAvatar = ({ name }: { name: string }) => (
+  <span
+    className="shrink-0 size-4 rounded-full text-[8px] font-semibold flex items-center justify-center bg-muted text-hint"
+    title={name}
+  >
+    {name.slice(0, 2).toUpperCase()}
+  </span>
+);
+
 export function TaskItem({
   task,
   onOpen,
@@ -34,6 +43,7 @@ export function TaskItem({
   subtasks = [],
   hideDate,
   isSubtask,
+  isInSharedCategory = false,
 }: {
   task: Task;
   onOpen?: (id: string) => void;
@@ -44,6 +54,7 @@ export function TaskItem({
   subtasks?: Task[];
   hideDate?: boolean;
   isSubtask?: boolean;
+  isInSharedCategory?: boolean;
 }) {
   const isDone = task.status === "done";
   const due = task.dueDate ? formatDueDate(task.dueDate) : null;
@@ -207,6 +218,15 @@ export function TaskItem({
                 set date
               </button>
             )
+          )}
+          {!isSubtask && !isInSharedCategory && task.shares.length > 0 && (
+            <div className="mt-0.5 flex items-center">
+              {task.shares.map((share, i) => (
+                <span key={share.id} style={{ marginLeft: i === 0 ? 0 : -4 }}>
+                  <ShareAvatar name={share.sharedWithUser?.name ?? "?"} />
+                </span>
+              ))}
+            </div>
           )}
           {task.assignee && (
             <span

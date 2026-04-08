@@ -80,6 +80,12 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
   const { data: allNotes = [] } = useNotes();
   const taskNotes = allNotes.filter((n) => n.taskId === task.id);
 
+  const { data: rawCategories = [] } = useCategories();
+  const taskCategory = task.categoryId
+    ? rawCategories.find((c) => c.id === task.categoryId)
+    : null;
+  const isInSharedCategory = (taskCategory?.collaborators?.length ?? 0) > 0;
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pb-8 pt-4">
       {/* Title */}
@@ -176,7 +182,16 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
 
       {/* Sharing */}
       {!task.parentId && (
-        <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
+        isInSharedCategory ? (
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-hint">Sharing</span>
+            <span className="text-xs text-ghost">
+              Visible to all collaborators in this category
+            </span>
+          </div>
+        ) : (
+          <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
+        )
       )}
 
       {/* Assignee — only when the task has been shared with someone */}

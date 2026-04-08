@@ -2,7 +2,7 @@ import { useState, type ReactNode, type RefCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
-import { Ellipsis, Plus } from "lucide-react";
+import { Ellipsis, Plus, Users } from "lucide-react";
 import { INBOX_COLOR } from "~/lib/constants";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
@@ -141,6 +141,22 @@ export function CategorySidebar() {
                     )}
                   </span>
                 </button>
+
+                {cat.collaborators && cat.collaborators.length > 0 && (
+                  cat.collaborators.length === 1 ? (
+                    <span
+                      className="shrink-0 size-4 rounded-full text-[8px] font-semibold flex items-center justify-center"
+                      style={{ backgroundColor: "oklch(0.55 0.07 228)", color: "oklch(0.95 0.01 80)" }}
+                      title={cat.collaborators[0]?.user?.name ?? undefined}
+                    >
+                      {(cat.collaborators[0]?.user?.name ?? "?").slice(0, 2).toUpperCase()}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 size-4 flex items-center justify-center text-hint">
+                      <Users size={12} />
+                    </span>
+                  )
+                )}
 
                 <Popover>
                   <PopoverTrigger
