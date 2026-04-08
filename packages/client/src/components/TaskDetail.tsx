@@ -123,7 +123,8 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
         {/* Hidden native picker — sized to zero, browser uses it for date UI */}
         <input
           ref={dateRef}
-          type="date"
+          type="datetime-local"
+          step="1800"
           value={task.dueDate ?? ""}
           tabIndex={-1}
           onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
@@ -136,10 +137,12 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
         >
           {task.dueDate ? (
             <span className="text-date hover:text-foreground">
-              {new Date(task.dueDate + "T00:00:00").toLocaleDateString("en", {
+              {new Date(task.dueDate).toLocaleString("en", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
               })}
             </span>
           ) : (
