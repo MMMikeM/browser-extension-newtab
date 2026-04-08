@@ -437,6 +437,11 @@ const OwnerCategorySection = ({
   const myCategories = categories.filter((c) => c.userId === task.userId);
   if (myCategories.length === 0) return null;
 
+  const items = [
+    { value: INBOX_VALUE, label: "Inbox" },
+    ...myCategories.map((c) => ({ value: c.id, label: c.name })),
+  ];
+
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium text-hint">Category</span>
@@ -446,6 +451,7 @@ const OwnerCategorySection = ({
           const id = v as string;
           updateTask(task.id, { categoryId: id === INBOX_VALUE ? null : id });
         }}
+        items={items}
       >
         <SelectTrigger
           className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
@@ -490,6 +496,11 @@ const RecipientCategorySection = ({
 
   const myCategories = categories.filter((c) => c.userId === currentUserId);
 
+  const items = [
+    { value: INBOX_VALUE, label: "Inbox" },
+    ...myCategories.map((c) => ({ value: c.id, label: c.name })),
+  ];
+
   const handleChange = async (categoryId: unknown) => {
     const id = categoryId as string;
     const value = id === INBOX_VALUE ? null : id;
@@ -499,7 +510,7 @@ const RecipientCategorySection = ({
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium text-hint">Category</span>
-      <Select value={myShare.categoryId ?? INBOX_VALUE} onValueChange={handleChange}>
+      <Select value={myShare.categoryId ?? INBOX_VALUE} onValueChange={handleChange} items={items}>
         <SelectTrigger
           className="rounded-none border-0 border-b border-ghost bg-transparent px-0 py-2 text-sm text-foreground shadow-none hover:border-hint focus-visible:border-hint focus-visible:ring-0"
           aria-label="Category"
