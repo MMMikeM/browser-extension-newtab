@@ -42,6 +42,25 @@ export default defineConfig({
         ],
       },
     },
+    // The Drizzle db instance should only be used inside repo files (packages/server/src/db/).
+    // Routes and other server code must go through repos for all DB access.
+    {
+      files: ["packages/server/src/routes/**", "packages/server/src/*.ts"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["../db/client", "./db/client"],
+                message:
+                  "Do not import the db instance directly. Use a repo from packages/server/src/db/ instead.",
+              },
+            ],
+          },
+        ],
+      },
+    },
     // Raw input primitives are shadcn baselines — app code should use the
     // app-styled Input/Textarea exported from ~/components/ui/field, which
     // applies the underline language and composes with Field/FormField.
