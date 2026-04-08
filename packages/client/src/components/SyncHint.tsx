@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useAuthToken } from "~/lib/auth/token";
+import { Link } from "~/components/ui/link";
 import { useTasks } from "~/lib/db/hooks";
 
 const DISMISSED_KEY = "newtab-todo-sync-hint-dismissed-until";
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export function SyncHint({ onSignIn }: { onSignIn: () => void }) {
+export function SyncHint() {
   const token = useAuthToken();
   const { data: tasks = [] } = useTasks();
   const [dismissed, setDismissed] = useState(() => {
@@ -19,9 +20,7 @@ export function SyncHint({ onSignIn }: { onSignIn: () => void }) {
   return (
     <p className="mt-1.5 text-xs text-muted-foreground">
       Saved on this device.{" "}
-      <button onClick={onSignIn} className="underline underline-offset-2 hover:text-foreground">
-        Sign in to sync across devices
-      </button>{" "}
+      <Link to="/auth">Sign in to sync across devices</Link>{" "}
       <button
         onClick={() => {
           localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));

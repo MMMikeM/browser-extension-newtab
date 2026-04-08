@@ -1,5 +1,5 @@
 import { Suspense, useState, lazy } from "react";
-import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
+import { createLazyFileRoute } from "@tanstack/react-router";
 import { TaskInputBar } from "~/components/TaskInputBar";
 import { SyncHint } from "~/components/SyncHint";
 import { Toast, Toasts } from "~/components/ui/toast";
@@ -11,7 +11,6 @@ const taskDetailModule = import("~/components/TaskDetail");
 const TaskDetail = lazy(() => taskDetailModule);
 
 function TaskListView() {
-  const router = useRouter();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   return (
@@ -25,7 +24,7 @@ function TaskListView() {
       <TaskInputBar />
       <div className="touch:order-1 touch:flex-1 touch:overflow-y-auto touch:overflow-x-hidden touch:min-h-0 touch:flex touch:flex-col">
         <Suspense fallback={null}>
-          <SyncHint onSignIn={() => router.navigate({ to: "/auth" })} />
+          <SyncHint />
         </Suspense>
         <div className="mt-2 flex flex-col gap-4 flex-1">
           <TaskView onSelectTask={setSelectedTaskId} />
