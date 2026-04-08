@@ -4,7 +4,7 @@ import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
 import { readFileSync, cpSync, readdirSync, mkdirSync } from "node:fs";
-import { generateSW } from "./plugins/generate-sw";
+import { VitePWA } from "vite-plugin-pwa";
 import { injectFontPreloads } from "./plugins/inject-font-preloads";
 import { prerender } from "./plugins/prerender";
 import { injectCriticalCss } from "./plugins/inject-critical-css";
@@ -112,7 +112,36 @@ export default defineConfig(({ mode }) => {
         generatedRouteTree: "src/routeTree.gen.ts",
       }),
       viteReact({}),
-      generateSW(),
+      VitePWA({
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
+        injectRegister: false,
+        outDir: "dist",
+        manifest: {
+          id: "/",
+          name: "Ajot",
+          short_name: "Ajot",
+          description: "A calm, fast task list for daily capture",
+          start_url: "/",
+          display: "standalone",
+          orientation: "portrait",
+          background_color: "#1c1917",
+          theme_color: "#1c1917",
+          icons: [
+            { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+            { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          ],
+        },
+        includeAssets: ["favicon.svg", "apple-touch-icon-180x180.png"],
+        injectManifest: {
+          globPatterns: ["**/*.{js,css,html,woff2,wasm,png,svg,webmanifest}"],
+          globIgnores: ["sw.js"],
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        },
+        devOptions: { enabled: false },
+      }),
       injectFontPreloads(),
       prerender(),
       injectCriticalCss(),
