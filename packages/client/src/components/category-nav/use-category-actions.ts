@@ -11,6 +11,7 @@ import {
 import { tasksCollection, categoriesCollection } from "~/lib/db/collections";
 import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-category";
 import { useCurrentUserId, useOptimisticUserId } from "~/lib/auth/current-user";
+import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
 import { leaveCategory } from "~/lib/actions";
 
 export const useCategoryActions = () => {
@@ -26,12 +27,17 @@ export const useCategoryActions = () => {
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
 
+  const collaboratedCategoryIds = useCollaboratedCategoryIds(currentUserId);
+
   const inboxTasks = (allTasks ?? []).filter((t) => {
     if (t.parentId) return false;
     if (t.status === "done") return false;
 
     const isOwner = t.userId === currentUserId;
     if (isOwner) return !t.categoryId;
+
+    // Task is in a category we collaborate on — it belongs there, not inbox
+    if (t.categoryId && collaboratedCategoryIds.has(t.categoryId)) return false;
 
     const myShare = t.shares.find((s) => s.sharedWithUserId === currentUserId);
     return myShare ? !myShare.categoryId : false;

@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/react/sortable";
 import { useTasks, useCategories } from "~/lib/db/hooks";
 import { useActiveCategoryId } from "~/lib/state/active-category";
 import { useCurrentUserId } from "~/lib/auth/current-user";
+import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
 import { CategoryNav } from "~/components/category-nav";
 import { TaskItem } from "./TaskItem";
 import { useTaskActions } from "./use-task-actions";
@@ -85,6 +86,8 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
     : [];
 
+  const collaboratedCategoryIds = useCollaboratedCategoryIds(userId);
+
   // Computed before loading guard so useDndActions always receives stable values
   const categoryTasks = (allTasks ?? []).filter((t) => {
     if (t.parentId) return false;
@@ -94,6 +97,12 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
     if (isOwner) {
       // Own tasks: filter by the task's categoryId
       return activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId;
+    }
+
+    // Task is in a category we collaborate on — use the collaborator path
+    // even if a share record exists (share doesn't override category membership)
+    if (t.categoryId && collaboratedCategoryIds.has(t.categoryId)) {
+      return activeCategoryId ? t.categoryId === activeCategoryId : false;
     }
 
     // Shared tasks: find the current user's share and check THEIR categoryId
