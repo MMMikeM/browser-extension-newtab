@@ -35,7 +35,21 @@ const shareCategorySchema = z.object({
 const taskUserIds = (task: {
   userId: string;
   category?: { collaborators: { userId: string }[] } | null;
-}) => [...new Set([task.userId, ...(task.category?.collaborators.map((c) => c.userId) ?? [])])];
+  parent?: {
+    userId: string;
+    shares?: { sharedWithUserId: string }[];
+    category?: { collaborators: { userId: string }[] } | null;
+  } | null;
+}) => [
+  ...new Set([
+    task.userId,
+    ...(task.category?.collaborators.map((c) => c.userId) ?? []),
+    // For subtasks, include parent's owner, share recipients, and category collaborators
+    ...(task.parent ? [task.parent.userId] : []),
+    ...(task.parent?.shares?.map((s) => s.sharedWithUserId) ?? []),
+    ...(task.parent?.category?.collaborators.map((c) => c.userId) ?? []),
+  ]),
+];
 
 export const taskRoutes = authed()
   .openapi(
@@ -60,17 +74,20 @@ export const taskRoutes = authed()
       const data = c.req.valid("json");
       const userId = c.get("userId");
 
+      // For subtasks, resolve the parent's categoryId for collaborator broadcast
+      let effectiveCategoryId = data.categoryId;
       if (data.parentId) {
         const parent = await taskRepo.findById(data.parentId);
         if (parent.parentId)
           throw new HTTPException(400, { message: "Cannot nest subtasks more than one level" });
+        effectiveCategoryId = parent.categoryId;
       }
 
       const result = await taskRepo.insert({ ...data, userId });
       const taskWithRelations = { ...result, subtasks: [], shares: [] };
 
-      const collabIds = data.categoryId
-        ? await categoryCollaboratorRepo.listUserIds(data.categoryId)
+      const collabIds = effectiveCategoryId
+        ? await categoryCollaboratorRepo.listUserIds(effectiveCategoryId)
         : [];
       broadcast(c, "tasks", "insert", taskWithRelations, [...new Set([userId, ...collabIds])]);
       return c.json(result, 200);
@@ -93,10 +110,16 @@ export const taskRoutes = authed()
         fields.assigneeId ? contactRepo.exists(userId, fields.assigneeId) : Promise.resolve(true),
       ]);
 
-      const collabUserIds = task.category?.collaborators.map((c) => c.userId) ?? [];
-      const isOwner = task.userId === userId;
+      const collabUserIds = [
+        ...(task.category?.collaborators.map((c) => c.userId) ?? []),
+        ...(task.parent?.category?.collaborators.map((c) => c.userId) ?? []),
+      ];
+      const parentShareUserIds = task.parent?.shares?.map((s) => s.sharedWithUserId) ?? [];
+      const isOwner = task.userId === userId || task.parent?.userId === userId;
       const isCollab = collabUserIds.includes(userId);
-      if (!isOwner && !isCollab) throw new HTTPException(403, { message: "Not authorized" });
+      const isParentShareRecipient = parentShareUserIds.includes(userId);
+      if (!isOwner && !isCollab && !isParentShareRecipient)
+        throw new HTTPException(403, { message: "Not authorized" });
       if (!isContact) throw new HTTPException(400, { message: "Can only assign to a contact" });
 
       const result = await taskRepo.update(id, updatedAt, fields);
@@ -113,11 +136,7 @@ export const taskRoutes = authed()
         // Collect recipients: task owner + share recipients + category collaborators, excluding actor
         const shareUserIds = await taskRepo.listShareUserIds(id).catch(() => []);
         const allRecipients = [
-          ...new Set([
-            task.userId,
-            ...(task.category?.collaborators.map((c) => c.userId) ?? []),
-            ...shareUserIds,
-          ]),
+          ...new Set([...taskUserIds(task), ...shareUserIds]),
         ].filter((uid) => uid !== userId);
 
         if (fields.status === "done" && task.status !== "done") {
@@ -188,7 +207,8 @@ export const taskRoutes = authed()
       const userId = c.get("userId");
 
       const task = await taskRepo.findByIdWithAccess(id, userId);
-      if (task.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
+      const isOwner = task.userId === userId || task.parent?.userId === userId;
+      if (!isOwner) throw new HTTPException(403, { message: "Not authorized" });
 
       const result = await taskRepo.remove(id);
       broadcast(c, "tasks", "delete", { id: result.id }, taskUserIds(task));

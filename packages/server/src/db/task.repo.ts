@@ -46,9 +46,14 @@ const list = async (userId: string) =>
   db.query.tasks.findMany({
     where: {
       OR: [
+        // Top-level tasks the user owns, is shared on, or collaborates in
         { userId },
         { shares: { sharedWithUserId: userId } },
         { category: { collaborators: { userId } } },
+        // Subtasks whose parent is accessible via the same conditions
+        { parent: { userId } },
+        { parent: { shares: { sharedWithUserId: userId } } },
+        { parent: { category: { collaborators: { userId } } } },
       ],
     },
     with: {
@@ -80,6 +85,16 @@ const findByIdWithAccess = async (id: string, _userId: string) => {
       category: {
         with: { collaborators: { columns: { userId: true } } },
         columns: { id: true },
+      },
+      parent: {
+        columns: { id: true, userId: true },
+        with: {
+          shares: { columns: { sharedWithUserId: true } },
+          category: {
+            with: { collaborators: { columns: { userId: true } } },
+            columns: { id: true },
+          },
+        },
       },
     },
   });
