@@ -36,7 +36,7 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
       {/* Submit hint — appears when there's text, teaches the Enter affordance without permanent noise */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-xs text-ghost/60 transition-opacity duration-150"
+        className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-xs text-ghost transition-opacity duration-150"
         style={{ opacity: value.trim() ? 1 : 0 }}
       >
         ↵

@@ -18,14 +18,14 @@ export function SyncHint() {
   if (token || tasks.length === 0 || dismissed) return null;
 
   return (
-    <p className="mt-1.5 text-xs text-muted-foreground">
+    <p className="mt-1.5 text-xs text-hint">
       Saved on this device. <Link to="/auth">Sign in to sync across devices</Link>{" "}
       <button
         onClick={() => {
           localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));
           setDismissed(true);
         }}
-        className="text-hint hover:text-muted-foreground"
+        className="text-hint hover:text-foreground"
         aria-label="Dismiss"
       >
         &times;

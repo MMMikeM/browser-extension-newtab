@@ -12,6 +12,7 @@ import { getBuildTarget } from "~/lib/build-target";
 import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState, usePendingMutations } from "~/lib/sync/sse";
 import { useInstallPrompt } from "~/lib/hooks/use-install-prompt";
+import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
 const clearAuth = () => {
@@ -110,8 +111,8 @@ export const SyncSettings = () => {
             syncState === "disconnected"
               ? "bg-destructive"
               : hasPending || syncState === "connecting"
-                ? "animate-pulse bg-amber-500"
-                : "bg-primary/50",
+                ? "animate-pulse bg-pending"
+                : "bg-primary-subtle",
           )}
         />
         {/* Connected idle: ghost label — whispers affordance without competing.
@@ -124,45 +125,38 @@ export const SyncSettings = () => {
 
       {open && currentUser && (
         // Absolutely positioned — does NOT affect header height
-        <div className="absolute right-0 top-full z-50 mt-2 flex min-w-[180px] flex-col gap-3 rounded-lg border border-border bg-popover p-3 shadow-lg">
+        <div className="absolute top-full right-0 z-50 mt-2 flex min-w-[180px] flex-col gap-3 rounded-lg border border-border bg-popover p-3 shadow-lg">
           <div className="flex flex-col gap-0.5">
             <span className="text-xs font-medium text-foreground">{currentUser.name}</span>
             <span className="text-xs text-hint">@{currentUser.username}</span>
           </div>
           <div className="h-px bg-border" />
           {getBuildTarget() === "browser" && canInstall && (
-            <button
-              onClick={install}
-              className="text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
+            <Button variant="subtle" size="xs" className="justify-start" onClick={install}>
               Add to Home Screen
-            </button>
+            </Button>
           )}
           {getBuildTarget() === "browser" && (
-            <button
-              onClick={handleTogglePush}
-              className="text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
+            <Button variant="subtle" size="xs" className="justify-start" onClick={handleTogglePush}>
               {pushEnabled ? "✓ Background sync on" : "Enable background sync"}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="subtle"
+            size="xs"
+            className="justify-start"
             onClick={() => {
               router.navigate({ to: "/people" });
               setOpen(false);
             }}
-            className="text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             People
-          </button>
-          <button
-            onClick={handleLogout}
-            className="text-left text-xs text-muted-foreground transition-colors hover:text-destructive"
-          >
+          </Button>
+          <Button variant="destructive" size="xs" className="justify-start" onClick={handleLogout}>
             Sign out
-          </button>
+          </Button>
           <div className="h-px bg-border" />
-          <span className="text-[10px] text-hint/50">{__BUILD_VERSION__}</span>
+          <span className="text-[10px] text-ghost">{__BUILD_VERSION__}</span>
         </div>
       )}
     </div>

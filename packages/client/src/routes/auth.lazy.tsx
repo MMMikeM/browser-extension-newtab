@@ -72,7 +72,7 @@ const AuthView = () => {
   return (
     <div className="flex flex-col items-center justify-start pt-[20vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
       <div className="w-full max-w-xs">
-        <p className="text-center text-sm text-hint mb-6">
+        <p className="mb-6 text-center text-sm text-hint">
           {mode === "signup" ? "Create your account" : "Sign in to sync across devices"}
         </p>
         <form
@@ -136,12 +136,12 @@ const AuthView = () => {
           {serverError && (
             <div
               role="alert"
-              className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              className="rounded-md border border-destructive bg-destructive-subtle px-3 py-2 text-sm text-destructive"
             >
               {serverError}
             </div>
           )}
-          <div className="flex flex-col gap-2 mt-1">
+          <div className="mt-1 flex flex-col gap-2">
             <Button
               type="submit"
               variant="outline"

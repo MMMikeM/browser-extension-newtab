@@ -19,7 +19,7 @@ export const Toasts = () => {
         "[--scale:calc(max(0,1-(var(--toast-index)*0.075)))]",
         "[--shrink:calc(1-var(--scale))]",
         "[--height:var(--toast-frontmost-height,var(--toast-height))]",
-        "absolute bottom-0 left-0 right-0 w-full origin-bottom select-none",
+        "absolute right-0 bottom-0 left-0 w-full origin-bottom select-none",
         "z-[calc(1000-var(--toast-index))]",
         "[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)-(var(--toast-index)*var(--peek))-(var(--shrink)*var(--height))))_scale(var(--scale))]",
         // Hover-gap bridge so pointer can reach lower toasts
@@ -43,7 +43,7 @@ export const Toasts = () => {
     >
       <Toast.Content className="px-4 py-2.5">
         <div className="flex items-center gap-3 text-sm">
-          <Toast.Title className="flex-1 text-muted-foreground" />
+          <Toast.Title className="flex-1 text-hint" />
           {toast.data?.onUndo && (
             <Toast.Action render={<Button variant="link" />} onClick={() => toast.data.onUndo()}>
               Undo
@@ -55,7 +55,7 @@ export const Toasts = () => {
         </div>
         {/* CSS-only countdown bar — replaces the old setInterval approach */}
         <div
-          className="absolute bottom-0 left-0 h-0.5 w-full origin-left bg-primary/50"
+          className="absolute bottom-0 left-0 h-0.5 w-full origin-left bg-primary-subtle"
           style={{ animation: `toast-progress ${DURATION}ms linear forwards` }}
         />
       </Toast.Content>

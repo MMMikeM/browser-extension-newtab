@@ -39,8 +39,8 @@ export function InviteAcceptPage() {
   if (!authToken) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] px-6">
-      <div className="flex flex-col items-center gap-4 max-w-xs text-center">
+    <div className="flex min-h-[50vh] flex-col items-center justify-center px-6">
+      <div className="flex max-w-xs flex-col items-center gap-4 text-center">
         {isSuccess ? (
           <>
             <p className="text-lg font-semibold">You're now connected!</p>
@@ -50,7 +50,7 @@ export function InviteAcceptPage() {
           </>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground">You've been invited to connect.</p>
+            <p className="text-sm text-hint">You've been invited to connect.</p>
             {errorMsg && <p className="text-sm text-destructive">{errorMsg}</p>}
             <Button variant="outline" onClick={accept} disabled={isPending}>
               {isPending ? "Accepting…" : "Accept invite"}

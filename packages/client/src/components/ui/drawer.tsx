@@ -24,16 +24,16 @@ const DrawerContent = ({
     <DrawerPrimitive.Portal>
       <DrawerPrimitive.Backdrop
         data-slot="drawer-backdrop"
-        className="fixed inset-0 z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs transition-opacity duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] data-[swiping]:duration-0 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0 data-[ending-style]:duration-[calc(var(--drawer-swipe-strength,1)*400ms)]"
+        className="fixed inset-0 z-50 bg-backdrop transition-opacity duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] data-[ending-style]:opacity-0 data-[ending-style]:duration-[calc(var(--drawer-swipe-strength,1)*400ms)] data-[starting-style]:opacity-0 data-[swiping]:duration-0 supports-backdrop-filter:backdrop-blur-xs"
       />
-      <DrawerPrimitive.Viewport className="fixed inset-0 z-50 flex items-end justify-center touch-none">
+      <DrawerPrimitive.Viewport className="fixed inset-0 z-50 flex touch-none items-end justify-center">
         <DrawerPrimitive.Popup
           data-slot="drawer-content"
           className={cn(
             "flex h-auto max-h-[80vh] w-full flex-col rounded-t-xl border-t border-border bg-popover text-sm text-popover-foreground",
             "[transform:translateY(var(--drawer-swipe-movement-y,0px))]",
             "transition-transform duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
-            "data-[swiping]:select-none data-[swiping]:duration-0",
+            "data-[swiping]:duration-0 data-[swiping]:select-none",
             "data-[starting-style]:[transform:translateY(calc(100%+2px))]",
             "data-[ending-style]:[transform:translateY(calc(100%+2px))]",
             "data-[ending-style]:duration-[calc(var(--drawer-swipe-strength,1)*400ms)]",
@@ -88,7 +88,7 @@ const DrawerDescription = ({
   return (
     <DrawerPrimitive.Description
       data-slot="drawer-description"
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-sm text-hint", className)}
       {...props}
     />
   );
