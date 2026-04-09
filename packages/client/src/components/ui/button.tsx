@@ -13,9 +13,11 @@ const buttonVariants = tv({
       ghost:
         "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
       subtle: "text-hint hover:text-foreground",
-      destructive:
-        "bg-transparent text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/40",
       link: "text-primary underline-offset-4 hover:underline",
+    },
+    intent: {
+      default: "",
+      destructive: "",
     },
     size: {
       default:
@@ -23,24 +25,46 @@ const buttonVariants = tv({
       xs: "h-6 gap-1 px-2.5 text-xs has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3",
       sm: "h-8 gap-1 px-3 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
       lg: "h-10 gap-1.5 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-      icon: "size-9",
-      "icon-xs": "size-6 [&_svg:not([class*='size-'])]:size-3",
-      "icon-sm": "size-8",
-      "icon-lg": "size-10",
+    },
+    icon: {
+      true: "px-0",
     },
   },
+  compoundVariants: [
+    // Destructive + ghost: transparent bg, red text, red hover bg
+    {
+      intent: "destructive",
+      variant: "ghost",
+      class:
+        "bg-transparent text-destructive hover:bg-destructive/20 hover:text-destructive",
+    },
+    // Destructive + subtle: hint text, red on hover
+    { intent: "destructive", variant: "subtle", class: "text-hint hover:text-destructive" },
+    // Destructive focus ring override (all variants)
+    {
+      intent: "destructive",
+      class: "focus-visible:border-destructive/40 focus-visible:ring-destructive/40",
+    },
+    // Icon: square sizing per size tier
+    { icon: true, size: "default", class: "size-9" },
+    { icon: true, size: "xs", class: "size-6 [&_svg:not([class*='size-'])]:size-3" },
+    { icon: true, size: "sm", class: "size-8" },
+    { icon: true, size: "lg", class: "size-10" },
+  ],
   defaultVariants: {
     variant: "default",
+    intent: "default",
     size: "default",
+    icon: false,
   },
 });
 
 type ButtonProps = StyledProps<ButtonPrimitive.Props, typeof buttonVariants>;
 
-const Button = ({ className, variant, size, ...props }: ButtonProps) => (
+const Button = ({ className, variant, intent, size, icon, ...props }: ButtonProps) => (
   <ButtonPrimitive
     data-slot="button"
-    className={buttonVariants({ variant, size, class: className })}
+    className={buttonVariants({ variant, intent, size, icon, class: className })}
     {...props}
   />
 );
