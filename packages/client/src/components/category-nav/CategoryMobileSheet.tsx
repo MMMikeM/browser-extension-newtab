@@ -6,6 +6,7 @@ import { Drawer, DrawerContent } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { CollabBadge } from "./CollabBadge";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/field";
 import { ColorDot } from "~/components/ui/color-dot";
 import { setActiveCategoryId } from "~/lib/state/active-category";
@@ -191,13 +192,15 @@ export function CategoryMobileSheet() {
               />
             </form>
           ) : (
-            <button
+            <Button
+              variant="subtle"
+              size="sm"
               onClick={() => setAdding(true)}
-              className="flex w-full items-center gap-3 px-5 py-3.5 text-sm text-hint transition-colors active:text-foreground"
+              className="w-full justify-start gap-3 px-5 py-3.5 active:text-foreground"
             >
               <Plus size={14} />
               Add category
-            </button>
+            </Button>
           )}
 
           <div className="mx-5 mt-1 h-px bg-border/50" />
