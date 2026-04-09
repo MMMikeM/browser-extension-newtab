@@ -20,6 +20,9 @@
     "test:e2e:ui": "pnpm --filter @newtab-todo/e2e test:ui",
     "reset-password": "node --env-file=.env --import=./packages/server/node_modules/tsx/dist/esm/index.cjs packages/server/reset-password.ts"
   },
+  "dependencies": {
+    "temporal-polyfill": "^0.3.2"
+  },
   "devDependencies": {
     "@types/node": "^25.5.2",
     "@typescript/native-preview": "7.0.0-dev.20260403.1",
