@@ -7,6 +7,7 @@ import { useActiveCategoryId } from "~/lib/state/active-category";
 import { useCurrentUserId } from "~/lib/auth/current-user";
 import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
 import { CategoryNav } from "~/components/category-nav";
+import { Button } from "~/components/ui/button";
 import { TaskItem } from "./TaskItem";
 import { useTaskActions } from "./use-task-actions";
 import { useTaskActions as useDndActions } from "~/lib/hooks/use-task-actions";
@@ -19,10 +20,11 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
 
   return (
     <div className="mt-1 border-t border-border pt-2">
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="xs"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:text-foreground"
+        className="font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground"
       >
         <ChevronRight
           size={14}
@@ -30,7 +32,7 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
           style={{ transform: open ? "rotate(90deg)" : "none" }}
         />
         Done ({count})
-      </button>
+      </Button>
       {open && children}
     </div>
   );
