@@ -24,7 +24,8 @@ export function CategoryOptionsContent({
   if (!isOwned) {
     return (
       <Button
-        variant="destructive"
+        variant="ghost"
+        intent="destructive"
         size="sm"
         className="w-full justify-start rounded-sm"
         onClick={() => onLeave(cat.id)}
@@ -69,7 +70,8 @@ export function CategoryOptionsContent({
         Share
       </Button>
       <Button
-        variant="destructive"
+        variant="ghost"
+        intent="destructive"
         size="sm"
         className="w-full justify-start rounded-sm"
         onClick={() => onDelete(cat.id)}

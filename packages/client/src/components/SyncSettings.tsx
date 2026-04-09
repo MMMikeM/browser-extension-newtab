@@ -149,7 +149,7 @@ export const SyncSettings = () => {
           >
             People
           </Button>
-          <Button variant="destructive" size="xs" className="justify-start" onClick={handleLogout}>
+          <Button variant="ghost" intent="destructive" size="xs" className="justify-start" onClick={handleLogout}>
             Sign out
           </Button>
           <div className="h-px bg-border" />

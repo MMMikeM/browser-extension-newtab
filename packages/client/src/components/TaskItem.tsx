@@ -13,16 +13,15 @@ import { useOptimisticUserId } from "~/lib/auth/current-user";
 const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 const formatDueDate = (dateStr: string) => {
-  const date = new Date(dateStr + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((date.getTime() - today.getTime()) / 86400000);
+  const date = Temporal.PlainDate.from(dateStr.slice(0, 10));
+  const today = Temporal.Now.plainDateISO();
+  const diffDays = date.since(today, { largestUnit: "day" }).days;
 
   if (diffDays < 0) return { label: `${-diffDays}d ago`, overdue: true };
   if (diffDays === 0) return { label: "Today", overdue: false };
   if (diffDays === 1) return { label: "Tomorrow", overdue: false };
   return {
-    label: date.toLocaleDateString("en", { month: "short", day: "numeric" }),
+    label: date.toLocaleString("en", { month: "short", day: "numeric" }),
     overdue: false,
   };
 };
@@ -247,7 +246,8 @@ export function TaskItem({
           {!isSubtask && !isDone && (
             <Button
               variant="ghost"
-              size="icon-xs"
+              size="xs"
+              icon
               onClick={() => setAddingSubtask(true)}
               className="mt-1 text-transparent group-hover/task:text-ghost hover:text-foreground touch:hidden"
               aria-label="Add subtask"

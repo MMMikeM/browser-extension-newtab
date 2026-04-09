@@ -224,8 +224,9 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
       {/* Delete */}
       <Button
         variant="subtle"
+        intent="destructive"
         size="xs"
-        className="self-start hover:text-destructive"
+        className="self-start"
         onClick={() => {
           deleteTask(task.id);
           onClose();
