@@ -7,6 +7,7 @@ import { INBOX_COLOR } from "~/lib/constants";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { CollabBadge } from "./CollabBadge";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/field";
 import { ColorDot } from "~/components/ui/color-dot";
 import { setActiveCategoryId } from "~/lib/state/active-category";
@@ -225,14 +226,16 @@ export function CategorySidebar() {
             />
           </form>
         ) : (
-          <button
+          <Button
+            variant="subtle"
+            size="xs"
             onClick={() => setAdding(true)}
+            className="gap-2 px-3"
             aria-label="Add category"
-            className="flex items-center gap-2 px-3 py-1.5 text-xs text-hint transition-colors hover:text-foreground"
           >
             <Plus size={11} />
             <span>Add</span>
-          </button>
+          </Button>
         )}
 
         {sharedCategories.length > 0 && (
