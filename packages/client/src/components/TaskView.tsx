@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { useState, type ReactNode, type RefCallback } from "react";
 import { ChevronRight } from "lucide-react";
 import { DragDropProvider } from "@dnd-kit/react";
@@ -39,7 +40,7 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
 };
 
 const getEmptyPhrase = () => {
-  const hour = new Date().getHours();
+  const hour = Temporal.Now.plainDateTimeISO().hour;
   if (hour >= 5 && hour < 12) return "Morning.";
   if (hour >= 12 && hour < 17) return "All clear.";
   if (hour >= 17 && hour < 22) return "Nothing here yet.";

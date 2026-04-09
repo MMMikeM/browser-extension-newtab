@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { useRef, useState } from "react";
 import type { Task } from "~/lib/types";
 import { Button } from "~/components/ui/button";
@@ -256,10 +257,12 @@ export function TaskItem({
             </Button>
           )}
           <Button
-            variant="ghost"
-            size="icon-xs"
+            variant="subtle"
+            intent="destructive"
+            size="xs"
+            icon
             onClick={() => onDelete(task)}
-            className="mt-1 text-transparent group-hover/task:text-ghost hover:text-destructive touch:hidden"
+            className="mt-1 text-transparent group-hover/task:text-ghost touch:hidden"
             aria-label="Delete task"
           >
             <X size={14} />

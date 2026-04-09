@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type { Task, Note } from "~/lib/types";
@@ -152,7 +153,7 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
           aria-label="Set due date"
         >
           {task.dueDate
-            ? new Date(task.dueDate).toLocaleString("en", {
+            ? Temporal.PlainDateTime.from(task.dueDate).toLocaleString("en", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
