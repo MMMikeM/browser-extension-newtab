@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { Toast } from "@base-ui/react/toast";
 import {
   useTasks,
@@ -46,10 +46,14 @@ export const useCategoryActions = () => {
   const inboxCount = inboxTasks.length;
 
   // Auto-select first category when inbox empties
-  useEffect(() => {
+  const autoSelectFirst = useEffectEvent(() => {
     if (activeCategoryId === null && !showInbox && categories.length > 0) {
       setActiveCategoryId(categories[0].id);
     }
+  });
+
+  useEffect(() => {
+    autoSelectFirst();
   }, [showInbox]);
 
   const pushUndo = (message: string, onUndo: () => void) => {
