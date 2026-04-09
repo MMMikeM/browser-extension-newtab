@@ -78,29 +78,26 @@ export const SyncSettings = () => {
   if (!token) {
     if (isAuthPage) return null;
     return (
-      <button
-        onClick={() => router.navigate({ to: "/auth" })}
-        className="rounded-md px-2 py-1 text-xs text-hint transition-colors hover:bg-muted hover:text-muted-foreground"
-      >
+      <Button variant="ghost" size="xs" onClick={() => router.navigate({ to: "/auth" })}>
         Sign in
-      </button>
+      </Button>
     );
   }
 
   return (
     // relative wrapper — keeps header height stable regardless of panel state
     <div ref={containerRef} className="relative">
-      <button
+      <Button
+        variant="ghost"
+        size="xs"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
+          "gap-1.5",
           open
             ? "bg-muted text-muted-foreground"
             : syncState === "disconnected"
-              ? "text-foreground hover:bg-muted"
-              : hasPending || syncState === "connecting"
-                ? "text-hint hover:bg-muted hover:text-muted-foreground"
-                : "text-hint hover:bg-muted hover:text-muted-foreground",
+              ? "text-foreground"
+              : "text-hint hover:text-muted-foreground",
         )}
         aria-label="Sync settings"
         aria-expanded={open}
@@ -121,7 +118,7 @@ export const SyncSettings = () => {
         <span className={cn(syncState === "disconnected" && "font-medium")}>
           {hasPending && syncState !== "disconnected" ? "Syncing…" : SYNC_LABELS[syncState]}
         </span>
-      </button>
+      </Button>
 
       {open && currentUser && (
         // Absolutely positioned — does NOT affect header height
