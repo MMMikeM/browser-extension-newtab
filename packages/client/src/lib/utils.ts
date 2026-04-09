@@ -1,8 +1,6 @@
 import type { VariantProps } from "tailwind-variants";
-import type { ISODateString } from "@newtab-todo/shared/iso";
 export { cn } from "tailwind-variants";
-
-export const now = (): ISODateString => new Date().toISOString() as ISODateString;
+export { now } from "@newtab-todo/shared/iso";
 
 /**
  * Props for a base-ui primitive wrapped with a tv() variant definition.
