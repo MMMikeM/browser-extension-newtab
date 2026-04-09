@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { AddTaskInput } from "~/components/AddTaskInput";
+import { AddTaskInput } from "./add-input";
 import { useCategories } from "~/lib/db/hooks";
 import { CollabBadge } from "~/components/category-nav/CollabBadge";
 import { addTask } from "~/lib/db/add-task";

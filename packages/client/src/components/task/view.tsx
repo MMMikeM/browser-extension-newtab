@@ -9,8 +9,8 @@ import { useCurrentUserId } from "~/lib/auth/current-user";
 import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
 import { CategoryNav } from "~/components/category-nav";
 import { Button } from "~/components/ui/button";
-import { TaskItem } from "./TaskItem";
-import { useTaskActions } from "./use-task-actions";
+import { TaskItem } from "./item";
+import { useTaskActions } from "./use-actions";
 import { useTaskActions as useDndActions } from "~/lib/hooks/use-task-actions";
 import type { Task } from "~/lib/types";
 

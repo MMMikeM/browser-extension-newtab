@@ -1,13 +1,13 @@
 import { Suspense, useState, lazy } from "react";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { TaskInputBar } from "~/components/TaskInputBar";
+import { TaskInputBar } from "~/components/task/input-bar";
 import { SyncHint } from "~/components/SyncHint";
 import { Toast, Toasts } from "~/components/ui/toast";
-import { TaskView } from "~/components/TaskView";
+import { TaskView } from "~/components/task/view";
 
 // Lazy-load: defers @base-ui/drawer, @tanstack/react-form (69KB)
 // Import starts immediately on route load; lazy() uses the same promise for Suspense integration
-const taskDetailModule = import("~/components/TaskDetail");
+const taskDetailModule = import("~/components/task/detail");
 const TaskDetail = lazy(() => taskDetailModule);
 
 function TaskListView() {
