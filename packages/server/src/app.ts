@@ -12,7 +12,6 @@ import { inviteRoutes } from "./routes/invites";
 import { contactRoutes } from "./routes/contacts";
 import { notificationRoutes } from "./routes/notifications";
 import { deployRoutes } from "./routes/deploy";
-import { db } from "./db/client";
 
 const app = new OpenAPIHono();
 
@@ -71,14 +70,6 @@ app.use("*", (c, next) => {
 app.options("*", (c) => c.body(null, 204));
 
 app.get("/health", (c) => c.json({ ok: true }));
-
-app.get("/health/db", async (c) => {
-  const t = Date.now();
-  await db.run("SELECT 1");
-  const ms = Date.now() - t;
-  console.log(`[db] round-trip ${ms}ms`);
-  return c.json({ ok: true, ms });
-});
 
 const api = app
   .route("/api/auth", authRoutes)
