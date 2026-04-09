@@ -35,8 +35,7 @@ const buttonVariants = tv({
     {
       intent: "destructive",
       variant: "ghost",
-      class:
-        "bg-transparent text-destructive hover:bg-destructive/20 hover:text-destructive",
+      class: "bg-transparent text-destructive hover:bg-destructive/20 hover:text-destructive",
     },
     // Destructive + subtle: hint text, red on hover
     { intent: "destructive", variant: "subtle", class: "text-hint hover:text-destructive" },

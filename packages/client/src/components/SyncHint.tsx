@@ -26,10 +26,7 @@ export function SyncHint() {
         size="xs"
         icon
         onClick={() => {
-          localStorage.setItem(
-            DISMISSED_KEY,
-            String(Date.now() + DISMISS_DURATION_MS),
-          );
+          localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));
           setDismissed(true);
         }}
         className="inline-flex align-middle"
