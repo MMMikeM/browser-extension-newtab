@@ -1,5 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
+import { hoursFromNow } from "@newtab-todo/shared/iso";
 import inviteTokenRepo from "../db/invite-token.repo";
 import { sendNotification } from "../notify";
 import userRepo from "../db/user.repo";
@@ -21,7 +22,7 @@ export const inviteRoutes = authed()
     }),
     async (c) => {
       const userId = c.get("userId");
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const expiresAt = hoursFromNow(7 * 24);
       const invite = await inviteTokenRepo.create(userId, expiresAt);
       return c.json({ token: invite.id, expiresAt: invite.expiresAt }, 200);
     },

@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
+import { now, hoursFromNow } from "@newtab-todo/shared/iso";
 import { db } from "./client";
 import { sessions } from "./schema";
 
@@ -8,24 +9,17 @@ const SESSION_TTL_DAYS = 90;
 
 const generateToken = () => randomBytes(TOKEN_BYTES).toString("hex");
 
-const expiresAt = () => {
-  const date = new Date();
-  date.setDate(date.getDate() + SESSION_TTL_DAYS);
-  return date.toISOString();
-};
-
 const insert = async (userId: string) => {
   const id = generateToken();
-  await db.insert(sessions).values({ id, userId, expiresAt: expiresAt() });
+  const expiresAt = hoursFromNow(SESSION_TTL_DAYS * 24);
+  await db.insert(sessions).values({ id, userId, expiresAt });
   return id;
 };
 
-const findValid = async (token: string) => {
-  const now = new Date().toISOString();
-  return db.query.sessions.findFirst({
-    where: { id: token, expiresAt: { gt: now } },
+const findValid = async (token: string) =>
+  db.query.sessions.findFirst({
+    where: { id: token, expiresAt: { gt: now() } },
   });
-};
 
 const remove = async (token: string) => {
   await db.delete(sessions).where(eq(sessions.id, token));

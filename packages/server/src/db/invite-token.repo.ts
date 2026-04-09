@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
+import { now } from "@newtab-todo/shared/iso";
 import { db } from "./client";
 import { contacts, inviteTokens } from "./schema";
 import { InsertFailedError } from "./errors";
@@ -16,21 +17,14 @@ const create = async (createdByUserId: string, expiresAt: string) => {
 
 const findById = async (token: string) => db.query.inviteTokens.findFirst({ where: { id: token } });
 
-const findValid = async (token: string) => {
-  const now = new Date().toISOString();
-  const row = await db.query.inviteTokens.findFirst({
+const findValid = async (token: string) =>
+  db.query.inviteTokens.findFirst({
     where: {
       id: token,
-      usedAt: {
-        isNull: true,
-      },
-      expiresAt: {
-        gt: now,
-      },
+      usedAt: { isNull: true },
+      expiresAt: { gt: now() },
     },
   });
-  return row;
-};
 
 type InviteToken = NonNullable<Awaited<ReturnType<typeof findValid>>>;
 
@@ -38,12 +32,10 @@ type InviteToken = NonNullable<Awaited<ReturnType<typeof findValid>>>;
 // If contact creation fails, the token remains unused so the user can retry.
 // Caller must pass the already-validated invite (from findValid) to avoid a second lookup.
 const consume = async (invite: InviteToken, usedByUserId: string) => {
-  const now = new Date().toISOString();
-
   await db.transaction(async (tx) => {
     await tx
       .update(inviteTokens)
-      .set({ usedAt: now, usedByUserId })
+      .set({ usedAt: now(), usedByUserId })
       .where(eq(inviteTokens.id, invite.id));
 
     // Insert both direction rows so each user can query contacts WHERE userId = me.

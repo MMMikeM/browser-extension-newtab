@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { now, today } from "@newtab-todo/shared/iso";
 import notificationQueueRepo from "../db/notification-queue.repo";
 import taskRepo from "../db/task.repo";
 import { sendNotification } from "../notify";
@@ -15,11 +16,11 @@ app.post("/process", async (c) => {
     throw new HTTPException(401, { message: "Invalid cron secret" });
   }
 
-  const now = new Date().toISOString();
-  const today = now.slice(0, 10); // YYYY-MM-DD
+  const ts = now();
+  const todayStr = today();
 
   // 1. Process pending reminders
-  const pending = await notificationQueueRepo.findPending(now);
+  const pending = await notificationQueueRepo.findPending(ts);
   const processedIds: string[] = [];
 
   for (const row of pending) {
@@ -38,14 +39,14 @@ app.post("/process", async (c) => {
   }
 
   // Mark all processed rows as sent
-  await notificationQueueRepo.markSent(processedIds, now);
+  await notificationQueueRepo.markSent(processedIds, ts);
 
   // 2. Overdue digest — one per user per day max
   const alreadySentUserIds = new Set(
-    await notificationQueueRepo.findDigestUserIdsSince(today + "T00:00:00.000Z"),
+    await notificationQueueRepo.findDigestUserIdsSince(todayStr + "T00:00:00.000Z"),
   );
 
-  const overdueTasks = await taskRepo.findOverdue(today);
+  const overdueTasks = await taskRepo.findOverdue(todayStr);
 
   // Group by userId, skip users who already got a digest today
   const byUser = new Map<string, Array<{ id: string; title: string; dueDate: string }>>();
@@ -65,8 +66,8 @@ app.post("/process", async (c) => {
       userId,
       type: "overdue-digest",
       taskId: null,
-      scheduledFor: now,
-      sentAt: now,
+      scheduledFor: ts,
+      sentAt: ts,
     });
     digestCount++;
   }

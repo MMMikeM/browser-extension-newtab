@@ -1,6 +1,7 @@
 import { hash, verify } from "@node-rs/argon2";
 import { HTTPException } from "hono/http-exception";
 import { createId } from "@paralleldrive/cuid2";
+import { now } from "@newtab-todo/shared/iso";
 import userRepo from "./db/user.repo";
 import sessionRepo from "./db/session.repo";
 import categoryRepo from "./db/category.repo";
@@ -25,14 +26,14 @@ export const signup = async (username: string, password: string, name: string) =
   if (existing) throw new ConflictError("Username already taken");
 
   const passwordHash = await hash(password, ARGON2_OPTIONS);
-  const now = new Date().toISOString();
+  const ts = now();
   const user = await userRepo.insert({
     id: createId(),
     name,
     username: normalizedUsername,
     passwordHash,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: ts,
+    updatedAt: ts,
   });
 
   await categoryRepo.insert({
@@ -40,8 +41,8 @@ export const signup = async (username: string, password: string, name: string) =
     userId: user.id,
     name: "Personal",
     color: "oklch(0.60 0.18 118)",
-    createdAt: now,
-    updatedAt: now,
+    createdAt: ts,
+    updatedAt: ts,
   });
 
   const token = await sessionRepo.insert(user.id);

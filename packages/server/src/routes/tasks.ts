@@ -187,7 +187,7 @@ export const taskRoutes = authed()
             userId: task.userId,
             type: "reminder-due",
             taskId: id,
-            scheduledFor: new Date(fields.dueDate).toISOString(),
+            scheduledFor: fields.dueDate,
           });
         }
       }

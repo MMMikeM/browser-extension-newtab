@@ -1,5 +1,6 @@
 import { hash } from "@node-rs/argon2";
 import { createClient } from "@libsql/client";
+import { now } from "@newtab-todo/shared/iso";
 
 const ARGON2_OPTIONS = {
   memoryCost: 19456,
@@ -24,7 +25,7 @@ const passwordHash = await hash(password, ARGON2_OPTIONS);
 
 const result = await client.execute({
   sql: "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
-  args: [passwordHash, new Date().toISOString(), userId],
+  args: [passwordHash, now(), userId],
 });
 
 if (result.rowsAffected === 0) {
