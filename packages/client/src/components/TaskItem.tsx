@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { Task } from "~/lib/types";
+import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/field";
 import { cn } from "~/lib/utils";
@@ -244,23 +245,25 @@ export function TaskItem({
             <InitialsAvatar name={task.assignee.name} size="sm" className="mt-0.5" />
           )}
           {!isSubtask && !isDone && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => setAddingSubtask(true)}
-              className="mt-1 text-transparent transition-colors group-hover/task:text-ghost hover:text-foreground touch:hidden"
+              className="mt-1 text-transparent group-hover/task:text-ghost hover:text-foreground touch:hidden"
               aria-label="Add subtask"
             >
               <Plus size={14} />
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => onDelete(task)}
-            className="mt-1 text-transparent transition-colors group-hover/task:text-ghost hover:text-destructive touch:hidden"
+            className="mt-1 text-transparent group-hover/task:text-ghost hover:text-destructive touch:hidden"
             aria-label="Delete task"
           >
             <X size={14} />
-          </button>
+          </Button>
         </div>
       </div>
 
