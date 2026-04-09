@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuthToken } from "~/lib/auth/token";
+import { Button } from "~/components/ui/button";
 import { Link } from "~/components/ui/link";
 import { useTasks } from "~/lib/db/hooks";
 
@@ -20,16 +21,18 @@ export function SyncHint() {
   return (
     <p className="mt-1.5 text-xs text-hint">
       Saved on this device. <Link to="/auth">Sign in to sync across devices</Link>{" "}
-      <button
+      <Button
+        variant="subtle"
+        size="icon-xs"
         onClick={() => {
           localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));
           setDismissed(true);
         }}
-        className="text-hint hover:text-foreground"
+        className="inline-flex align-middle"
         aria-label="Dismiss"
       >
         &times;
-      </button>
+      </Button>
     </p>
   );
 }
