@@ -144,32 +144,32 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
           onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
           className="invisible absolute size-0"
         />
-        <button
+        <Button
+          variant="subtle"
+          size="sm"
           onClick={() => dateRef.current?.showPicker()}
-          className="text-sm transition-colors"
+          className={task.dueDate ? "text-date hover:text-foreground" : undefined}
           aria-label="Set due date"
         >
-          {task.dueDate ? (
-            <span className="text-date hover:text-foreground">
-              {new Date(task.dueDate).toLocaleString("en", {
+          {task.dueDate
+            ? new Date(task.dueDate).toLocaleString("en", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
-              })}
-            </span>
-          ) : (
-            <span className="text-hint hover:text-foreground">Set date…</span>
-          )}
-        </button>
+              })
+            : "Set date…"}
+        </Button>
         {task.dueDate && (
-          <button
+          <Button
+            variant="subtle"
+            size="xs"
             onClick={() => updateTask(task.id, { dueDate: null })}
-            className="text-xs text-ghost transition-colors hover:text-hint"
+            className="text-ghost hover:text-hint"
           >
             clear
-          </button>
+          </Button>
         )}
       </div>
 
@@ -222,15 +222,17 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
       </DetailSection>
 
       {/* Delete */}
-      <button
+      <Button
+        variant="subtle"
+        size="xs"
+        className="self-start hover:text-destructive"
         onClick={() => {
           deleteTask(task.id);
           onClose();
         }}
-        className="self-start text-xs text-hint transition-colors hover:text-destructive"
       >
         Delete task
-      </button>
+      </Button>
     </div>
   );
 };
