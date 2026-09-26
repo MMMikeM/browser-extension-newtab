@@ -34,12 +34,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  selectTriggerVariants,
 } from "~/components/ui/select";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { ListRow } from "~/components/ui/list-row";
 import { DetailSection } from "~/components/ui/detail-section";
-import { SectionLabel } from "~/components/ui/section-label";
-import { RevealButton } from "~/components/ui/reveal-button";
+import { RevealButton, RevealGroup } from "~/components/ui/reveal-button";
 import { TextStack } from "~/components/ui/text-stack";
 import { TogglePill } from "~/components/ui/toggle-pill";
 import { cn } from "~/lib/utils";
@@ -87,7 +87,9 @@ export function TaskDetail({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="max-h-[88dvh]">
+      {/* Pointer: the sheet takes the main column's width and offset (AppShell max-w-sm,
+          desk:left-22), so its content edges line up with the list it rose from */}
+      <DrawerContent className="max-h-[88dvh] max-w-sm border-x desk:translate-x-22 touch:max-w-none touch:border-x-0">
         <DrawerHeader className="sr-only">
           <DrawerTitle>{task.title}</DrawerTitle>
           <DrawerDescription>Task details</DrawerDescription>
@@ -131,12 +133,13 @@ const TaskDetailContent = ({
   const isInSharedCategory = (taskCategory?.collaborators?.length ?? 0) > 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))] touch:px-5">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))] touch:px-5">
       {/* Title — a textarea so long titles wrap; Enter commits like a single-line field */}
       <div className="flex items-start gap-3">
         <Checkbox
           checked={isDone}
           onCheckedChange={() => updateTask(task.id, { status: isDone ? "todo" : "done" })}
+          aria-label="Mark done"
           className="mt-3 touch:mt-[11px] touch:size-[18px] touch:after:-inset-3"
         />
         {/* Bare control + aria-label: a raw <textarea> doesn't register with Base UI's
@@ -172,7 +175,7 @@ const TaskDetailContent = ({
       </div>
 
       {/* Description */}
-      <Field>
+      <Field className="gap-2">
         <FieldLabel className="text-sm font-medium text-hint">Description</FieldLabel>
         <Textarea
           aria-label="Description"
@@ -187,46 +190,51 @@ const TaskDetailContent = ({
         />
       </Field>
 
-      {/* Due date */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-hint">Due date</span>
-        {/* Hidden native picker — sized to zero, browser uses it for date UI */}
-        <input
-          ref={dateRef}
-          type="datetime-local"
-          step="1800"
-          value={task.dueDate ?? ""}
-          tabIndex={-1}
-          onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
-          className="invisible absolute size-0"
-        />
-        <Button
-          variant="subtle"
-          size="sm"
-          onClick={() => dateRef.current?.showPicker()}
-          className={cn("touch:h-10", task.dueDate && "text-date hover:text-foreground")}
-          aria-label="Set due date"
-        >
-          {task.dueDate ? formatDueDateTime(task.dueDate) : "Set date…"}
-        </Button>
-        {task.dueDate && (
-          <Button
-            variant="subtle"
-            size="xs"
-            onClick={() => updateTask(task.id, { dueDate: null })}
-            className="touch:h-10 touch:text-sm"
+      <DetailSection label="Due date">
+        <div className="flex items-center gap-2">
+          {/* Hidden native picker — sized to zero, browser uses it for date UI */}
+          <input
+            ref={dateRef}
+            type="datetime-local"
+            step="1800"
+            value={task.dueDate ?? ""}
+            tabIndex={-1}
+            onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
+            className="invisible absolute size-0"
+          />
+          {/* Styled as the underline select so it reads as a field like its siblings */}
+          <button
+            type="button"
+            onClick={() => dateRef.current?.showPicker()}
+            className={selectTriggerVariants({
+              variant: "underline",
+              class: cn(
+                "flex-1 cursor-pointer text-left touch:h-10",
+                task.dueDate ? "text-date" : "text-hint hover:text-foreground",
+              ),
+            })}
+            aria-label="Set due date"
           >
-            clear
-          </Button>
-        )}
-      </div>
+            {task.dueDate ? formatDueDateTime(task.dueDate) : "Set date…"}
+          </button>
+          {task.dueDate && (
+            <Button
+              variant="subtle"
+              size="xs"
+              onClick={() => updateTask(task.id, { dueDate: null })}
+              className="-mr-2.5 touch:h-10 touch:text-sm"
+            >
+              clear
+            </Button>
+          )}
+        </div>
+      </DetailSection>
 
       {/* Owner — only shown for tasks you don't own */}
       {task.user && task.userId !== getCurrentUserId() && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-hint">Created by</span>
+        <DetailSection label="Created by">
           <span className="text-sm text-foreground">{task.user.name}</span>
-        </div>
+        </DetailSection>
       )}
 
       {/* Category — own tasks get direct category picker, shared tasks get recipient category */}
@@ -246,10 +254,9 @@ const TaskDetailContent = ({
       {/* Sharing */}
       {!task.parentId &&
         (isInSharedCategory ? (
-          <div className="flex flex-col gap-1">
-            <SectionLabel>Sharing</SectionLabel>
+          <DetailSection label="Sharing">
             <span className="text-xs text-hint">Visible to all collaborators in this category</span>
-          </div>
+          </DetailSection>
         ) : (
           <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
         ))}
@@ -310,13 +317,15 @@ const NoteItem = ({ note }: { note: Note }) => {
   }
 
   return (
-    <ListRow size="sm" className="items-start">
+    <ListRow size="sm" className="-mx-2 items-start">
       {/* touch:py-2 centres the first line on the h-9 touch buttons */}
       <span className="flex-1 text-sm touch:py-2">{note.content || note.title}</span>
-      <RevealButton intent="neutral" onClick={() => setEditing(true)}>
-        edit
-      </RevealButton>
-      <RevealButton onClick={() => deleteNote(note.id)}>delete</RevealButton>
+      <RevealGroup className="items-start pt-1">
+        <RevealButton intent="neutral" onClick={() => setEditing(true)}>
+          edit
+        </RevealButton>
+        <RevealButton onClick={() => deleteNote(note.id)}>delete</RevealButton>
+      </RevealGroup>
     </ListRow>
   );
 };
@@ -360,9 +369,10 @@ const SubtaskSection = ({
   return (
     <DetailSection label={<>Subtasks{subtasks.length > 0 ? ` (${subtasks.length})` : ""}</>}>
       {subtasks.map((sub) => (
-        <ListRow key={sub.id} size="sm">
+        <ListRow key={sub.id} size="sm" className="-mx-2">
           <Checkbox
             checked={sub.status === "done"}
+            aria-label={sub.title}
             onCheckedChange={() =>
               updateTask(sub.id, { status: sub.status === "done" ? "todo" : "done" })
             }
@@ -376,7 +386,9 @@ const SubtaskSection = ({
           >
             {sub.title}
           </span>
-          <RevealButton onClick={() => deleteTask(sub.id)}>delete</RevealButton>
+          <RevealGroup>
+            <RevealButton onClick={() => deleteTask(sub.id)}>delete</RevealButton>
+          </RevealGroup>
         </ListRow>
       ))}
       <form
@@ -593,7 +605,7 @@ const ShareSection = ({
   return (
     <DetailSection label={<>Shared with{shares.length > 0 ? ` (${shares.length})` : ""}</>}>
       {shares.map((share) => (
-        <ListRow key={share.id}>
+        <ListRow key={share.id} className="-mx-2">
           <InitialsAvatar name={share.sharedWithUser?.name ?? "?"} size="md" />
           <TextStack
             title={share.sharedWithUser?.name ?? share.sharedWithUserId}
@@ -601,7 +613,11 @@ const ShareSection = ({
               share.sharedWithUser?.username ? `@${share.sharedWithUser.username}` : undefined
             }
           />
-          {isOwner && <RevealButton onClick={() => removeTaskShare(share.id)}>Remove</RevealButton>}
+          {isOwner && (
+            <RevealGroup>
+              <RevealButton onClick={() => removeTaskShare(share.id)}>Remove</RevealButton>
+            </RevealGroup>
+          )}
         </ListRow>
       ))}
       {isOwner && addableContacts.length > 0 && (

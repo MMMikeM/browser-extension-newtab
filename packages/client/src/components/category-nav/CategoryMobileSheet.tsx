@@ -132,7 +132,7 @@ export function CategoryMobileSheet() {
             <Ellipsis size={16} />
           </PopoverTrigger>
           {/* backdrop: dismissing the menu must not also select the row underneath */}
-          <PopoverContent backdrop>
+          <PopoverContent backdrop aria-label={`${cat.name} options`}>
             <CategoryOptionsContent
               cat={cat}
               isOwned={isOwned}

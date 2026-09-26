@@ -128,7 +128,7 @@ export function CategorySidebar() {
                   {isActive && (
                     <span
                       className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full"
-                      style={{ backgroundColor: cat.color ?? "oklch(0.60 0.18 118)" }}
+                      style={{ backgroundColor: cat.color ?? "var(--primary)" }}
                     />
                   )}
                   <ColorDot size="sm" color={cat.color ?? undefined} />
@@ -147,15 +147,17 @@ export function CategorySidebar() {
                 <Popover>
                   <PopoverTrigger
                     render={
+                      // Zero-width until the pill is hovered or focused, so names aren't cut
+                      // short by a control nobody can see
                       <button
-                        className="mr-1 rounded p-0.5 text-transparent opacity-0 transition-opacity group-hover/pill:text-hint group-hover/pill:opacity-100 hover:text-foreground"
+                        className="mr-1 flex h-5 w-0 shrink-0 items-center justify-center overflow-hidden rounded text-hint opacity-0 transition-opacity group-hover/pill:w-5 group-hover/pill:opacity-100 hover:text-foreground focus-visible:w-5 focus-visible:opacity-100 data-[popup-open]:w-5 data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
                         aria-label="Category options"
                       />
                     }
                   >
                     <Ellipsis size={13} />
                   </PopoverTrigger>
-                  <PopoverContent>
+                  <PopoverContent aria-label={`${cat.name} options`}>
                     <CategoryOptionsContent
                       cat={cat}
                       isOwned={isOwned}
@@ -177,10 +179,12 @@ export function CategorySidebar() {
 
   return (
     <>
-      <aside
+      {/* Sits on the surface AppShell draws to the column's left: w-44 against the max-w-sm
+          column, which AppShell shifts right by desk:left-22 so the pair centres as one panel */}
+      <nav
+        aria-label="Lists"
         data-testid="category-sidebar"
-        className="fixed top-0 z-10 flex h-screen w-40 flex-col overflow-y-auto py-8 touch:hidden"
-        style={{ left: "calc(50vw - 22.5rem)" }}
+        className="fixed top-0 left-[calc(50vw-23rem)] z-10 flex h-screen w-44 flex-col overflow-y-auto py-8 pr-1 pl-3 desk:left-[calc(50vw-17.5rem)] touch:hidden"
       >
         {showInbox && (
           <button
@@ -230,10 +234,13 @@ export function CategorySidebar() {
             variant="subtle"
             size="xs"
             onClick={() => setAdding(true)}
-            className="gap-2 px-3"
+            className="h-auto justify-start gap-2 px-3 py-1.5"
             aria-label="Add category"
           >
-            <Plus size={11} />
+            {/* Centred on the colour-dot column so "Add" lines up with the category names */}
+            <span className="flex w-1.5 justify-center">
+              <Plus className="size-2.5" />
+            </span>
             <span>Add</span>
           </Button>
         )}
@@ -254,7 +261,7 @@ export function CategorySidebar() {
             People
           </Link>
         </div>
-      </aside>
+      </nav>
 
       {sharingCategoryId && (
         <CategoryCollabSheet
