@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import { useAuthToken } from "~/lib/auth/token";
 import { Button } from "~/components/ui/button";
 import { Link } from "~/components/ui/link";
@@ -32,7 +33,7 @@ export function SyncHint() {
         className="inline-flex align-middle touch:size-8"
         aria-label="Dismiss"
       >
-        &times;
+        <X />
       </Button>
     </p>
   );

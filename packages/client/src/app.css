@@ -7,6 +7,8 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant touch (@media (pointer: coarse));
+/* Desktop with room for the sidebar + column panel; narrower pointer windows keep the lone column */
+@custom-variant desk (@media (pointer: fine) and (width >= 40rem));
 
 @theme inline {
   --font-display: "DM Serif Display", serif;
@@ -21,6 +23,7 @@
   --color-pending-foreground: var(--pending-foreground);
   --color-destructive-subtle: var(--destructive-subtle);
   --color-backdrop: var(--backdrop);
+  --color-shell: var(--shell);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -61,6 +64,15 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Fades a task title's tail under the row's hover actions; --actions-w is set per row */
+@utility fade-under-actions {
+  mask-image: linear-gradient(
+    to left,
+    transparent var(--actions-w),
+    black calc(var(--actions-w) + 1.5rem)
+  );
 }
 
 @utility scrollbar-none {
@@ -112,6 +124,7 @@
   --pending-foreground: oklch(0.35 0.06 75);
   --destructive-subtle: oklch(0.94 0.03 22);
   --backdrop: oklch(0.08 0.005 50 / 30%);
+  --shell: oklch(0.2 0.01 50 / 75%);
 }
 
 .dark {
@@ -162,7 +175,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
 
   /* Noise dithering via soft-light blend — composites against the fully-rendered
@@ -224,7 +237,7 @@
   animation: 200ms ease-in both undo-morph-shrink;
 }
 ::view-transition-new(undo-morph) {
-  animation: 320ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms both undo-morph-grow;
+  animation: 320ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both undo-morph-grow;
 }
 @keyframes undo-morph-shrink {
   to {

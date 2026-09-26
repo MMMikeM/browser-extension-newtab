@@ -8,7 +8,7 @@ import { getBuildTarget } from "~/lib/build-target";
 import { Button } from "~/components/ui/button";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { ListRow } from "~/components/ui/list-row";
-import { RevealButton } from "~/components/ui/reveal-button";
+import { RevealButton, RevealGroup } from "~/components/ui/reveal-button";
 import { TextStack } from "~/components/ui/text-stack";
 
 export const Route = createLazyFileRoute("/people")({
@@ -99,7 +99,9 @@ export function PeoplePage() {
                 contact.contactUser?.username ? `@${contact.contactUser.username}` : undefined
               }
             />
-            <RevealButton onClick={() => removeContact(contact.id)}>Remove</RevealButton>
+            <RevealGroup>
+              <RevealButton onClick={() => removeContact(contact.id)}>Remove</RevealButton>
+            </RevealGroup>
           </ListRow>
         ))}
       </div>

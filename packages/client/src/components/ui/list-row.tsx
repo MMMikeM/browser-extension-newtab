@@ -3,7 +3,7 @@ import { tv, type VariantProps } from "tailwind-variants";
 import { cn } from "~/lib/utils";
 
 const listRowVariants = tv({
-  base: "group/row flex items-center px-2 hover:bg-muted",
+  base: "group/row relative flex items-center px-2 hover:bg-muted has-[:focus-visible]:bg-muted",
   variants: {
     size: {
       sm: "gap-2 rounded-md py-1",

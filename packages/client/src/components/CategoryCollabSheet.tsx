@@ -14,7 +14,7 @@ import {
 } from "~/components/ui/select";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { ListRow } from "~/components/ui/list-row";
-import { RevealButton } from "~/components/ui/reveal-button";
+import { RevealButton, RevealGroup } from "~/components/ui/reveal-button";
 import { TextStack } from "~/components/ui/text-stack";
 
 export function CategoryCollabSheet({
@@ -78,7 +78,9 @@ export function CategoryCollabSheet({
                 <ListRow key={collab.id}>
                   <InitialsAvatar name={collab.name} size="md" />
                   <TextStack title={collab.name} subtitle={`@${collab.username}`} />
-                  <RevealButton onClick={() => handleRemove(collab.id)}>Remove</RevealButton>
+                  <RevealGroup>
+                    <RevealButton onClick={() => handleRemove(collab.id)}>Remove</RevealButton>
+                  </RevealGroup>
                 </ListRow>
               ))}
             </div>

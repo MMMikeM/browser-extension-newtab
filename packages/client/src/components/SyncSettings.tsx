@@ -160,7 +160,7 @@ export const SyncSettings = () => {
             Sign out
           </Button>
           <div className="my-1 h-px bg-border" />
-          <span className="px-2.5 pb-0.5 text-[10px] text-ghost">{__BUILD_VERSION__}</span>
+          <span className="px-2.5 pb-0.5 text-[10px] text-hint">{__BUILD_VERSION__}</span>
         </PopoverContent>
       )}
     </Popover>
