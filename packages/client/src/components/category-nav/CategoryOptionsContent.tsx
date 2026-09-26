@@ -55,6 +55,7 @@ export function CategoryOptionsContent({
               className="size-6 rounded-full ring-1 ring-foreground/10 transition-transform hover:scale-110 active:scale-95"
               style={{ backgroundColor: c.value }}
               title={c.name}
+              aria-label={c.name}
             />
           ))}
         </div>

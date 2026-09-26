@@ -44,7 +44,7 @@ Cross-package imports use `@newtab-todo/shared` and `@newtab-todo/server` (type-
 
 - `pnpm dev` / `pnpm build` / `pnpm build:ext` / `pnpm start`
 - `pnpm lint` / `pnpm fmt` — oxlint / oxfmt
-- `pnpm typecheck` — tsgo --noEmit (via turbo)
+- `pnpm typecheck` — tsc --noEmit (TypeScript 7, via turbo)
 - `pnpm check` — typecheck + lint + fmt + knip (CI gate)
 - `pnpm --filter @newtab-todo/server db:push` — push schema to Turso
 - Screenshots: `SCREENSHOT_DIR=./screenshots pnpm screenshot` — **never use `/tmp`**; output goes in `packages/e2e/screenshots/` or a project-local path

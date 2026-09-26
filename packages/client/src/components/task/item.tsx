@@ -82,7 +82,7 @@ export function TaskItem({
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskTitle, setSubtaskTitle] = useState("");
 
-  const swipe = useSwipeReveal(!IS_TOUCH || !!isSubtask);
+  const { containerRef, contentRef, close: closeSwipe } = useSwipeReveal(!IS_TOUCH || !!isSubtask);
   const swipeEnabled = IS_TOUCH && !isSubtask;
 
   const openPicker = () => dateRef.current?.showPicker();
@@ -100,7 +100,7 @@ export function TaskItem({
     <div data-task-id={task.id}>
       {/* Swipe container: clips the reveal drawer on touch, inert wrapper on desktop */}
       <div
-        ref={swipe.containerRef}
+        ref={containerRef}
         className={cn(
           "-mx-2 animate-[task-enter_200ms_ease-out]",
           swipeEnabled && "relative overflow-hidden rounded-lg",
@@ -115,7 +115,7 @@ export function TaskItem({
             <button
               onClick={() => {
                 openPicker();
-                swipe.close();
+                closeSwipe();
               }}
               className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
             >
@@ -126,7 +126,7 @@ export function TaskItem({
               <button
                 onClick={() => {
                   setAddingSubtask(true);
-                  swipe.close();
+                  closeSwipe();
                 }}
                 className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
               >
@@ -137,7 +137,7 @@ export function TaskItem({
             <button
               onClick={() => {
                 onDelete(task);
-                swipe.close();
+                closeSwipe();
               }}
               className="flex flex-1 flex-col items-center justify-center gap-0.5 text-destructive transition-colors active:bg-destructive/10"
               aria-label="Delete task"
@@ -150,7 +150,7 @@ export function TaskItem({
 
         {/* Row content — slides left on swipe */}
         <div
-          ref={swipe.contentRef}
+          ref={contentRef}
           className={cn(
             "group/task flex items-start gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50",
             isSubtask && "py-1.5",

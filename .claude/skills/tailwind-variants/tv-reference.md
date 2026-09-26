@@ -265,9 +265,7 @@ defaultConfig.twMerge = false;
 import { createTV } from "tailwind-variants";
 const tv = createTV({
   twMerge: true,
-  twMergeConfig: {
-    /* custom tailwind-merge config */
-  },
+  twMergeConfig: {/* custom tailwind-merge config */},
 });
 ```
 
