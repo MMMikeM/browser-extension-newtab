@@ -25,7 +25,9 @@ if (import.meta.env.DEV && typeof window !== "undefined") {
 export default function RootComponent() {
   useEffect(() => {
     // Dynamic import: SW registration is fire-and-forget, not needed for initial render.
-    import("~/lib/sync/register-sw").then(({ registerServiceWorker }) => registerServiceWorker());
+    import("~/lib/sync/register-sw")
+      .then(({ registerServiceWorker }) => registerServiceWorker())
+      .catch(console.error);
   }, []);
 
   return (

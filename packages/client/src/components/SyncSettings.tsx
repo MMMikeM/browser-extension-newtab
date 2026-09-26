@@ -21,9 +21,11 @@ const clearAuth = () => {
   if (getBuildTarget() === "extension") {
     browser.storage.local
       .remove(TOKEN_KEY)
-      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}));
+      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}))
+      .catch(console.error);
   }
-  unregisterPushSubscription();
+  // Handles its own errors
+  void unregisterPushSubscription();
 };
 
 const SYNC_LABELS = { connecting: "Syncing…", disconnected: "Offline", connected: "Sync" } as const;
@@ -40,7 +42,7 @@ export const SyncSettings = () => {
   const { canInstall, install } = useInstallPrompt();
 
   useEffect(() => {
-    isPushSubscribed().then(setPushEnabled);
+    isPushSubscribed().then(setPushEnabled).catch(console.error);
   }, []);
 
   // Close on click-outside
@@ -143,7 +145,7 @@ export const SyncSettings = () => {
             size="xs"
             className="justify-start"
             onClick={() => {
-              router.navigate({ to: "/people" });
+              void router.navigate({ to: "/people" });
               setOpen(false);
             }}
           >

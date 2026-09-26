@@ -12,7 +12,6 @@ dist-extension/
 **/routeTree.gen.ts
 screenshot.png
 **/opfs-worker-*.js
-.turbo/
 .tanstack/
 .playwright-mcp/
 # screenshot-*.png

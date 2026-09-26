@@ -166,8 +166,8 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
       // Try to focus an existing window
       for (const client of clients) {
         if ("focus" in client) {
-          (client as WindowClient).focus();
-          (client as WindowClient).navigate(new URL(url, self.location.origin).href);
+          void (client as WindowClient).focus();
+          void (client as WindowClient).navigate(new URL(url, self.location.origin).href);
           return;
         }
       }

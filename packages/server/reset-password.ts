@@ -34,4 +34,4 @@ if (result.rowsAffected === 0) {
 }
 
 console.log(`Password reset for user: ${userId}`);
-await client.close();
+client.close();

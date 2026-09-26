@@ -13,10 +13,9 @@
     "./db/contact.repo": "./src/db/contact.repo.ts"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "vp pack",
     "dev": "tsx --env-file=../../.env.dev --watch src/index.ts",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio"
@@ -35,8 +34,7 @@
   },
   "devDependencies": {
     "drizzle-kit": "1.0.0-rc.4",
-    "tsup": "^8.5.1",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "vite-plus": "catalog:"
   }
 }

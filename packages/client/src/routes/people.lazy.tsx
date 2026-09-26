@@ -32,11 +32,11 @@ export function PeoplePage() {
           ? `${serverOrigin}/#/invite/${token}`
           : `${window.location.origin}/invite/${token}`;
       if (navigator.share) {
-        navigator.share({ title: "Join me on Todo", url }).catch(() => {
-          navigator.clipboard.writeText(url);
+        void navigator.share({ title: "Join me on Todo", url }).catch(() => {
+          void navigator.clipboard.writeText(url);
         });
       } else {
-        navigator.clipboard.writeText(url);
+        void navigator.clipboard.writeText(url);
       }
     } finally {
       setInviting(false);

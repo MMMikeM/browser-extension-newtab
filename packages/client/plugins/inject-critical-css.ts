@@ -36,12 +36,12 @@ export const injectCriticalCss = (): PluginOption => {
         .replace(/@import "@fontsource[^;]+;\n?/g, "");
 
       // Compile with Tailwind's node API — resolves the same @import chains as the full build
-      const { build } = await compile(appCss, { base: srcDir, onDependency: () => {} });
+      const compiler = await compile(appCss, { base: srcDir, onDependency: () => {} });
 
       // Use lightningcss to minify with proper CSS AST parsing (not regex)
       const { code } = transform({
         filename: "critical.css",
-        code: Buffer.from(build(candidates)),
+        code: Buffer.from(compiler.build(candidates)),
         minify: true,
       });
       const criticalCss = code.toString();

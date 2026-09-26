@@ -187,6 +187,8 @@ test.describe("task detail — functionality", () => {
         '[data-slot="drawer-content"] input[type="date"]',
       ) as HTMLInputElement | null;
       if (!input) return;
+      // Native setter so React sees the change; called with an explicit `this`
+      // oxlint-disable-next-line typescript/unbound-method
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
       setter?.call(input, "2025-12-31");
       input.dispatchEvent(new Event("change", { bubbles: true }));
