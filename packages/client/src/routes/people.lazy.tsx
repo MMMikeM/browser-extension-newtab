@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
+import { ChevronLeft, UserPlus } from "lucide-react";
 import { useContacts } from "~/lib/db/hooks";
 import { createInvite, removeContact } from "~/lib/actions";
 import { getBuildTarget } from "~/lib/build-target";
@@ -44,12 +45,20 @@ export function PeoplePage() {
   };
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-6 py-8">
-      <div className="flex items-center gap-3">
-        <Button variant="subtle" size="sm" onClick={() => router.navigate({ to: "/" })}>
-          ← Back
+    // AppShell already provides the column and gutters; on touch this is the scroll area
+    <div className="flex flex-col gap-6 pt-1 touch:min-h-0 touch:flex-1 touch:overflow-y-auto touch:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]">
+      <div className="flex items-center gap-1">
+        <Button
+          variant="subtle"
+          size="sm"
+          icon
+          onClick={() => router.navigate({ to: "/" })}
+          aria-label="Back to tasks"
+          className="-ml-2 touch:size-10"
+        >
+          <ChevronLeft className="size-5" />
         </Button>
-        <h1 className="text-lg font-semibold">People</h1>
+        <h2 className="text-lg font-semibold">People</h2>
       </div>
 
       <Button
@@ -57,18 +66,19 @@ export function PeoplePage() {
         size="sm"
         onClick={invite}
         disabled={inviting}
-        className="self-start"
+        className="self-start touch:h-10 touch:px-4"
       >
+        <UserPlus />
         {inviting ? "Generating link…" : "Invite someone"}
       </Button>
 
-      <div className="flex flex-col gap-1">
+      <div className="-mx-2 flex flex-col gap-1">
         {isLoading && <p className="text-sm text-hint">Loading…</p>}
         {!isLoading && contacts.length === 0 && (
           <p className="text-sm text-hint">No contacts yet. Invite someone to get started.</p>
         )}
         {contacts.map((contact) => (
-          <ListRow key={contact.id} className="px-3">
+          <ListRow key={contact.id}>
             <InitialsAvatar
               name={contact.contactUser?.name ?? "?"}
               size="md"

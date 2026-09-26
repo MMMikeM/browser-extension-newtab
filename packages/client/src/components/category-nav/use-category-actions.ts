@@ -13,6 +13,7 @@ import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-cat
 import { useCurrentUserId, useOptimisticUserId } from "~/lib/auth/current-user";
 import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
 import { leaveCategory } from "~/lib/actions";
+import { countOpenTasksByCategory } from "~/lib/effective-category";
 
 export const useCategoryActions = () => {
   const { data: rawCategories } = useCategories();
@@ -29,21 +30,13 @@ export const useCategoryActions = () => {
 
   const collaboratedCategoryIds = useCollaboratedCategoryIds(currentUserId);
 
-  const inboxTasks = (allTasks ?? []).filter((t) => {
-    if (t.parentId) return false;
-    if (t.status === "done") return false;
-
-    const isOwner = t.userId === currentUserId;
-    if (isOwner) return !t.categoryId;
-
-    // Task is in a category we collaborate on — it belongs there, not inbox
-    if (t.categoryId && collaboratedCategoryIds.has(t.categoryId)) return false;
-
-    const myShare = t.shares.find((s) => s.sharedWithUserId === currentUserId);
-    return myShare ? !myShare.categoryId : false;
-  });
-  const showInbox = inboxTasks.length > 0;
-  const inboxCount = inboxTasks.length;
+  const openCounts = countOpenTasksByCategory(
+    allTasks ?? [],
+    currentUserId,
+    collaboratedCategoryIds,
+  );
+  const inboxCount = openCounts.get(null) ?? 0;
+  const showInbox = inboxCount > 0;
 
   // Auto-select first category when inbox empties
   const autoSelectFirst = useEffectEvent(() => {
@@ -112,6 +105,7 @@ export const useCategoryActions = () => {
     currentUserId,
     showInbox,
     inboxCount,
+    openCounts,
     handleAdd,
     handleRename,
     handleSetColor,

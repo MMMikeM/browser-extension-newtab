@@ -5,8 +5,9 @@ import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useTasks, useCategories } from "~/lib/db/hooks";
 import { useActiveCategoryId } from "~/lib/state/active-category";
-import { useCurrentUserId } from "~/lib/auth/current-user";
+import { useOptimisticUserId } from "~/lib/auth/current-user";
 import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
+import { getEffectiveCategoryId } from "~/lib/effective-category";
 import { CategoryNav } from "~/components/category-nav";
 import { Button } from "~/components/ui/button";
 import { TaskItem } from "./item";
@@ -25,7 +26,8 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
         variant="ghost"
         size="xs"
         onClick={() => setOpen((v) => !v)}
-        className="font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground"
+        aria-expanded={open}
+        className="font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground aria-expanded:bg-transparent touch:-ml-2.5 touch:h-10"
       >
         <ChevronRight
           size={14}
@@ -54,7 +56,10 @@ const EmptySection = ({ activeTasks, doneTasks }: { activeTasks: Task[]; doneTas
     return (
       <div className="flex flex-1 animate-in flex-col items-center justify-center pb-8 duration-300 fade-in slide-in-from-bottom-1 touch:pb-0">
         <p className="text-base text-hint">{getEmptyPhrase()}</p>
-        <p className="mt-1 text-sm text-hint">type something above to begin</p>
+        <p className="mt-1 text-sm text-hint">
+          type something <span className="touch:hidden">above</span>
+          <span className="hidden touch:inline">below</span> to begin
+        </p>
       </div>
     );
 
@@ -82,7 +87,9 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
   const { data: allTasks, isLoading: tasksLoading } = useTasks();
   const { data: rawCategories, isLoading: categoriesLoading } = useCategories();
   const activeCategoryId = useActiveCategoryId();
-  const userId = useCurrentUserId();
+  // Optimistic id falls back to the device id, so signed-out tasks (stamped with
+  // that id by addTask) still count as owned and show up in the list.
+  const userId = useOptimisticUserId();
   const actions = useTaskActions();
 
   const categories = rawCategories
@@ -92,31 +99,11 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
   const collaboratedCategoryIds = useCollaboratedCategoryIds(userId);
 
   // Computed before loading guard so useDndActions always receives stable values
-  const categoryTasks = (allTasks ?? []).filter((t) => {
-    if (t.parentId) return false;
-
-    const isOwner = t.userId === userId;
-
-    if (isOwner) {
-      // Own tasks: filter by the task's categoryId
-      return activeCategoryId ? t.categoryId === activeCategoryId : !t.categoryId;
-    }
-
-    // Task is in a category we collaborate on — use the collaborator path
-    // even if a share record exists (share doesn't override category membership)
-    if (t.categoryId && collaboratedCategoryIds.has(t.categoryId)) {
-      return activeCategoryId ? t.categoryId === activeCategoryId : false;
-    }
-
-    // Shared tasks: find the current user's share and check THEIR categoryId
-    const myShare = t.shares.find((s) => s.sharedWithUserId === userId);
-    if (!myShare) {
-      // Category collaborator task — show when viewing that category
-      return activeCategoryId ? t.categoryId === activeCategoryId : false;
-    }
-
-    return activeCategoryId ? myShare.categoryId === activeCategoryId : !myShare.categoryId;
-  });
+  const categoryTasks = (allTasks ?? []).filter(
+    (t) =>
+      !t.parentId &&
+      getEffectiveCategoryId(t, userId, collaboratedCategoryIds) === activeCategoryId,
+  );
 
   const activeTasks = categoryTasks
     .filter((t) => t.status !== "done")

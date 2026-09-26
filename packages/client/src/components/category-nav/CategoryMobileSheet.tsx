@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Ellipsis, Plus } from "lucide-react";
+import { Ellipsis, Plus, Users } from "lucide-react";
 import { INBOX_COLOR } from "~/lib/constants";
-import { Drawer, DrawerContent } from "~/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTitle } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
 import { CollabBadge } from "./CollabBadge";
@@ -17,6 +17,21 @@ import { useCategoryNavState } from "./use-category-nav-state";
 import { useCategoryActions } from "./use-category-actions";
 import { CategoryOptionsContent } from "./CategoryOptionsContent";
 
+const rowClass = (isActive: boolean) =>
+  cn(
+    "mx-2 flex items-center rounded-lg text-sm transition-colors",
+    // primary-selected: the app's "chosen" surface (same as selected TogglePills)
+    isActive ? "bg-primary-selected font-medium text-foreground" : "text-hint active:bg-muted",
+  );
+
+const OpenCount = ({ count }: { count: number }) =>
+  count > 0 ? (
+    <span className="text-xs text-hint tabular-nums">
+      {count}
+      <span className="sr-only"> open</span>
+    </span>
+  ) : null;
+
 export function CategoryMobileSheet() {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
@@ -27,6 +42,7 @@ export function CategoryMobileSheet() {
     currentUserId,
     showInbox,
     inboxCount,
+    openCounts,
     handleAdd,
     handleRename,
     handleSetColor,
@@ -65,7 +81,7 @@ export function CategoryMobileSheet() {
       return (
         <form
           key={cat.id}
-          className="px-5 py-2"
+          className="px-5 py-1"
           onSubmit={(e) => {
             e.preventDefault();
             submitRename();
@@ -76,7 +92,6 @@ export function CategoryMobileSheet() {
             type="text"
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
-            className="h-8 text-sm"
             onBlur={submitRename}
           />
         </form>
@@ -84,41 +99,40 @@ export function CategoryMobileSheet() {
     }
 
     return (
-      <div key={cat.id} className="flex items-center">
+      <div key={cat.id} className={rowClass(isActive)}>
         <button
           onClick={() => selectAndClose(cat.id)}
-          className={cn(
-            "flex flex-1 items-center gap-3 px-5 py-3.5 text-sm transition-colors",
-            isActive ? "font-medium text-foreground" : "text-hint",
-          )}
+          aria-current={isActive ? "true" : undefined}
+          className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-3 text-left"
         >
           {cat.color ? (
             <ColorDot color={cat.color} />
           ) : (
             <ColorDot className={isActive ? "bg-primary" : "bg-transparent"} />
           )}
-          <span className="flex-1 text-left">
+          <span className="min-w-0 flex-1 truncate">
             {cat.name}
             {!isOwned && cat.user?.name && (
               <span className="ml-1 text-xs font-normal text-hint">· {cat.user.name}</span>
             )}
           </span>
+          <CollabBadge category={cat} currentUserId={currentUserId} />
+          <OpenCount count={openCounts.get(cat.id) ?? 0} />
         </button>
-
-        <CollabBadge category={cat} currentUserId={currentUserId} />
 
         <Popover>
           <PopoverTrigger
             render={
               <button
-                className="mr-3 rounded p-2 text-hint transition-colors active:text-foreground"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-hint transition-colors active:bg-secondary active:text-foreground"
                 aria-label="Category options"
               />
             }
           >
-            <Ellipsis size={14} />
+            <Ellipsis size={16} />
           </PopoverTrigger>
-          <PopoverContent>
+          {/* backdrop: dismissing the menu must not also select the row underneath */}
+          <PopoverContent backdrop>
             <CategoryOptionsContent
               cat={cat}
               isOwned={isOwned}
@@ -138,38 +152,40 @@ export function CategoryMobileSheet() {
     <>
       <Drawer open={navOpen} onOpenChange={setNavOpen}>
         <DrawerContent>
-          {showInbox && (
-            <button
-              onClick={() => selectAndClose(null)}
-              className={cn(
-                "flex w-full items-center gap-3 px-5 py-3.5 text-sm transition-colors",
-                activeCategoryId === null ? "font-medium text-foreground" : "text-hint",
-              )}
-            >
-              <ColorDot color={INBOX_COLOR} />
-              Inbox
-              {inboxCount > 0 && activeCategoryId !== null && (
-                <span className="ml-auto text-xs text-primary">{inboxCount}</span>
-              )}
-            </button>
-          )}
+          <DrawerTitle className="px-5 pt-3 pb-2 text-xs font-medium tracking-wide text-hint uppercase">
+            Categories
+          </DrawerTitle>
 
-          <div className="mx-5 h-px bg-border/50" />
+          {showInbox && (
+            <div className={rowClass(activeCategoryId === null)}>
+              <button
+                onClick={() => selectAndClose(null)}
+                aria-current={activeCategoryId === null ? "true" : undefined}
+                className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-3 text-left"
+              >
+                <ColorDot color={INBOX_COLOR} />
+                <span className="flex-1">Inbox</span>
+                <OpenCount count={inboxCount} />
+              </button>
+              {/* Spacer matching the options button so counts line up */}
+              <span className="w-11 shrink-0" aria-hidden="true" />
+            </div>
+          )}
 
           {ownedCategories.map(renderRow)}
 
           {sharedCategories.length > 0 && (
             <>
-              <div className="mx-5 my-1 h-px bg-border/50" />
+              <div className="mx-5 my-2 h-px bg-border" />
               {sharedCategories.map(renderRow)}
             </>
           )}
 
-          <div className="mx-5 mt-1 h-px bg-border/50" />
+          <div className="mx-5 my-2 h-px bg-border" />
 
           {adding ? (
             <form
-              className="px-5 py-3"
+              className="px-5 py-1"
               onSubmit={(e) => {
                 e.preventDefault();
                 const name = newName.trim();
@@ -185,7 +201,7 @@ export function CategoryMobileSheet() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Category name..."
-                className="h-8 text-sm"
+                enterKeyHint="done"
                 onBlur={() => {
                   if (!newName.trim()) setAdding(false);
                 }}
@@ -196,23 +212,23 @@ export function CategoryMobileSheet() {
               variant="subtle"
               size="sm"
               onClick={() => setAdding(true)}
-              className="w-full justify-start gap-3 px-5 py-3.5 active:text-foreground"
+              className="mx-2 h-12 w-[calc(100%-1rem)] justify-start gap-3 rounded-lg px-3 active:bg-secondary active:text-foreground"
             >
-              <Plus size={14} />
+              <Plus size={16} />
               Add category
             </Button>
           )}
 
-          <div className="mx-5 mt-1 h-px bg-border/50" />
           <Link
             to="/people"
             onClick={() => setNavOpen(false)}
-            className="flex w-full items-center gap-3 px-5 py-3.5 text-sm text-hint transition-colors active:text-foreground"
+            className="mx-2 flex h-12 items-center gap-3 rounded-lg px-3 text-sm text-hint transition-colors active:bg-secondary active:text-foreground"
           >
+            <Users size={16} />
             People
           </Link>
 
-          <div className="h-[env(safe-area-inset-bottom,12px)] min-h-3" />
+          <div className="h-[max(0.75rem,env(safe-area-inset-bottom,0px))]" />
         </DrawerContent>
       </Drawer>
 

@@ -4,6 +4,7 @@ import { TaskInputBar } from "~/components/task/input-bar";
 import { SyncHint } from "~/components/SyncHint";
 import { Toast, Toasts } from "~/components/ui/toast";
 import { TaskView } from "~/components/task/view";
+import { CategoryHeader } from "~/components/category-nav/CategoryHeader";
 
 // Lazy-load: defers @base-ui/drawer, @tanstack/react-form (69KB)
 // Import starts immediately on route load; lazy() uses the same promise for Suspense integration
@@ -19,9 +20,11 @@ function TaskListView() {
        * Desktop: input renders first (top), content below — DOM order.
        * Mobile (touch): flex column with order swapped. Input gets order-2 so it sinks
        * to the bottom of the viewport; content gets order-1 and fills the remaining space.
+       * CategoryHeader (touch-only) keeps the default order, so it sits above the content.
        * Fragment children become direct flex children of AppShell via <Outlet />.
        */}
       <TaskInputBar />
+      <CategoryHeader />
       <div className="touch:order-1 touch:flex touch:min-h-0 touch:flex-1 touch:flex-col touch:overflow-x-hidden touch:overflow-y-auto">
         <Suspense fallback={null}>
           <SyncHint />
@@ -34,7 +37,8 @@ function TaskListView() {
         </div>
       </div>
       <Toast.Portal>
-        <Toast.Viewport className="fixed bottom-4 left-1/2 z-50 w-[min(360px,90vw)] -translate-x-1/2 sm:bottom-6">
+        {/* Touch: float above the bottom input bar instead of covering it */}
+        <Toast.Viewport className="fixed bottom-4 left-1/2 z-50 w-[min(360px,90vw)] -translate-x-1/2 sm:bottom-6 touch:bottom-[calc(var(--input-bar-h,7rem)+0.75rem)]">
           <Toasts />
         </Toast.Viewport>
       </Toast.Portal>

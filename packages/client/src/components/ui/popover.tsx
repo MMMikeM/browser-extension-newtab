@@ -13,11 +13,31 @@ const PopoverTrigger = (props: PopoverPrimitive.Trigger.Props) => {
 const PopoverContent = ({
   className,
   sideOffset = 4,
+  align,
+  side,
+  backdrop = false,
   ...props
-}: PopoverPrimitive.Popup.Props & { sideOffset?: number }) => {
+}: PopoverPrimitive.Popup.Props &
+  Pick<PopoverPrimitive.Positioner.Props, "sideOffset" | "align" | "side"> & {
+    /**
+     * Invisible click-catcher. Base UI dismisses on touch pointerdown, so without it the
+     * rest of the dismissing tap lands on whatever is underneath. The exit transition
+     * keeps it mounted until that click has been swallowed.
+     */
+    backdrop?: boolean;
+  }) => {
   return (
     <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Positioner sideOffset={sideOffset} className="z-50">
+      {backdrop && (
+        <PopoverPrimitive.Backdrop className="fixed inset-0 z-50 transition-opacity duration-300 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+      )}
+      <PopoverPrimitive.Positioner
+        sideOffset={sideOffset}
+        align={align}
+        side={side}
+        collisionPadding={12}
+        className="z-50"
+      >
         <PopoverPrimitive.Popup
           className={cn(
             "min-w-[8rem] rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none",
@@ -31,4 +51,8 @@ const PopoverContent = ({
   );
 };
 
-export { Popover, PopoverTrigger, PopoverContent };
+const PopoverClose = (props: PopoverPrimitive.Close.Props) => {
+  return <PopoverPrimitive.Close {...props} />;
+};
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverClose };
