@@ -180,7 +180,6 @@ Same item (globalKey) within a transaction:
 | update   | update   | update    | Union changes, keep first original |
 | update   | delete   | delete    | Delete dominates                   |
 
-
 ## Common Mistakes
 
 | Severity | Mistake                                                | Fix                                                                         |

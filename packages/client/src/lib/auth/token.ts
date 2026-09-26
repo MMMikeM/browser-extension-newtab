@@ -13,7 +13,7 @@ export const setAuthToken = (value: string | null) => {
   else localStorage.removeItem(TOKEN_KEY);
 
   if (getBuildTarget() === "extension" && value) {
-    browser.storage.local.set({ [TOKEN_KEY]: value });
+    browser.storage.local.set({ [TOKEN_KEY]: value }).catch(console.error);
   }
 
   store.set(value);

@@ -81,7 +81,7 @@ const applyMutation = (event: MutationEvent) => {
       collection.utils.writeDelete((event.data as { id: string }).id);
       break;
     default:
-      console.log(`[sse] unknown action ${event.action}, refetching all`);
+      console.log(`[sse] unknown action ${String(event.action)}, refetching all`);
       refetchAll();
   }
 };
@@ -127,7 +127,7 @@ const reconnect = () => {
   syncStateStore.set("disconnected");
   if (getAuthToken()) {
     connectSSE();
-    if (getBuildTarget() === "browser") ensurePushRegistered();
+    if (getBuildTarget() === "browser") ensurePushRegistered().catch(console.error);
   }
 };
 

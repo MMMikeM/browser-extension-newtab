@@ -52,7 +52,7 @@ export const useTaskActions = () => {
         const toastEl = document.querySelector<HTMLElement>("[data-toast-undo]");
         if (toastEl) toastEl.style.viewTransitionName = "undo-morph";
       });
-      vt.finished.then(() => {
+      void vt.finished.then(() => {
         const toastEl = document.querySelector<HTMLElement>("[data-toast-undo]");
         if (toastEl) toastEl.style.viewTransitionName = "";
       });

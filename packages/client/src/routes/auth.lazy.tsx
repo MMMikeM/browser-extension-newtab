@@ -27,7 +27,8 @@ const persistToken = (token: string) => {
   if (getBuildTarget() === "extension") {
     browser.storage.local
       .set({ [TOKEN_KEY]: token })
-      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}));
+      .then(() => browser.runtime.sendMessage({ type: MSG_TOKEN_CHANGED }).catch(() => {}))
+      .catch(console.error);
   }
 };
 
@@ -62,9 +63,9 @@ const AuthView = () => {
         // sessionStorage unavailable in some contexts; proceed without invite redirect
       }
       if (pendingInvite) {
-        router.navigate({ to: "/invite/$token", params: { token: pendingInvite } });
+        void router.navigate({ to: "/invite/$token", params: { token: pendingInvite } });
       } else {
-        router.navigate({ to: "/" });
+        void router.navigate({ to: "/" });
       }
     },
   });
@@ -78,7 +79,7 @@ const AuthView = () => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            form.handleSubmit();
+            void form.handleSubmit();
           }}
           className="flex flex-col gap-3"
         >

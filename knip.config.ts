@@ -17,6 +17,9 @@ export default {
         "src/routes/**/*.tsx",
       ],
       project: ["src/**/*.{ts,tsx}"],
+      // Type-checking runs through Vite+ (tsgolint), so `typescript` is no longer a
+      // dependency and knip won't auto-enable this plugin to read compilerOptions.types
+      typescript: { config: ["tsconfig.json"] },
     },
     "packages/server": {
       project: ["src/**/*.{ts,tsx}"],

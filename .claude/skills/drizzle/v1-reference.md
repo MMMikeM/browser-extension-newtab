@@ -1,10 +1,10 @@
-# Drizzle ORM v1 Reference (beta.19)
+# Drizzle ORM v1 Reference (rc.4)
 
 ## Installation
 
 ```bash
-npm i drizzle-orm@beta @libsql/client
-npm i -D drizzle-kit@beta
+npm i drizzle-orm@rc @libsql/client
+npm i -D drizzle-kit@rc
 ```
 
 ---
@@ -44,11 +44,21 @@ import { relations } from "./relations";
 const db = drizzle({ client, relations });
 ```
 
-### With casing
+### Casing (changed in rc)
+
+The `casing` option on `drizzle()` was removed. Casing is now set per table (or view) at definition time:
 
 ```typescript
-const db = drizzle({ client, casing: "snake_case" });
+import { snakeCase } from "drizzle-orm/sqlite-core";
+
+// Keys map to snake_case columns: userId -> user_id
+export const tasks = snakeCase.table("tasks", {
+  id: text().primaryKey(),
+  userId: text().notNull(),
+});
 ```
+
+`camelCase.table()` / `camelCase.view()` also exist. This project doesn't use either; it passes explicit column names instead.
 
 Driver sub-imports: `/libsql`, `/libsql/node`, `/libsql/web`, `/libsql/http`, `/libsql/ws`, `/libsql/wasm`.
 
@@ -97,7 +107,7 @@ Pass the DB column name as the first argument if it differs from the JS property
 createdAt: text("created_at").notNull();
 ```
 
-Or use `casing: 'snake_case'` on the `drizzle()` call to auto-map.
+Or define the table with `snakeCase.table()` to auto-map (see Casing above).
 
 ### Indexes and constraints
 

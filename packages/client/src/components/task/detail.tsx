@@ -432,6 +432,7 @@ const AssigneeSection = ({ task }: { task: Task }) => {
     <DetailSection label="Assignee">
       <div className="flex flex-wrap gap-1.5 touch:gap-2" role="radiogroup" aria-label="Assignee">
         <TogglePill
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled pills in an ARIA radiogroup
           role="radio"
           aria-checked={!task.assigneeId}
           selected={!task.assigneeId}
@@ -444,6 +445,7 @@ const AssigneeSection = ({ task }: { task: Task }) => {
         {candidates.map((c) => (
           <TogglePill
             key={c.id}
+            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled pills in an ARIA radiogroup
             role="radio"
             aria-checked={task.assigneeId === c.id}
             selected={task.assigneeId === c.id}

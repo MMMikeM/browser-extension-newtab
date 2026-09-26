@@ -1,12 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 // Budget in milliseconds — fail the build if we regress past this
 const DCL_BUDGET_MS = 1000;
 
-const measure = async (
-  page: Parameters<Parameters<typeof test>[1]>[0]["page"],
-  url: string,
-): Promise<number> => {
+const measure = async (page: Page, url: string): Promise<number> => {
   await page.goto(url, { waitUntil: "domcontentloaded" });
 
   const dcl = await page.evaluate(() => {

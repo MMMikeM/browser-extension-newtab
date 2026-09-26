@@ -19,7 +19,7 @@ export function InviteAcceptPage() {
   useEffect(() => {
     if (!authToken) {
       sessionStorage.setItem("pending-invite", token);
-      router.navigate({ to: "/auth" });
+      void router.navigate({ to: "/auth" });
     }
   }, [authToken, token, router]);
 

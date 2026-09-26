@@ -52,7 +52,7 @@ export const authRoutes = new OpenAPIHono()
         return c.json(result, 200);
       } catch (e) {
         console.log(
-          `[login] failed username=${data.username} error=${e instanceof Error ? e.message : e}`,
+          `[login] failed username=${data.username} error=${e instanceof Error ? e.message : String(e)}`,
         );
         throw e;
       }

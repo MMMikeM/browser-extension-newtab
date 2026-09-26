@@ -3,17 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "turbo dev --env-mode=loose",
-    "build": "turbo build",
-    "build:ext": "turbo build:ext",
+    "dev": "vp run -r --parallel dev",
+    "build": "vp run -r build",
+    "build:ext": "vp run -r build && vp run --filter @newtab-todo/client build:ext",
     "start": "pnpm --filter @newtab-todo/server start",
     "db:push": "pnpm --filter @newtab-todo/server db:push",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "typecheck": "turbo typecheck",
-    "check": "turbo typecheck && oxlint && oxfmt --check && knip",
+    "lint": "vp lint",
+    "lint:fix": "vp lint --fix",
+    "fmt": "vp fmt",
+    "fmt:check": "vp fmt --check",
+    "typecheck": "vp check --no-fmt --no-lint",
+    "check": "vp check && knip",
     "screenshot": "pnpm --dir packages/e2e run screenshot",
     "cls": "pnpm --dir packages/e2e install --ignore-workspace && pnpm --dir packages/e2e run cls",
     "test:e2e": "pnpm --filter @newtab-todo/e2e test",
@@ -21,15 +21,12 @@
     "reset-password": "node --env-file=.env --import=./packages/server/node_modules/tsx/dist/esm/index.cjs packages/server/reset-password.ts"
   },
   "dependencies": {
-    "temporal-polyfill": "^0.3.2"
+    "temporal-polyfill": "^1.0.5"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
-    "@typescript/native-preview": "7.0.0-dev.20260403.1",
-    "knip": "^6.3.1",
-    "oxfmt": "^0.43.0",
-    "oxlint": "^1.59.0",
-    "turbo": "^2.9.5"
+    "@types/node": "^26.6.2",
+    "knip": "^6.38.0",
+    "vite-plus": "catalog:"
   },
-  "packageManager": "pnpm@11.0.0-beta.6"
+  "packageManager": "pnpm@12.6.0"
 }

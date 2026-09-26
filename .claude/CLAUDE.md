@@ -24,7 +24,7 @@
 
 ### MV2 CSP: inline scripts are BLOCKED
 
-`packages/client/vite.extension.config.ts` handles the extension build (`pnpm build:ext`). Inline scripts must be extracted.
+`packages/client/build-extension.ts` handles the extension build (`pnpm build:ext`). Inline scripts must be extracted.
 
 ## Stack
 
@@ -32,7 +32,7 @@ Hono (server) + Vite (client) + React 19 + TanStack DB/Router/Query + Drizzle v1
 
 ## Monorepo structure
 
-pnpm workspaces + Turborepo. Three packages:
+pnpm workspaces + Vite+ (`vp`). Three packages:
 
 - `packages/shared` — shared types/constants (`MutationEvent`, `ModelName`, `ISODateString`)
 - `packages/server` — Hono API, Drizzle ORM, all server deps
@@ -42,10 +42,11 @@ Cross-package imports use `@newtab-todo/shared` and `@newtab-todo/server` (type-
 
 ## Dev workflow
 
-- `pnpm dev` / `pnpm build` / `pnpm build:ext` / `pnpm start`
-- `pnpm lint` / `pnpm fmt` — oxlint / oxfmt
-- `pnpm typecheck` — tsgo --noEmit (via turbo)
-- `pnpm check` — typecheck + lint + fmt + knip (CI gate)
+- `pnpm dev` / `pnpm build` / `pnpm build:ext` / `pnpm start` — workspace tasks run via `vp run -r` (replaces turbo)
+- `pnpm lint` / `pnpm fmt` — `vp lint` / `vp fmt` (oxlint / oxfmt; config lives in the root `vite.config.ts`, not separate oxc config files)
+- `pnpm typecheck` — `vp check --no-fmt --no-lint` (TypeScript 7 via tsgolint; there is no per-package `tsc`)
+- `pnpm check` — `vp check` (fmt + lint + type-aware lint + typecheck) + knip (CI gate)
+- Server bundles with `vp pack` (tsdown); config is the `pack` block in `packages/server/vite.config.ts`
 - `pnpm --filter @newtab-todo/server db:push` — push schema to Turso
 - Screenshots: `SCREENSHOT_DIR=./screenshots pnpm screenshot` — **never use `/tmp`**; output goes in `packages/e2e/screenshots/` or a project-local path
 
