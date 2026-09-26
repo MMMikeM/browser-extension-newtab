@@ -1,6 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Trash2 } from "lucide-react";
 import type { Task, Note } from "~/lib/types";
 import {
   useNotes,
@@ -45,6 +46,27 @@ import { cn } from "~/lib/utils";
 import { useTasks } from "~/lib/db/hooks";
 
 const INBOX_VALUE = "__inbox__";
+const TITLE_SLOT = "task-title";
+
+// Device locale; time and year only when they carry information
+const formatDueDateTime = (due: string) => {
+  const dt = Temporal.PlainDateTime.from(due);
+  const sameYear = dt.year === Temporal.Now.plainDateISO().year;
+  return dt.toLocaleString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    ...(!sameYear && { year: "numeric" }),
+    ...(due.length > 10 && { hour: "numeric", minute: "2-digit" }),
+  });
+};
+
+// Fallback for engines without `field-sizing: content`
+const autoGrow = (el: HTMLTextAreaElement | null) => {
+  if (!el || CSS.supports("field-sizing", "content")) return;
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
+};
 
 export function TaskDetail({
   taskId,
@@ -65,25 +87,39 @@ export function TaskDetail({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent>
+      <DrawerContent className="max-h-[88dvh]">
         <DrawerHeader className="sr-only">
           <DrawerTitle>{task.title}</DrawerTitle>
           <DrawerDescription>Task details</DrawerDescription>
         </DrawerHeader>
-        <TaskDetailContent task={task} onClose={onClose} />
+        <TaskDetailContent
+          task={task}
+          // From the live collection, not task.subtasks: that embedded copy only refreshes
+          // on a server refetch, so ticking or deleting a subtask here looked like a no-op
+          subtasks={(allTasks ?? []).filter((t) => t.parentId === task.id)}
+          onClose={onClose}
+        />
       </DrawerContent>
     </Drawer>
   );
 }
 
-const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void }) => {
+const TaskDetailContent = ({
+  task,
+  subtasks,
+  onClose,
+}: {
+  task: Task;
+  subtasks: Task[];
+  onClose: () => void;
+}) => {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const isDone = task.status === "done";
   const dateRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state when task changes externally
-  if (title !== task.title && document.activeElement?.tagName !== "INPUT") {
+  // Sync local state when task changes externally (but not mid-edit)
+  if (title !== task.title && document.activeElement?.getAttribute("data-slot") !== TITLE_SLOT) {
     setTitle(task.title);
   }
 
@@ -95,32 +131,51 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
   const isInSharedCategory = (taskCategory?.collaborators?.length ?? 0) > 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pt-4 pb-8">
-      {/* Title */}
-      <div className="flex items-center gap-3">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))] touch:px-5">
+      {/* Title — a textarea so long titles wrap; Enter commits like a single-line field */}
+      <div className="flex items-start gap-3">
         <Checkbox
           checked={isDone}
           onCheckedChange={() => updateTask(task.id, { status: isDone ? "todo" : "done" })}
+          className="mt-3 touch:mt-[11px] touch:size-[18px] touch:after:-inset-3"
         />
-        <Field className="flex-1">
-          <FieldLabel className="sr-only">Title</FieldLabel>
-          <Input
-            type="text"
+        {/* Bare control + aria-label: a raw <textarea> doesn't register with Base UI's
+            Field, so a FieldLabel wouldn't be associated with it */}
+        <div className="flex-1">
+          <Textarea
+            ref={autoGrow}
+            data-slot={TITLE_SLOT}
+            aria-label="Title"
+            rows={1}
+            enterKeyHint="done"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value.replace(/\n/g, " "));
+              autoGrow(e.target);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                e.currentTarget.blur();
+              }
+            }}
             onBlur={() => {
               const trimmed = title.trim();
               if (trimmed && trimmed !== task.title) updateTask(task.id, { title: trimmed });
             }}
-            className="border-ghost text-lg font-semibold focus-visible:border-hint"
+            className={cn(
+              "py-2 text-lg leading-snug font-semibold md:text-lg",
+              isDone && "text-muted-foreground line-through",
+            )}
           />
-        </Field>
+        </div>
       </div>
 
       {/* Description */}
       <Field>
         <FieldLabel className="text-sm font-medium text-hint">Description</FieldLabel>
         <Textarea
+          aria-label="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={() => {
@@ -149,25 +204,17 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
           variant="subtle"
           size="sm"
           onClick={() => dateRef.current?.showPicker()}
-          className={task.dueDate ? "text-date hover:text-foreground" : undefined}
+          className={cn("touch:h-10", task.dueDate && "text-date hover:text-foreground")}
           aria-label="Set due date"
         >
-          {task.dueDate
-            ? Temporal.PlainDateTime.from(task.dueDate).toLocaleString("en", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })
-            : "Set date…"}
+          {task.dueDate ? formatDueDateTime(task.dueDate) : "Set date…"}
         </Button>
         {task.dueDate && (
           <Button
             variant="subtle"
             size="xs"
             onClick={() => updateTask(task.id, { dueDate: null })}
-            className="text-ghost hover:text-hint"
+            className="touch:h-10 touch:text-sm"
           >
             clear
           </Button>
@@ -194,16 +241,14 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
       )}
 
       {/* Subtasks */}
-      {!task.parentId && <SubtaskSection taskId={task.id} subtasks={task.subtasks} />}
+      {!task.parentId && <SubtaskSection taskId={task.id} subtasks={subtasks} />}
 
       {/* Sharing */}
       {!task.parentId &&
         (isInSharedCategory ? (
           <div className="flex flex-col gap-1">
             <SectionLabel>Sharing</SectionLabel>
-            <span className="text-xs text-ghost">
-              Visible to all collaborators in this category
-            </span>
+            <span className="text-xs text-hint">Visible to all collaborators in this category</span>
           </div>
         ) : (
           <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
@@ -227,12 +272,13 @@ const TaskDetailContent = ({ task, onClose }: { task: Task; onClose: () => void 
         variant="subtle"
         intent="destructive"
         size="xs"
-        className="self-start"
+        className="-ml-2.5 self-start touch:h-10 touch:text-sm"
         onClick={() => {
           deleteTask(task.id);
           onClose();
         }}
       >
+        <Trash2 />
         Delete task
       </Button>
     </div>
@@ -265,7 +311,8 @@ const NoteItem = ({ note }: { note: Note }) => {
 
   return (
     <ListRow size="sm" className="items-start">
-      <span className="flex-1 text-sm">{note.content || note.title}</span>
+      {/* touch:py-2 centres the first line on the h-9 touch buttons */}
+      <span className="flex-1 text-sm touch:py-2">{note.content || note.title}</span>
       <RevealButton intent="neutral" onClick={() => setEditing(true)}>
         edit
       </RevealButton>
@@ -291,7 +338,7 @@ const AddNoteInput = ({ taskId }: { taskId: string }) => {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Add a note…"
-        className="h-8 text-sm"
+        className="md:h-8"
       />
     </form>
   );
@@ -302,7 +349,7 @@ const SubtaskSection = ({
   subtasks: rawSubtasks,
 }: {
   taskId: string;
-  subtasks: Task["subtasks"];
+  subtasks: Task[];
 }) => {
   const [value, setValue] = useState("");
 
@@ -319,7 +366,7 @@ const SubtaskSection = ({
             onCheckedChange={() =>
               updateTask(sub.id, { status: sub.status === "done" ? "todo" : "done" })
             }
-            className="size-3.5"
+            className="size-3.5 touch:size-4 touch:after:-inset-3"
           />
           <span
             className={cn(
@@ -346,7 +393,7 @@ const SubtaskSection = ({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Add a subtask…"
-          className="h-8 text-sm"
+          className="md:h-8"
         />
       </form>
     </DetailSection>
@@ -383,8 +430,11 @@ const AssigneeSection = ({ task }: { task: Task }) => {
 
   return (
     <DetailSection label="Assignee">
-      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Assignee">
+      <div className="flex flex-wrap gap-1.5 touch:gap-2" role="radiogroup" aria-label="Assignee">
         <TogglePill
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled pills in an ARIA radiogroup
+          role="radio"
+          aria-checked={!task.assigneeId}
           selected={!task.assigneeId}
           onClick={() => isOwner && updateTask(task.id, { assigneeId: null })}
           disabled={!isOwner}
@@ -395,6 +445,9 @@ const AssigneeSection = ({ task }: { task: Task }) => {
         {candidates.map((c) => (
           <TogglePill
             key={c.id}
+            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- styled pills in an ARIA radiogroup
+            role="radio"
+            aria-checked={task.assigneeId === c.id}
             selected={task.assigneeId === c.id}
             onClick={() => isOwner && updateTask(task.id, { assigneeId: c.id })}
             disabled={!isOwner}

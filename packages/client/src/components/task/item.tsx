@@ -13,6 +13,9 @@ import { useOptimisticUserId } from "~/lib/auth/current-user";
 // Evaluated once at module init — pointer type doesn't change during a session
 const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
+const swipeActionClass =
+  "flex flex-1 flex-col items-center justify-center gap-1 text-hint transition-colors active:bg-secondary active:text-foreground";
+
 const formatDueDate = (dateStr: string) => {
   const date = Temporal.PlainDate.from(dateStr.slice(0, 10));
   const today = Temporal.Now.plainDateISO();
@@ -22,7 +25,8 @@ const formatDueDate = (dateStr: string) => {
   if (diffDays === 0) return { label: "Today", overdue: false };
   if (diffDays === 1) return { label: "Tomorrow", overdue: false };
   return {
-    label: date.toLocaleString("en", { month: "short", day: "numeric" }),
+    // Device locale: "2 Oct" on en-GB, "Oct 2" on en-US
+    label: date.toLocaleString(undefined, { month: "short", day: "numeric" }),
     overdue: false,
   };
 };
@@ -82,10 +86,22 @@ export function TaskItem({
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskTitle, setSubtaskTitle] = useState("");
 
-  const { containerRef, contentRef, close: closeSwipe } = useSwipeReveal(!IS_TOUCH || !!isSubtask);
+  const {
+    containerRef,
+    contentRef,
+    isOpen: isSwipeOpen,
+    close: closeSwipe,
+  } = useSwipeReveal(!IS_TOUCH || !!isSubtask);
   const swipeEnabled = IS_TOUCH && !isSubtask;
 
   const openPicker = () => dateRef.current?.showPicker();
+
+  const titleClass = cn(
+    // Wrap rather than truncate: the column is narrow on both targets
+    "line-clamp-2 font-medium break-words",
+    isDone && "text-muted-foreground line-through",
+    isSubtask && "text-sm",
+  );
 
   const submitSubtask = () => {
     const title = subtaskTitle.trim();
@@ -108,19 +124,21 @@ export function TaskItem({
       >
         {/* Action drawer — revealed as row slides left */}
         {swipeEnabled && (
+          // inert while closed: the tray sits under the row, so it must not be
+          // focusable or announced until the row is swiped open.
           <div
-            className="absolute top-0 right-0 flex h-full w-[148px] items-stretch"
-            aria-hidden="true"
+            className="absolute top-0 right-0 flex h-full w-[148px] items-stretch bg-muted"
+            inert={!isSwipeOpen}
           >
             <button
               onClick={() => {
                 openPicker();
                 closeSwipe();
               }}
-              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
+              className={swipeActionClass}
             >
-              <Calendar size={15} />
-              <span className="text-[10px]">Date</span>
+              <Calendar size={16} />
+              <span className="text-xs">Date</span>
             </button>
             {!isDone && (
               <button
@@ -128,10 +146,10 @@ export function TaskItem({
                   setAddingSubtask(true);
                   closeSwipe();
                 }}
-                className="flex flex-1 flex-col items-center justify-center gap-0.5 text-hint transition-colors active:bg-muted/60"
+                className={swipeActionClass}
               >
-                <Plus size={15} />
-                <span className="text-[10px]">Sub</span>
+                <Plus size={16} />
+                <span className="text-xs">Subtask</span>
               </button>
             )}
             <button
@@ -139,11 +157,13 @@ export function TaskItem({
                 onDelete(task);
                 closeSwipe();
               }}
-              className="flex flex-1 flex-col items-center justify-center gap-0.5 text-destructive transition-colors active:bg-destructive/10"
-              aria-label="Delete task"
+              className={cn(
+                swipeActionClass,
+                "bg-destructive-subtle text-destructive active:bg-destructive/20",
+              )}
             >
-              <X size={15} />
-              <span className="text-[10px]">Delete</span>
+              <X size={16} />
+              <span className="text-xs">Delete</span>
             </button>
           </div>
         )}
@@ -152,16 +172,19 @@ export function TaskItem({
         <div
           ref={contentRef}
           className={cn(
-            "group/task flex items-start gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50",
+            "group/task flex items-start gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50 touch:gap-2.5",
             isSubtask && "py-1.5",
             // relative + bg-card: positions this row above the absolute drawer in the CSS
-            // stacking order (static < absolute, so without relative the drawer bleeds through)
-            swipeEnabled && "relative bg-card",
+            // stacking order (static < absolute, so without relative the drawer bleeds through).
+            // rounded-none: the clipping container owns the corners, so the tray can't fringe.
+            swipeEnabled && "relative rounded-none bg-card",
           )}
         >
           {!isSubtask && (
+            // Fixed 44px box centred on the first title line: aligns with the checkbox
+            // when the title wraps, and gives touch a full-height grab target.
             <span
-              className="flex cursor-grab items-center self-center text-transparent transition-colors group-hover/task:text-ghost active:cursor-grabbing touch:text-hint"
+              className="-my-2.5 flex h-11 cursor-grab items-center text-transparent transition-colors group-hover/task:text-ghost active:cursor-grabbing touch:-ml-1 touch:w-6 touch:justify-center touch:text-hint"
               onTouchStart={(e) => e.stopPropagation()}
             >
               <GripVertical size={14} />
@@ -171,7 +194,11 @@ export function TaskItem({
           <Checkbox
             checked={isDone}
             onCheckedChange={() => onToggle(task)}
-            className="self-center"
+            // Pinned to the first line of the title, which can wrap
+            className={cn(
+              "mt-1 touch:mt-[3px] touch:size-[18px] touch:after:-inset-3",
+              isSubtask && "mt-0.5 touch:mt-px",
+            )}
           />
           {onOpen ? (
             <button
@@ -179,30 +206,14 @@ export function TaskItem({
               className="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
               onClick={() => onOpen(task.id)}
             >
-              <span
-                className={cn(
-                  "truncate font-medium",
-                  isDone && "text-muted-foreground line-through",
-                  isSubtask && "text-sm",
-                )}
-              >
-                {task.title}
-              </span>
+              <span className={titleClass}>{task.title}</span>
               {task.description && (
                 <span className="truncate text-xs text-hint">{task.description}</span>
               )}
             </button>
           ) : (
             <div className="flex min-w-0 flex-1 flex-col">
-              <span
-                className={cn(
-                  "truncate font-medium",
-                  isDone && "text-muted-foreground line-through",
-                  isSubtask && "text-sm",
-                )}
-              >
-                {task.title}
-              </span>
+              <span className={titleClass}>{task.title}</span>
               {task.description && (
                 <span className="truncate text-xs text-hint">{task.description}</span>
               )}
@@ -212,7 +223,8 @@ export function TaskItem({
             ref={dateRef}
             type="date"
             className="invisible absolute size-0"
-            value={task.dueDate ?? ""}
+            // Date-only input: a datetime dueDate (set from the detail view) would be invalid here
+            value={task.dueDate?.slice(0, 10) ?? ""}
             tabIndex={-1}
             onChange={(e) => onSetDueDate(task, e.target.value || null)}
           />
@@ -221,7 +233,7 @@ export function TaskItem({
               type="button"
               onClick={openPicker}
               className={cn(
-                "mt-0.5 cursor-pointer text-xs whitespace-nowrap hover:underline",
+                "relative mt-0.5 cursor-pointer text-xs whitespace-nowrap after:absolute after:-inset-x-1.5 after:-inset-y-2.5 hover:underline",
                 isDone ? "text-muted-foreground" : due.overdue ? "text-destructive" : "text-date",
               )}
             >
@@ -299,7 +311,8 @@ export function TaskItem({
             value={subtaskTitle}
             onChange={(e) => setSubtaskTitle(e.target.value)}
             placeholder="Subtask title..."
-            className="h-7 text-xs"
+            // Phones keep the primitive's 16px so iOS doesn't zoom on focus
+            className="md:h-7 md:text-xs"
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             onBlur={() => {

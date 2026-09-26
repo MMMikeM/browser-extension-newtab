@@ -29,7 +29,7 @@ export function SyncHint() {
           localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));
           setDismissed(true);
         }}
-        className="inline-flex align-middle"
+        className="inline-flex align-middle touch:size-8"
         aria-label="Dismiss"
       >
         &times;

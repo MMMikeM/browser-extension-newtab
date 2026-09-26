@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthToken, setAuthToken } from "~/lib/auth/token";
 import { useCurrentUser, clearCurrentUser } from "~/lib/auth/current-user";
@@ -13,6 +13,7 @@ import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState, usePendingMutations } from "~/lib/sync/sse";
 import { useInstallPrompt } from "~/lib/hooks/use-install-prompt";
 import { Button } from "~/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
 
 const clearAuth = () => {
@@ -38,24 +39,11 @@ export const SyncSettings = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const { canInstall, install } = useInstallPrompt();
 
   useEffect(() => {
     isPushSubscribed().then(setPushEnabled).catch(console.error);
   }, []);
-
-  // Close on click-outside
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
 
   const handleTogglePush = async () => {
     const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
@@ -80,29 +68,35 @@ export const SyncSettings = () => {
   if (!token) {
     if (isAuthPage) return null;
     return (
-      <Button variant="ghost" size="xs" onClick={() => router.navigate({ to: "/auth" })}>
+      <Button
+        variant="ghost"
+        size="xs"
+        className="touch:h-9 touch:px-3 touch:text-sm"
+        onClick={() => router.navigate({ to: "/auth" })}
+      >
         Sign in
       </Button>
     );
   }
 
+  const menuItem = "justify-start touch:h-10 touch:text-sm";
+
   return (
-    // relative wrapper — keeps header height stable regardless of panel state
-    <div ref={containerRef} className="relative">
-      <Button
-        variant="ghost"
-        size="xs"
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          "gap-1.5",
-          open
-            ? "bg-muted text-muted-foreground"
-            : syncState === "disconnected"
-              ? "text-foreground"
-              : "text-hint hover:text-muted-foreground",
-        )}
-        aria-label="Sync settings"
-        aria-expanded={open}
+    <Popover open={open} onOpenChange={setOpen} modal>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="xs"
+            className={cn(
+              "gap-1.5 touch:h-9 touch:px-3",
+              syncState === "disconnected"
+                ? "text-foreground"
+                : "text-hint hover:text-muted-foreground",
+            )}
+            aria-label="Sync settings"
+          />
+        }
       >
         <span
           className={cn(
@@ -120,30 +114,35 @@ export const SyncSettings = () => {
         <span className={cn(syncState === "disconnected" && "font-medium")}>
           {hasPending && syncState !== "disconnected" ? "Syncing…" : SYNC_LABELS[syncState]}
         </span>
-      </Button>
+      </PopoverTrigger>
 
-      {open && currentUser && (
-        // Absolutely positioned — does NOT affect header height
-        <div className="absolute top-full right-0 z-50 mt-2 flex min-w-[180px] flex-col gap-3 rounded-lg border border-border bg-popover p-3 shadow-lg">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-medium text-foreground">{currentUser.name}</span>
+      {currentUser && (
+        // backdrop: the tap that dismisses the menu shouldn't also open the task underneath
+        <PopoverContent
+          align="end"
+          sideOffset={8}
+          backdrop
+          className="flex min-w-[200px] flex-col p-2"
+        >
+          <div className="flex flex-col gap-0.5 px-2.5 pt-1 pb-2">
+            <span className="text-sm font-medium text-foreground">{currentUser.name}</span>
             <span className="text-xs text-hint">@{currentUser.username}</span>
           </div>
-          <div className="h-px bg-border" />
+          <div className="mb-1 h-px bg-border" />
           {getBuildTarget() === "browser" && canInstall && (
-            <Button variant="subtle" size="xs" className="justify-start" onClick={install}>
+            <Button variant="subtle" size="xs" className={menuItem} onClick={install}>
               Add to Home Screen
             </Button>
           )}
           {getBuildTarget() === "browser" && (
-            <Button variant="subtle" size="xs" className="justify-start" onClick={handleTogglePush}>
+            <Button variant="subtle" size="xs" className={menuItem} onClick={handleTogglePush}>
               {pushEnabled ? "✓ Background sync on" : "Enable background sync"}
             </Button>
           )}
           <Button
             variant="subtle"
             size="xs"
-            className="justify-start"
+            className={menuItem}
             onClick={() => {
               void router.navigate({ to: "/people" });
               setOpen(false);
@@ -155,16 +154,16 @@ export const SyncSettings = () => {
             variant="ghost"
             intent="destructive"
             size="xs"
-            className="justify-start"
+            className={menuItem}
             onClick={handleLogout}
           >
             Sign out
           </Button>
-          <div className="h-px bg-border" />
-          <span className="text-[10px] text-ghost">{__BUILD_VERSION__}</span>
-        </div>
+          <div className="my-1 h-px bg-border" />
+          <span className="px-2.5 pb-0.5 text-[10px] text-ghost">{__BUILD_VERSION__}</span>
+        </PopoverContent>
       )}
-    </div>
+    </Popover>
   );
 };
 

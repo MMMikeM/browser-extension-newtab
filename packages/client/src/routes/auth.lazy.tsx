@@ -92,7 +92,6 @@ const AuthView = () => {
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    className="text-sm"
                     autoComplete="name"
                     // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
@@ -109,7 +108,6 @@ const AuthView = () => {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  className="text-sm"
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus={mode === "login"}
                   autoCapitalize="none"
@@ -128,7 +126,6 @@ const AuthView = () => {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  className="text-sm"
                   autoComplete={mode === "login" ? "current-password" : "new-password"}
                 />
               </FormField>
@@ -146,7 +143,7 @@ const AuthView = () => {
             <Button
               type="submit"
               variant="outline"
-              className="w-full"
+              className="w-full touch:h-11"
               disabled={form.state.isSubmitting}
             >
               {form.state.isSubmitting
@@ -162,6 +159,7 @@ const AuthView = () => {
                 type="button"
                 variant="subtle"
                 size="xs"
+                className="touch:h-10 touch:text-sm"
                 onClick={() => {
                   setMode(mode === "login" ? "signup" : "login");
                   form.reset();
@@ -174,6 +172,7 @@ const AuthView = () => {
                 type="button"
                 variant="subtle"
                 size="xs"
+                className="touch:h-10 touch:text-sm"
                 onClick={() => router.navigate({ to: "/" })}
               >
                 Skip
