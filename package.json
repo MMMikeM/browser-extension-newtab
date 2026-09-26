@@ -3,17 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "turbo dev --env-mode=loose",
-    "build": "turbo build",
-    "build:ext": "turbo build:ext",
+    "dev": "vp run -r --parallel dev",
+    "build": "vp run -r build",
+    "build:ext": "vp run -r build && vp run --filter @newtab-todo/client build:ext",
     "start": "pnpm --filter @newtab-todo/server start",
     "db:push": "pnpm --filter @newtab-todo/server db:push",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "typecheck": "turbo typecheck",
-    "check": "turbo typecheck && oxlint && oxfmt --check && knip",
+    "lint": "vp lint",
+    "lint:fix": "vp lint --fix",
+    "fmt": "vp fmt",
+    "fmt:check": "vp fmt --check",
+    "typecheck": "vp check --no-fmt --no-lint",
+    "check": "vp check && knip",
     "screenshot": "pnpm --dir packages/e2e run screenshot",
     "cls": "pnpm --dir packages/e2e install --ignore-workspace && pnpm --dir packages/e2e run cls",
     "test:e2e": "pnpm --filter @newtab-todo/e2e test",
@@ -26,10 +26,7 @@
   "devDependencies": {
     "@types/node": "^26.6.2",
     "knip": "^6.38.0",
-    "oxfmt": "^0.70.0",
-    "oxlint": "^1.85.0",
-    "turbo": "^2.11.4",
-    "typescript": "^7.0.2"
+    "vite-plus": "catalog:"
   },
   "packageManager": "pnpm@12.6.0"
 }

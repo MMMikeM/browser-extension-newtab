@@ -9,7 +9,7 @@ type GradientType = "linear" | "radial";
 type Direction = "left" | "right" | "top" | "bottom";
 
 type Stop = {
-  oklch: string | "transparent"; // L C H values, e.g. "0.07 0.018 48", or "transparent"
+  oklch: string; // L C H values, e.g. "0.07 0.018 48", or "transparent"
   alpha?: number; // 0–1, default 1; forced to 0 when oklch is "transparent"
   position?: number; // 0–100; defaults to 0 in from(), 100 in to()
 };

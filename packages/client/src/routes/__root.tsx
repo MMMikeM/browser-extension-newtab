@@ -1,17 +1,15 @@
 import { createRootRoute } from "@tanstack/react-router";
-import { Suspense, lazy, useEffect } from "react";
+import { useEffect } from "react";
 import { ClientOnly, Outlet } from "@tanstack/react-router";
 import { AppShell } from "~/AppBackground";
+import { SyncSettings } from "~/components/SyncSettings";
 import { Toast } from "~/components/ui/toast";
 import { NavContextProvider } from "~/lib/state/nav-context";
+import { registerServiceWorker } from "~/lib/sync/register-sw";
 
 export const Route = createRootRoute({
   component: RootComponent,
 });
-
-// Import starts immediately — lazy() avoids the SSR prerender crash, not on-demand loading
-const syncSettingsModule = import("../components/SyncSettings");
-const SyncSettings = lazy(() => syncSettingsModule);
 
 // Module-level singleton so tests can inject toasts without going through React.
 // Exposed on window.__toastAdd in dev/test only — dead code in production builds.
@@ -24,8 +22,7 @@ if (import.meta.env.DEV && typeof window !== "undefined") {
 
 export default function RootComponent() {
   useEffect(() => {
-    // Dynamic import: SW registration is fire-and-forget, not needed for initial render.
-    import("~/lib/sync/register-sw").then(({ registerServiceWorker }) => registerServiceWorker());
+    registerServiceWorker();
   }, []);
 
   return (
@@ -36,9 +33,7 @@ export default function RootComponent() {
             <ClientOnly
               fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}
             >
-              <Suspense fallback={<span className="text-muted-foreground">&#x2699;</span>}>
-                <SyncSettings />
-              </Suspense>
+              <SyncSettings />
             </ClientOnly>
           }
         >

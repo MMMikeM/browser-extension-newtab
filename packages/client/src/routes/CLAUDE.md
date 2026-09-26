@@ -7,7 +7,7 @@ TanStack Router file-based routes.
 The shell prerender evaluates the root route's module graph. Any static import chain that reaches `localStorage` or `IndexedDB` crashes the prerender. Current strategy:
 
 - `AddTaskInput` — safe to static import (pure component, no store deps)
-- `SyncSettings` — lazy imported (pulls in stores → auth-token → localStorage)
+- `SyncSettings` — static import; its chain (stores → auth-token → localStorage) guards every module-level access, and it renders inside `ClientOnly`
 - `SyncHint` — lazy imported (same chain)
 - `addTask` — dynamic `import()` in callback (pulls in stores)
 - `TanStackDevtools` — lazy imported (crashes SSR)

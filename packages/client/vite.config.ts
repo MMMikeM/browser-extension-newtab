@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv, searchForWorkspaceRoot, type PluginOption } from "vite";
+import { defineConfig, loadEnv, searchForWorkspaceRoot, type PluginOption } from "vite-plus";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
