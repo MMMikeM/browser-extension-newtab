@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 import { createTask } from "./helpers/app";
-import { apiRequest } from "./helpers/api";
+import { apiRequest, ensureMutualContacts } from "./helpers/api";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -135,7 +135,6 @@ test.describe("task detail — visual language", () => {
     user1Auth,
     user2Auth,
   }) => {
-    const { ensureMutualContacts } = await import("./helpers/api");
     await ensureMutualContacts(user1Auth.token, user2Auth.token);
 
     await createTask(page, "Shared task");

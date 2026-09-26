@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Toast } from "@base-ui/react/toast";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { useContacts } from "~/lib/db/hooks";
 import { createInvite, removeContact } from "~/lib/actions";
@@ -15,6 +16,7 @@ export const Route = createLazyFileRoute("/people")({
 
 export function PeoplePage() {
   const router = useRouter();
+  const toastManager = Toast.useToastManager();
   const [inviting, setInviting] = useState(false);
 
   const { data: contacts = [], isLoading } = useContacts();
@@ -32,11 +34,18 @@ export function PeoplePage() {
           ? `${serverOrigin}/#/invite/${token}`
           : `${window.location.origin}/invite/${token}`;
       if (navigator.share) {
-        void navigator.share({ title: "Join me on Todo", url }).catch(() => {
-          void navigator.clipboard.writeText(url);
-        });
-      } else {
-        void navigator.clipboard.writeText(url);
+        try {
+          await navigator.share({ title: "Join me on Todo", url });
+          return;
+        } catch (err) {
+          if (err instanceof DOMException && err.name === "AbortError") return;
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        toastManager.add({ title: "Invite link copied", timeout: 5000, data: {} });
+      } catch {
+        toastManager.add({ title: `Copy this invite link: ${url}`, timeout: 0, data: {} });
       }
     } finally {
       setInviting(false);
