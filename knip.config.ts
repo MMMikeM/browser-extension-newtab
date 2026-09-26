@@ -1,7 +1,12 @@
 import type { KnipConfig } from "knip";
 
 export default {
-  ignore: ["packages/e2e/**", "packages/client/src/lib/gradients.ts"],
+  ignore: [
+    "packages/e2e/**",
+    "packages/client/src/lib/gradients.ts",
+    // Vendored Impeccable skill (managed by `npx impeccable update`)
+    ".claude/skills/impeccable/**",
+  ],
   workspaces: {
     "packages/client": {
       entry: [

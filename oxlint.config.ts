@@ -3,7 +3,8 @@ import { defineConfig } from "oxlint";
 export default defineConfig({
   plugins: ["eslint", "typescript", "unicorn", "oxc", "react", "import", "jsx-a11y"],
   categories: { correctness: "error" },
-  ignorePatterns: ["src/routeTree.gen.ts", ".worktrees/**"],
+  // .claude/skills/impeccable is vendored (managed by `npx impeccable update`)
+  ignorePatterns: ["src/routeTree.gen.ts", ".worktrees/**", ".claude/skills/impeccable/**"],
   rules: {
     // React Compiler manages dependency tracking — this rule is redundant and produces false positives
     "react-hooks/exhaustive-deps": ["off"],
