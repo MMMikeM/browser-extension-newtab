@@ -8,9 +8,9 @@
     "./iso": "./src/iso.ts"
   },
   "scripts": {
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.6.5"
   }
 }

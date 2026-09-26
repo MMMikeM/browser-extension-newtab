@@ -53,9 +53,7 @@ queryCollectionOptions({
     // Return { refetch: false } to skip automatic refetch
   },
   onUpdate: async ({ transaction }) => {
-    await api.updateTodos(
-      transaction.mutations.map((m) => ({ id: m.key, changes: m.changes })),
-    );
+    await api.updateTodos(transaction.mutations.map((m) => ({ id: m.key, changes: m.changes })));
   },
   onDelete: async ({ transaction }) => {
     await api.deleteTodos(transaction.mutations.map((m) => m.key));

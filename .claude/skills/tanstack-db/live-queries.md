@@ -34,10 +34,7 @@ const { data, isEnabled } = useLiveQuery(
 Suspends until data ready. `data` is always defined (never undefined).
 
 ```tsx
-const { data } = useLiveSuspenseQuery(
-  (q) => q.from({ t: tasksCollection }),
-  [dep],
-); // Re-suspends when deps change
+const { data } = useLiveSuspenseQuery((q) => q.from({ t: tasksCollection }), [dep]); // Re-suspends when deps change
 ```
 
 Use with `<Suspense>` + `<ErrorBoundary>`. Prefer `useLiveQuery` when using router loaders.

@@ -27,7 +27,7 @@ async function makeCollections() {
 
   const database = await openBrowserWASQLiteOPFSDatabase({ databaseName: "newtab-todo.sqlite" });
   const coordinator = new BrowserCollectionCoordinator({ dbName: "newtab-todo" });
-  const persistence = createBrowserWASQLitePersistence<Record<PropertyKey, unknown>, string>({
+  const persistence = createBrowserWASQLitePersistence({
     database,
     coordinator,
   });
@@ -65,7 +65,9 @@ async function makeCollections() {
             if (!getAuthToken()) throw new Error("Not authenticated");
             const res = await client.api.categories.$get();
             if (!res.ok) throw new Error("Failed to fetch categories");
-            return res.json();
+            // Response schema marks user/collaborators nullish (shared with mutation routes),
+            // but the list endpoint always includes them.
+            return (await res.json()) as Category[];
           },
           queryClient,
           getKey: (item) => item.id,

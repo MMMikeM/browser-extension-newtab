@@ -6,7 +6,7 @@ argument-hint: "[task description]"
 
 # Drizzle ORM Skill
 
-This project uses **Drizzle ORM v1.0.0-beta.19** with **Turso (libSQL)**. All Drizzle code MUST follow the v1 API — not the legacy v0 API.
+This project uses **Drizzle ORM v1.0.0-rc.4** with **Turso (libSQL)**. All Drizzle code MUST follow the v1 API — not the legacy v0 API.
 
 Your task: $ARGUMENTS
 
@@ -128,11 +128,7 @@ const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1
    const db = drizzle({ client, relations });
    ```
 
-4. **Use `snake_case` casing option** if table columns use snake_case in the database:
-
-   ```typescript
-   const db = drizzle({ client, casing: "snake_case" });
-   ```
+4. **Name columns explicitly in snake_case** (project convention, e.g. `text("user_id")`). The `casing` option on `drizzle()` was removed in rc; casing is now per table via `snakeCase.table()` from `drizzle-orm/sqlite-core`. Don't reintroduce `casing` on `drizzle()`, it no longer typechecks.
 
 5. **For migrations**, use `drizzle-kit push` during development, `drizzle-kit generate` + `drizzle-kit migrate` for production
 

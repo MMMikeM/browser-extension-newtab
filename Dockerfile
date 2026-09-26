@@ -1,6 +1,6 @@
 FROM node:24-alpine AS base
 RUN apk add --no-cache ca-certificates
-RUN corepack enable && corepack install -g pnpm@11.0.0-beta.6
+RUN corepack enable && corepack install -g pnpm@12.6.0
 
 ENV CI=true
 
