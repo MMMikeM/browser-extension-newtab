@@ -2,6 +2,12 @@ import { Users } from "lucide-react";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import type { Category } from "~/lib/types";
 
+const listNames = new Intl.ListFormat(undefined, { type: "conjunction" });
+
+/**
+ * A face always means whose list it is: someone else's list shows its owner. Your own list
+ * shows a people glyph once others can see it, never a collaborator's face.
+ */
 export function CollabBadge({
   category,
   currentUserId,
@@ -9,22 +15,29 @@ export function CollabBadge({
   category: Category;
   currentUserId: string;
 }) {
-  const isOwned = category.userId === currentUserId;
-  const others = category.collaborators?.filter((c) => c.user?.id !== currentUserId) ?? [];
-  const peerCount = others.length + (isOwned ? 0 : 1);
-
-  if (peerCount === 0) return null;
-
-  if (peerCount === 1) {
-    const name = isOwned
-      ? (others[0]?.user?.name ?? "?")
-      : (category.user?.name ?? others[0]?.user?.name ?? "?");
-    return <InitialsAvatar name={name} className="bg-collab text-collab-foreground" />;
+  if (category.userId !== currentUserId) {
+    const owner = category.user?.name ?? "?";
+    return (
+      <>
+        <span aria-hidden="true" className="shrink-0">
+          <InitialsAvatar name={owner} className="bg-collab text-collab-foreground" />
+        </span>
+        <span className="sr-only">{owner}'s list</span>
+      </>
+    );
   }
 
+  const sharedWith =
+    category.collaborators?.flatMap((c) =>
+      c.user && c.user.id !== currentUserId ? [c.user.name] : [],
+    ) ?? [];
+  if (sharedWith.length === 0) return null;
+
+  const label = `Shared with ${listNames.format(sharedWith)}`;
   return (
-    <span className="flex size-4 shrink-0 items-center justify-center text-hint">
-      <Users size={12} />
+    <span title={label} className="flex size-4 shrink-0 items-center justify-center text-hint">
+      <Users size={12} aria-hidden="true" />
+      <span className="sr-only">{label}</span>
     </span>
   );
 }

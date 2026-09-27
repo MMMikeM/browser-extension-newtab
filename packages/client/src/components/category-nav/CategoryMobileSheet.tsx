@@ -17,6 +17,7 @@ import { useCategoryNavState } from "./use-category-nav-state";
 import { useCategoryActions } from "./use-category-actions";
 import { CategoryOptionsContent } from "./CategoryOptionsContent";
 import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
+import { SharedWithMeGroup } from "./SharedWithMeGroup";
 
 const rowClass = (isActive: boolean) =>
   cn(
@@ -116,9 +117,7 @@ export function CategoryMobileSheet() {
             )}
           </span>
           {/* For someone else's list the suffix already names the owner */}
-          {(isOwned || cat.collaborators?.some((c) => c.user?.id !== currentUserId)) && (
-            <CollabBadge category={cat} currentUserId={currentUserId} />
-          )}
+          {isOwned && <CollabBadge category={cat} currentUserId={currentUserId} />}
           <OpenCount count={openCounts.get(cat.id) ?? 0} />
         </button>
 
@@ -177,10 +176,9 @@ export function CategoryMobileSheet() {
           {ownedCategories.map(renderRow)}
 
           {sharedCategories.length > 0 && (
-            <>
-              <div className="mx-5 my-2 h-px bg-border" />
+            <SharedWithMeGroup headingClassName="px-5 pt-5 pb-2">
               {sharedCategories.map(renderRow)}
-            </>
+            </SharedWithMeGroup>
           )}
 
           <div className="mx-5 my-2 h-px bg-border" />

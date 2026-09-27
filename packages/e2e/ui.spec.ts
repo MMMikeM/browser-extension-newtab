@@ -120,6 +120,20 @@ test.describe("navigation", () => {
     await expect(sidebar.getByRole("button", { name: /^Work/ })).toContainText("2");
   });
 
+  test("your shared lists read differently from lists shared with you", async ({
+    page,
+  }, testInfo) => {
+    await openList(page);
+    if (testInfo.project.name !== "desktop") await page.getByTestId("category-nav-trigger").click();
+
+    const sharedWithMe = page.getByRole("group", { name: "Shared with me" });
+    await expect(sharedWithMe.getByRole("button", { name: /^Groceries/ })).toBeVisible();
+    await expect(sharedWithMe.getByRole("button", { name: /^Home/ })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /^Home Shared with Sam Okafor/ }).first(),
+    ).toBeVisible();
+  });
+
   test("narrow pointer windows swap the sidebar for the list-title sheet", async ({
     page,
   }, testInfo) => {
@@ -241,7 +255,7 @@ test.describe("accessibility", () => {
   test("people", async ({ page }) => {
     await mockApi(page);
     await page.goto("/people", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("Sarah Murray")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Sarah Murray", { exact: true })).toBeVisible({ timeout: 15000 });
     await expectNoAxeViolations(page);
   });
 

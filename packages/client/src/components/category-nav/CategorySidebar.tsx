@@ -17,6 +17,7 @@ import { useCategoryNavState } from "./use-category-nav-state";
 import { useCategoryActions } from "./use-category-actions";
 import { CategoryOptionsContent } from "./CategoryOptionsContent";
 import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
+import { SharedWithMeGroup } from "./SharedWithMeGroup";
 
 export const CATEGORY_DROP_PREFIX = "category-drop-";
 
@@ -274,10 +275,9 @@ export function CategorySidebar({ reorderable = true }: { reorderable?: boolean 
         )}
 
         {sharedCategories.length > 0 && (
-          <>
-            <div className="my-2 border-t border-ghost/15" />
+          <SharedWithMeGroup headingClassName="mt-5 mb-1 px-3">
             {sharedCategories.map((cat, index) => renderPill(cat, ownedCategories.length + index))}
-          </>
+          </SharedWithMeGroup>
         )}
 
         <div className="flex-1" />
