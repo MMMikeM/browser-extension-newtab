@@ -1,4 +1,3 @@
-import { hash, verify } from "@node-rs/argon2";
 import { HTTPException } from "hono/http-exception";
 import { createId } from "@paralleldrive/cuid2";
 import { now } from "@newtab-todo/shared/iso";
@@ -6,13 +5,7 @@ import userRepo from "./db/user.repo";
 import sessionRepo from "./db/session.repo";
 import categoryRepo from "./db/category.repo";
 import { ConflictError, NotFoundError } from "./db/errors";
-
-const ARGON2_OPTIONS = {
-  memoryCost: 19456,
-  timeCost: 2,
-  outputLen: 32,
-  parallelism: 1,
-};
+import { hashPassword, verifyPassword } from "./password";
 
 export const signup = async (username: string, password: string, name: string) => {
   const normalizedUsername = username.toLowerCase();
@@ -25,7 +18,7 @@ export const signup = async (username: string, password: string, name: string) =
   }
   if (existing) throw new ConflictError("Username already taken");
 
-  const passwordHash = await hash(password, ARGON2_OPTIONS);
+  const passwordHash = await hashPassword(password);
   const ts = now();
   const user = await userRepo.insert({
     id: createId(),
@@ -62,7 +55,7 @@ export const login = async (username: string, password: string) => {
     throw new HTTPException(401, { message: "Invalid username or password" });
   }
 
-  const valid = await verify(user.passwordHash, password);
+  const valid = await verifyPassword(user.passwordHash, password);
   console.log(`[login] password valid=${valid} userId=${user.id}`);
   if (!valid) throw new HTTPException(401, { message: "Invalid username or password" });
 
