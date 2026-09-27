@@ -38,7 +38,7 @@ function TaskListView() {
       </div>
       <Toast.Portal>
         {/* Touch: float above the bottom input bar instead of covering it */}
-        <Toast.Viewport className="fixed bottom-4 left-1/2 z-50 w-[min(360px,90vw)] -translate-x-1/2 sm:bottom-6 touch:bottom-[calc(var(--input-bar-h,7rem)+0.75rem)]">
+        <Toast.Viewport className="fixed bottom-4 left-1/2 z-50 w-[min(360px,90vw)] -translate-x-1/2 sm:bottom-6 desk:bottom-[calc(var(--sheet-inset)+1.5rem)] desk:left-[calc(50%+var(--column-shift))] touch:bottom-[calc(var(--input-bar-h,7rem)+0.75rem)]">
           <Toasts />
         </Toast.Viewport>
       </Toast.Portal>

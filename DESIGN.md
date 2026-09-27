@@ -2,21 +2,22 @@
 name: Ajot
 description: A calm, fast task list for daily capture
 colors:
-  background: "oklch(0.155 0.022 52)"
-  surface: "oklch(0.205 0.015 50)"
-  surface-muted: "oklch(0.245 0.014 50)"
-  surface-raised: "oklch(0.27 0.018 50)"
-  foreground: "oklch(0.95 0.015 75)"
-  muted-foreground: "oklch(0.75 0.022 58)"
-  hint: "oklch(0.71 0.018 58)"
-  ghost: "oklch(0.38 0.014 55)"
+  background: "oklch(0.165 0.02 262)"
+  surface: "oklch(0.205 0.014 262)"
+  surface-muted: "oklch(0.245 0.013 262)"
+  surface-raised: "oklch(0.27 0.017 262)"
+  foreground: "oklch(0.95 0.012 90)"
+  muted-foreground: "oklch(0.75 0.02 255)"
+  hint: "oklch(0.71 0.016 255)"
+  ghost: "oklch(0.38 0.014 262)"
   border: "oklch(1 0 0 / 13%)"
-  shell: "oklch(0.2 0.01 50 / 75%)"
-  primary: "oklch(0.6 0.18 118)"
+  shell: "oklch(0.215 0.018 262 / 88%)"
+  sidebar: "oklch(0.19 0.018 262 / 88%)"
+  primary: "oklch(0.62 0.16 135)"
   primary-foreground: "oklch(0.97 0.03 105)"
-  primary-subtle: "oklch(0.2 0.038 118)"
-  primary-selected: "oklch(0.215 0.048 118)"
-  date: "oklch(0.78 0.06 70)"
+  primary-subtle: "oklch(0.22 0.035 140)"
+  primary-selected: "oklch(0.24 0.045 138)"
+  date: "oklch(0.8 0.06 75)"
   destructive: "oklch(0.704 0.191 22.216)"
   destructive-subtle: "oklch(0.22 0.04 22)"
   pending: "oklch(0.7 0.1 75)"
@@ -120,13 +121,13 @@ components:
 
 **Creative North Star: "The Quiet Instrument"**
 
-Ajot is a notepad left on a clean desk late at night. It is dark, warm and low-stimulus, built to be glanced at dozens of times a day on the new-tab page and read at leisure on the couch. The task list is the interface; everything else fades until it is needed.
+Ajot is a notepad left on a clean desk late at night. It is dark, calm and low-stimulus: blue-black ink under paper-white text, built to be glanced at dozens of times a day on the new-tab page and read at leisure on the couch. The task list is the interface; everything else fades until it is needed.
 
-Hierarchy comes from spacing and weight, not colour or decoration. The only real colour is an earthy green primary, used sparingly. Depth comes from tonal layering on a textured, gradient-lit background rather than from cards and shadows. Content must feel anchored to a surface, not adrift on the gradient.
+Hierarchy comes from spacing and weight, not colour or decoration. The only real colour is a leaf-green primary, used sparingly. Depth comes from tonal layering on a textured, gradient-lit background rather than from cards and shadows. Content must feel anchored to a surface, not adrift on the gradient: on desktop that surface is a single inset sheet, the notepad on the desk.
 
 **Key Characteristics:**
 
-- Dark mode only, on a warm OKLCH palette with low blue light.
+- Dark mode only: cool, low-chroma ink surfaces, with the warmth kept in the text and accents.
 - A serif wordmark and list titles (DM Serif Display) over a quiet sans body (Figtree).
 - Solid secondary tokens (`hint`, `ghost`) instead of opacity-washed text.
 - Underline inputs, pill buttons, no boxed cards.
@@ -134,25 +135,26 @@ Hierarchy comes from spacing and weight, not colour or decoration. The only real
 
 ## Colors
 
-A warm, near-monochrome palette of browns and creams with a single earthy green.
+A near-monochrome ink palette: blue-black surfaces, slate secondary text and warm paper-white primary text, with a single leaf green. Surfaces are cool and very low in chroma; warmth lives only in the foreground, the date and the category swatches.
 
 ### Primary
 
-- **Earthy Green** (`oklch(0.6 0.18 118)`): checked checkboxes, links, the toast countdown and selected states. The only saturated colour in the chrome.
-- **Primary Subtle / Selected** (`oklch(0.2 0.038 118)` / `oklch(0.215 0.048 118)`): dark olive surfaces for the touch add button, selected toggle pills and the active row in the category sheet.
+- **Leaf Green** (`oklch(0.62 0.16 135)`): checked checkboxes, links, the toast countdown and selected states. The only saturated colour in the chrome. Hue 135 keeps it from turning chartreuse against the blue surfaces; lightness 0.62 keeps the checkmark (`primary-foreground`) at 3:1 while green text stays above 4.5:1 on `shell`, `primary-subtle` and `primary-selected`.
+- **Primary Subtle / Selected** (`oklch(0.22 0.035 140)` / `oklch(0.24 0.045 138)`): dark green surfaces for the touch add button, selected toggle pills and the active row in the category sheet.
 
 ### Neutral
 
-- **Background** (`oklch(0.155 0.022 52)`): the page, under the texture and gradients.
-- **Shell** (`oklch(0.2 0.01 50 / 75%)`): the translucent surface of the column and, on desktop, the sidebar beside it, over the textured background.
+- **Background** (`oklch(0.165 0.02 262)`): the page (the desk), under the texture and gradients. The same value is inlined on `<html>` in `index.html` for the first paint; `theme-color`, the manifest and the icons use `#151a22`.
+- **Shell** (`oklch(0.215 0.018 262 / 88%)`): the surface of the column, a step lighter than the desk so the panel reads as an object on it.
+- **Sidebar** (`oklch(0.19 0.018 262 / 88%)`): the desktop sidebar, recessed a step below `shell` so the list stays the lighter, leading page.
 - **Surface / Surface Muted / Surface Raised** (`oklch(0.205 …)` / `oklch(0.245 …)` / `oklch(0.27 …)`): rows, swipe trays and hover wells, then sheets and popovers. Each step up is lighter.
-- **Foreground** (`oklch(0.95 0.015 75)`): task titles and primary text.
-- **Hint** (`oklch(0.71 0.018 58)`): secondary labels, counts and subtle buttons. The dimmest token allowed for readable text.
-- **Ghost** (`oklch(0.38 0.014 55)`): decorative, non-text affordances only, such as underline borders, dividers and the hover grip.
+- **Foreground** (`oklch(0.95 0.012 90)`): task titles and primary text, a warm paper white.
+- **Hint** (`oklch(0.71 0.016 255)`): secondary labels, counts and subtle buttons. The dimmest token allowed for readable text.
+- **Ghost** (`oklch(0.38 0.014 262)`): decorative, non-text affordances only, such as underline borders, dividers and the hover grip.
 
 ### Accents with a job
 
-- **Date** (`oklch(0.78 0.06 70)`): due-date labels.
+- **Date** (`oklch(0.8 0.06 75)`): due-date labels, a warm sand against the ink.
 - **Destructive** (`oklch(0.704 0.191 22.216)`) on **Destructive Subtle** (`oklch(0.22 0.04 22)`): overdue dates, delete actions and errors.
 - **Pending** (`oklch(0.7 0.1 75)`): syncing state.
 - **Collab** (`oklch(0.46 0.06 228)`): collaborator avatars.
@@ -183,14 +185,14 @@ A warm, near-monochrome palette of browns and creams with a single earthy green.
 
 ## Layout
 
-- **Desktop (fine pointer, at least 44rem wide; the `desk:` variant and `useIsDesk`):** the category sidebar (`--sidebar-w`, 13rem) and the list column (`--column-w`, 28rem, 1.5rem gutters) share one `shell` surface, split by a faint hairline, and centre on the page as a single panel. The panel geometry lives in those tokens and the derived `--column-shift` and `--panel-left`; the column, sidebar, task detail sheet and share sheet all read from them. AppShell draws the sidebar's surface so it is in the first paint; the sidebar's items arrive with the data. Top to bottom, the column holds the header, the list title, the capture input (autofocused) and the list. People keeps the sidebar (lists can't be reordered there), so moving between it and the list doesn't shift the column; sign-in and invite pages use a lone centred column. Narrower pointer windows fall back to the lone column.
+- **Desktop (fine pointer, at least 44rem wide; the `desk:` variant and `useIsDesk`):** the category sidebar (`--sidebar-w`, 13rem) and the list column (`--column-w`, 28rem, 1.5rem gutters) form one sheet centred on the page: the column on `shell`, the sidebar on the recessed `sidebar` tone behind a faint hairline. The sheet is inset `--sheet-inset` (2rem) from the top and bottom of the window, with `2xl` corners and one `shadow-sheet` cast by the column's `::after` under both halves, so it reads as a notepad on the desk rather than a stripe down the window. The panel geometry lives in those tokens and the derived `--column-shift` and `--panel-left`; the column, sidebar, task detail sheet and share sheet all read from them. AppShell draws the sidebar's surface so it is in the first paint; the sidebar's items arrive with the data. Top to bottom, the column holds the header, the list title, the capture input (autofocused) and the list. People keeps the sidebar (lists can't be reordered there), so moving between it and the list doesn't shift the column; sign-in and invite pages use a lone centred column. Narrower pointer windows fall back to the lone column.
 - **Touch (coarse pointer):** a full-height (`100dvh`) column up to 32rem wide. From top to bottom: header (wordmark and sync status), the tappable list title, the scrolling list, and the input bar pinned to the bottom edge. The gutter is `max(1.25rem, safe-area insets)`, and the input bar pads for the home indicator (less while typing, when the keyboard covers it). The list's top and bottom edges fade only when rows have scrolled past them (`scroll-edge-fade`, a scroll-driven mask; no fade where scroll timelines are unsupported). Layout switches on pointer type (`touch:` variant), not viewport width.
 - **Rhythm:** rows use 0.625rem vertical padding, with tight groups inside a row and larger gaps between sections.
-- **Open issue (partly addressed):** the shared sidebar-and-column panel and the list title anchor the desktop layout, where the sidebar used to float beside the column. Negative space outside the panel is still plain gradient.
+- **Negative space:** the inset sheet, its shadow and the list title anchor the desktop layout; the space around the sheet is the desk (texture, bloom and vignettes), not unused column.
 
 ## Elevation & Depth
 
-Flat at rest. Depth comes from tonal layering (background, then surface, surface-muted and surface-raised) over a textured backdrop: SVG fractal noise blended with `soft-light` to dither the gradients, a radial warm bloom from the top, darkening towards the bottom, and soft side vignettes. Shadows appear only on floating layers: `shadow-md` on popovers and `shadow-lg` on toasts. Bottom sheets sit over a dim, lightly blurred backdrop (`oklch(0.06 0.01 50 / 40%)`).
+Flat at rest. Depth comes from tonal layering (background, then surface, surface-muted and surface-raised) over a textured backdrop: SVG fractal noise blended with `soft-light` to dither the gradients, a cool, moonlit radial bloom from the top, darkening towards the bottom, and soft side vignettes. Shadows appear only on floating layers: `shadow-sheet` (a white hairline ring plus a long, soft drop) under the desktop sheet, `shadow-md` on popovers and `shadow-lg` on toasts. Bottom sheets sit over a dim, lightly blurred backdrop (`oklch(0.06 0.012 262 / 40%)`).
 
 ## Shapes
 
@@ -205,12 +207,12 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 
 - **Shape:** pill (`1.17rem`).
 - **Variants:** primary (green fill), outline, ghost (muted well on hover), subtle (hint text that brightens on hover) and link. A destructive intent recolours ghost and subtle buttons.
-- **Primary action with a text label** (Sign in, accept invite, add collaborator): the `primary-subtle` pill with `primary` text, as the touch add button uses. Light text on the solid `primary` fill measures about 3.6:1, under the Contrast Floor.
+- **Primary action with a text label** (Sign in, accept invite, add collaborator): the `primary-subtle` pill with `primary` text, as the touch add button uses. Light text on the solid `primary` fill measures about 3.2:1, under the Contrast Floor.
 - **Touch:** targets grow to 36–44px through `touch:` sizing rather than separate components.
 
 ### Toggle Pills
 
-- Unselected pills show hint text; selected pills show a dark olive fill with primary text. Used for single-choice sets such as Assignee.
+- Unselected pills show hint text; selected pills show a dark green fill with primary text. Used for single-choice sets such as Assignee.
 
 ### Inputs
 
@@ -240,7 +242,7 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 
 ### Toasts
 
-- Surface card, bottom centre, with a countdown bar (`primary` at 40%, so it reads against the card) animated with `scaleX`. The bar follows the toast's own timeout, pauses while the stack is hovered or focused, and is absent for toasts without a timeout and under reduced motion. Dismiss is an icon button. On touch they sit above the input bar (`--input-bar-h`).
+- Surface card, bottom centre, with a countdown bar (`primary` at 40%, so it reads against the card) animated with `scaleX`. The bar follows the toast's own timeout, pauses while the stack is hovered or focused, and is absent for toasts without a timeout and under reduced motion. Dismiss is an icon button. On desktop they sit inside the sheet, centred on the list column; on touch they sit above the input bar (`--input-bar-h`).
 
 ### Sync Status
 
@@ -265,4 +267,5 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 - **Don't** reserve layout space for controls that are invisible at rest; float them over the content they cover.
 - **Don't** force `text-sm` on phone inputs; keep the primitive's `text-base md:text-sm`.
 - **Don't** pick category swatches from generic palettes; they must be warm-toned and sit well on the background.
+- **Don't** tint the surfaces warm. Brown neutrals made the whole app read as murky; warmth belongs in the text, the date and the swatches.
 - **Don't** use bright accents that jar at 2am, boxy cards, flat greys or default Tailwind styling.

@@ -21,3 +21,4 @@ docs/superpowers/
 packages/e2e/.output/
 packages/e2e/.report/
 packages/e2e/.snapshots/
+packages/e2e/screenshots/
