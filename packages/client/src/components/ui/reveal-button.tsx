@@ -1,7 +1,8 @@
+import { type ComponentProps } from "react";
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { tv } from "tailwind-variants";
 import { buttonVariants } from "~/components/ui/button";
-import type { StyledProps } from "~/lib/utils";
+import { cn, type StyledProps } from "~/lib/utils";
 
 const revealButtonVariants = tv({
   extend: buttonVariants,
@@ -29,6 +30,17 @@ export const RevealButton = ({ intent, className, variant, size, ...props }: Rev
   <ButtonPrimitive
     data-slot="button"
     className={revealButtonVariants({ intent, variant, size, class: className })}
+    {...props}
+  />
+);
+
+// Desktop: floats over the row's end instead of reserving space. Touch: in flow.
+export const RevealGroup = ({ className, ...props }: ComponentProps<"div">) => (
+  <div
+    className={cn(
+      "pointer-events-none absolute inset-y-0 right-0 flex items-center rounded-r-[inherit] bg-muted pr-1 pl-6 opacity-0 transition-opacity [mask-image:linear-gradient(to_right,transparent,black_1.5rem)] group-hover/row:pointer-events-auto group-hover/row:opacity-100 group-has-[:focus-visible]/row:pointer-events-auto group-has-[:focus-visible]/row:opacity-100 touch:pointer-events-auto touch:static touch:bg-transparent touch:p-0 touch:opacity-100 touch:[mask-image:none]",
+      className,
+    )}
     {...props}
   />
 );

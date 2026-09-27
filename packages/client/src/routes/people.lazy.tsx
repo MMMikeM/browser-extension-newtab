@@ -8,7 +8,7 @@ import { getBuildTarget } from "~/lib/build-target";
 import { Button } from "~/components/ui/button";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { ListRow } from "~/components/ui/list-row";
-import { RevealButton } from "~/components/ui/reveal-button";
+import { RevealButton, RevealGroup } from "~/components/ui/reveal-button";
 import { TextStack } from "~/components/ui/text-stack";
 
 export const Route = createLazyFileRoute("/people")({
@@ -67,7 +67,7 @@ export function PeoplePage() {
         >
           <ChevronLeft className="size-5" />
         </Button>
-        <h2 className="text-lg font-semibold">People</h2>
+        <h2 className="font-display text-[1.75rem] leading-tight text-foreground">People</h2>
       </div>
 
       <Button
@@ -99,7 +99,9 @@ export function PeoplePage() {
                 contact.contactUser?.username ? `@${contact.contactUser.username}` : undefined
               }
             />
-            <RevealButton onClick={() => removeContact(contact.id)}>Remove</RevealButton>
+            <RevealGroup>
+              <RevealButton onClick={() => removeContact(contact.id)}>Remove</RevealButton>
+            </RevealGroup>
           </ListRow>
         ))}
       </div>

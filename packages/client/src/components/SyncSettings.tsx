@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthToken, setAuthToken } from "~/lib/auth/token";
 import { useCurrentUser, clearCurrentUser } from "~/lib/auth/current-user";
@@ -13,6 +14,7 @@ import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState, usePendingMutations } from "~/lib/sync/sse";
 import { useInstallPrompt } from "~/lib/hooks/use-install-prompt";
 import { Button } from "~/components/ui/button";
+import { MenuItem } from "~/components/ui/menu-item";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
 
@@ -71,15 +73,13 @@ export const SyncSettings = () => {
       <Button
         variant="ghost"
         size="xs"
-        className="touch:h-9 touch:px-3 touch:text-sm"
+        className="relative touch:h-9 touch:px-3 touch:text-sm touch:after:absolute touch:after:inset-x-0 touch:after:-inset-y-1"
         onClick={() => router.navigate({ to: "/auth" })}
       >
         Sign in
       </Button>
     );
   }
-
-  const menuItem = "justify-start touch:h-10 touch:text-sm";
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
@@ -89,7 +89,8 @@ export const SyncSettings = () => {
             variant="ghost"
             size="xs"
             className={cn(
-              "gap-1.5 touch:h-9 touch:px-3",
+              // after: 44px touch target without growing the header
+              "relative gap-1.5 touch:h-9 touch:px-3 touch:after:absolute touch:after:inset-x-0 touch:after:-inset-y-1",
               syncState === "disconnected"
                 ? "text-foreground"
                 : "text-hint hover:text-muted-foreground",
@@ -122,6 +123,7 @@ export const SyncSettings = () => {
           align="end"
           sideOffset={8}
           backdrop
+          aria-label="Account"
           className="flex min-w-[200px] flex-col p-2"
         >
           <div className="flex flex-col gap-0.5 px-2.5 pt-1 pb-2">
@@ -130,37 +132,33 @@ export const SyncSettings = () => {
           </div>
           <div className="mb-1 h-px bg-border" />
           {getBuildTarget() === "browser" && canInstall && (
-            <Button variant="subtle" size="xs" className={menuItem} onClick={install}>
-              Add to Home Screen
-            </Button>
+            <MenuItem onClick={install}>Add to Home Screen</MenuItem>
           )}
           {getBuildTarget() === "browser" && (
-            <Button variant="subtle" size="xs" className={menuItem} onClick={handleTogglePush}>
-              {pushEnabled ? "✓ Background sync on" : "Enable background sync"}
-            </Button>
+            <MenuItem onClick={handleTogglePush}>
+              {pushEnabled ? (
+                <>
+                  Background sync on
+                  <Check data-icon="inline-end" className="ml-auto text-primary" />
+                </>
+              ) : (
+                "Enable background sync"
+              )}
+            </MenuItem>
           )}
-          <Button
-            variant="subtle"
-            size="xs"
-            className={menuItem}
+          <MenuItem
             onClick={() => {
               void router.navigate({ to: "/people" });
               setOpen(false);
             }}
           >
             People
-          </Button>
-          <Button
-            variant="ghost"
-            intent="destructive"
-            size="xs"
-            className={menuItem}
-            onClick={handleLogout}
-          >
+          </MenuItem>
+          <MenuItem intent="destructive" onClick={handleLogout}>
             Sign out
-          </Button>
+          </MenuItem>
           <div className="my-1 h-px bg-border" />
-          <span className="px-2.5 pb-0.5 text-[10px] text-ghost">{__BUILD_VERSION__}</span>
+          <span className="px-2.5 pb-0.5 text-[10px] text-hint">{__BUILD_VERSION__}</span>
         </PopoverContent>
       )}
     </Popover>

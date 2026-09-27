@@ -19,6 +19,14 @@ import { CategoryOptionsContent } from "./CategoryOptionsContent";
 
 export const CATEGORY_DROP_PREFIX = "category-drop-";
 
+const OpenCount = ({ count }: { count: number }) =>
+  count > 0 ? (
+    <span className="text-xs text-hint tabular-nums">
+      {count}
+      <span className="sr-only"> open</span>
+    </span>
+  ) : null;
+
 // ─── DnD wrappers ──────────────────────────────────────────────────────────
 
 function SortablePill({
@@ -61,6 +69,8 @@ export function CategorySidebar() {
     activeCategoryId,
     currentUserId,
     showInbox,
+    inboxCount,
+    openCounts,
     handleAdd,
     handleRename,
     handleSetColor,
@@ -128,18 +138,12 @@ export function CategorySidebar() {
                   {isActive && (
                     <span
                       className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full"
-                      style={{ backgroundColor: cat.color ?? "oklch(0.60 0.18 118)" }}
+                      style={{ backgroundColor: cat.color ?? "var(--primary)" }}
                     />
                   )}
                   <ColorDot size="sm" color={cat.color ?? undefined} />
-                  <span className="flex-1 truncate">
-                    {cat.name}
-                    {!isOwned && cat.user?.name && (
-                      <span className="ml-1 text-xs font-normal text-hint">
-                        · {cat.user.name.split(" ")[0]}
-                      </span>
-                    )}
-                  </span>
+                  <span className="flex-1 truncate">{cat.name}</span>
+                  <OpenCount count={openCounts.get(cat.id) ?? 0} />
                 </button>
 
                 <CollabBadge category={cat} currentUserId={currentUserId} />
@@ -148,14 +152,14 @@ export function CategorySidebar() {
                   <PopoverTrigger
                     render={
                       <button
-                        className="mr-1 rounded p-0.5 text-transparent opacity-0 transition-opacity group-hover/pill:text-hint group-hover/pill:opacity-100 hover:text-foreground"
+                        className="flex h-5 w-0 shrink-0 items-center justify-center overflow-hidden rounded text-hint opacity-0 transition-opacity group-hover/pill:mr-1 group-hover/pill:w-5 group-hover/pill:opacity-100 hover:text-foreground focus-visible:mr-1 focus-visible:w-5 focus-visible:opacity-100 data-[popup-open]:mr-1 data-[popup-open]:w-5 data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
                         aria-label="Category options"
                       />
                     }
                   >
                     <Ellipsis size={13} />
                   </PopoverTrigger>
-                  <PopoverContent>
+                  <PopoverContent aria-label={`${cat.name} options`}>
                     <CategoryOptionsContent
                       cat={cat}
                       isOwned={isOwned}
@@ -177,10 +181,11 @@ export function CategorySidebar() {
 
   return (
     <>
-      <aside
+      {/* On AppShell's sidebar surface; left tracks AppShell's desk:left-22 offset */}
+      <nav
+        aria-label="Lists"
         data-testid="category-sidebar"
-        className="fixed top-0 z-10 flex h-screen w-40 flex-col overflow-y-auto py-8 touch:hidden"
-        style={{ left: "calc(50vw - 22.5rem)" }}
+        className="fixed top-0 left-[calc(50vw-17.5rem)] z-10 hidden h-screen w-44 flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
       >
         {showInbox && (
           <button
@@ -194,7 +199,8 @@ export function CategorySidebar() {
               <span className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
             )}
             <ColorDot size="sm" color={INBOX_COLOR} />
-            Inbox
+            <span className="flex-1 text-left">Inbox</span>
+            <OpenCount count={inboxCount} />
           </button>
         )}
 
@@ -230,10 +236,12 @@ export function CategorySidebar() {
             variant="subtle"
             size="xs"
             onClick={() => setAdding(true)}
-            className="gap-2 px-3"
+            className="h-auto justify-start gap-2 px-3 py-1.5"
             aria-label="Add category"
           >
-            <Plus size={11} />
+            <span className="flex w-1.5 justify-center">
+              <Plus className="size-2.5" />
+            </span>
             <span>Add</span>
           </Button>
         )}
@@ -254,7 +262,7 @@ export function CategorySidebar() {
             People
           </Link>
         </div>
-      </aside>
+      </nav>
 
       {sharingCategoryId && (
         <CategoryCollabSheet

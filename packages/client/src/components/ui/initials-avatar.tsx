@@ -18,9 +18,16 @@ type InitialsAvatarProps = VariantProps<typeof initialsAvatarVariants> & {
   className?: string;
 };
 
+const initialsOf = (name: string) => {
+  const words = name.trim().split(/\s+/);
+  return words.length > 1
+    ? `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase()
+    : name.slice(0, 2).toUpperCase();
+};
+
 export const InitialsAvatar = ({ name, size, className }: InitialsAvatarProps) => (
   <span className={cn(initialsAvatarVariants({ size }), className)} title={name}>
-    {name.slice(0, 2).toUpperCase()}
+    {initialsOf(name)}
   </span>
 );
 

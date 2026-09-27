@@ -67,7 +67,7 @@ test.describe("task detail — visual language", () => {
     const d = drawer(page);
 
     // The hidden native input must be invisible and zero-size
-    const hiddenInput = d.locator('input[type="date"]');
+    const hiddenInput = d.locator('input[type="datetime-local"]');
     await expect(hiddenInput).toBeAttached();
     const cls = (await hiddenInput.getAttribute("class")) ?? "";
     expect(cls).toContain("invisible");
@@ -183,13 +183,15 @@ test.describe("task detail — functionality", () => {
     // Set a date programmatically on the drawer-scoped hidden input
     await page.evaluate(() => {
       const input = document.querySelector(
-        '[data-slot="drawer-content"] input[type="date"]',
+        '[data-slot="drawer-content"] input[type="datetime-local"]',
       ) as HTMLInputElement | null;
       if (!input) return;
-      // Native setter so React sees the change; called with an explicit `this`
-      // oxlint-disable-next-line typescript/unbound-method
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-      setter?.call(input, "2025-12-31");
+      // Native setter so React sees the change
+      const { set: setValue } = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value",
+      ) as { set?: (this: HTMLInputElement, value: string) => void };
+      setValue?.call(input, "2025-12-31T09:00");
       input.dispatchEvent(new Event("change", { bubbles: true }));
     });
     await page.waitForTimeout(400);

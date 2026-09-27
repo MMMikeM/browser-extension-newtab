@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, CornerDownLeft } from "lucide-react";
 import { Input } from "~/components/ui/field";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
@@ -41,10 +41,10 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
       {/* Submit hint — appears when there's text, teaches the Enter affordance without permanent noise */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-xs text-ghost transition-opacity duration-150 touch:hidden"
+        className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-ghost transition-opacity duration-150 touch:hidden"
         style={{ opacity: hasText ? 1 : 0 }}
       >
-        ↵
+        <CornerDownLeft className="size-3.5" />
       </span>
       {/* Touch: an explicit add button, since the keyboard's return key isn't an obvious "save" */}
       <Button
@@ -57,7 +57,8 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         onMouseDown={(e) => e.preventDefault()}
         className={cn(
           // inset-y-0 + my-auto rather than a translate: Button nudges translate-y on :active
-          "absolute inset-y-0 right-0 my-auto hidden rounded-full bg-primary-subtle text-primary transition-[opacity,scale] duration-150 active:bg-primary-selected touch:inline-flex",
+          // after: 44px touch target
+          "absolute inset-y-0 right-0 my-auto hidden rounded-full bg-primary-subtle text-primary transition-[opacity,scale] duration-150 after:absolute after:-inset-1.5 active:bg-primary-selected touch:inline-flex",
           !hasText && "pointer-events-none scale-75 opacity-0",
         )}
       >

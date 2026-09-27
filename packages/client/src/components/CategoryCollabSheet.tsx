@@ -3,7 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { useCategories, useContacts } from "~/lib/db/hooks";
 import { addCollaborator, removeCollaborator } from "~/lib/actions";
 import { useAuthToken } from "~/lib/auth/token";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "~/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "~/components/ui/drawer";
 import { Button } from "~/components/ui/button";
 import {
   Select,
@@ -12,9 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { ColorDot } from "~/components/ui/color-dot";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
+import { SectionLabel } from "~/components/ui/section-label";
+import { INBOX_COLOR } from "~/lib/constants";
 import { ListRow } from "~/components/ui/list-row";
-import { RevealButton } from "~/components/ui/reveal-button";
+import { RevealButton, RevealGroup } from "~/components/ui/reveal-button";
 import { TextStack } from "~/components/ui/text-stack";
 
 export function CategoryCollabSheet({
@@ -66,19 +75,29 @@ export function CategoryCollabSheet({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Share category</DrawerTitle>
+      <DrawerContent className="max-w-sm border-x desk:translate-x-22 touch:max-w-none touch:border-x-0">
+        <DrawerHeader className="gap-1 px-6 pt-4 pb-2 touch:px-5">
+          <DrawerTitle className="font-display text-2xl leading-tight font-normal">
+            Share category
+          </DrawerTitle>
+          {category && (
+            <DrawerDescription className="flex items-center gap-2">
+              <ColorDot size="sm" color={category.color ?? INBOX_COLOR} />
+              {category.name}
+            </DrawerDescription>
+          )}
         </DrawerHeader>
-        <div className="flex flex-col gap-4 px-5 pt-2 pb-8">
+        <div className="flex flex-col gap-6 px-6 pt-2 pb-8 touch:px-5">
           {collabs.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <p className="text-xs font-medium text-hint">Shared with</p>
+            <div className="flex flex-col gap-2">
+              <SectionLabel>Shared with</SectionLabel>
               {collabs.map((collab) => (
-                <ListRow key={collab.id}>
+                <ListRow key={collab.id} className="-mx-2">
                   <InitialsAvatar name={collab.name} size="md" />
                   <TextStack title={collab.name} subtitle={`@${collab.username}`} />
-                  <RevealButton onClick={() => handleRemove(collab.id)}>Remove</RevealButton>
+                  <RevealGroup>
+                    <RevealButton onClick={() => handleRemove(collab.id)}>Remove</RevealButton>
+                  </RevealGroup>
                 </ListRow>
               ))}
             </div>
@@ -86,7 +105,7 @@ export function CategoryCollabSheet({
 
           {addableContacts.length > 0 && (
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-medium text-hint">Add collaborator</p>
+              <SectionLabel>Add collaborator</SectionLabel>
               <div className="flex items-center gap-2">
                 <Select
                   value={selectedUsername}
@@ -107,10 +126,11 @@ export function CategoryCollabSheet({
                   </SelectContent>
                 </Select>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={handleAdd}
                   disabled={!selectedUsername || adding}
+                  className="bg-primary-subtle px-4 text-primary hover:bg-primary-selected hover:text-primary touch:h-10"
                 >
                   Add
                 </Button>

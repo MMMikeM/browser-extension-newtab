@@ -90,6 +90,7 @@ export function CategoryMobileSheet() {
           <Input
             ref={renameRef}
             type="text"
+            aria-label="Category name"
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
             onBlur={submitRename}
@@ -132,7 +133,7 @@ export function CategoryMobileSheet() {
             <Ellipsis size={16} />
           </PopoverTrigger>
           {/* backdrop: dismissing the menu must not also select the row underneath */}
-          <PopoverContent backdrop>
+          <PopoverContent backdrop aria-label={`${cat.name} options`}>
             <CategoryOptionsContent
               cat={cat}
               isOwned={isOwned}
@@ -198,6 +199,7 @@ export function CategoryMobileSheet() {
               <Input
                 ref={addRef}
                 type="text"
+                aria-label="New category name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Category name..."

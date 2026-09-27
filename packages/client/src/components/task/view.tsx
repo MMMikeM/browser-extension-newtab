@@ -27,7 +27,7 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
         size="xs"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground aria-expanded:bg-transparent touch:-ml-2.5 touch:h-10"
+        className="-ml-2.5 font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground aria-expanded:bg-transparent touch:h-11"
       >
         <ChevronRight
           size={14}
@@ -55,7 +55,7 @@ const EmptySection = ({ activeTasks, doneTasks }: { activeTasks: Task[]; doneTas
   if (doneTasks.length === 0)
     return (
       <div className="flex flex-1 animate-in flex-col items-center justify-center pb-8 duration-300 fade-in slide-in-from-bottom-1 touch:pb-0">
-        <p className="text-base text-hint">{getEmptyPhrase()}</p>
+        <p className="font-display text-2xl text-muted-foreground">{getEmptyPhrase()}</p>
         <p className="mt-1 text-sm text-hint">
           type something <span className="touch:hidden">above</span>
           <span className="hidden touch:inline">below</span> to begin
@@ -77,10 +77,10 @@ function SortableTask({
 }: {
   id: string;
   index: number;
-  children: (ref: RefCallback<HTMLElement>) => ReactNode;
+  children: (ref: RefCallback<HTMLElement>, handleRef: RefCallback<HTMLElement>) => ReactNode;
 }) {
-  const { ref } = useSortable({ id, index, type: "task" });
-  return <>{children(ref)}</>;
+  const { ref, handleRef } = useSortable({ id, index, type: "task" });
+  return <>{children(ref, handleRef)}</>;
 }
 
 export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => void }) {
@@ -126,15 +126,15 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
 
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
-      <CategoryNav />
       <div className="flex flex-1 flex-col gap-4">
         <ul className="flex flex-col gap-1">
           {activeTasks.map((task, index) => (
             <SortableTask key={task.id} id={task.id} index={index}>
-              {(ref) => (
+              {(ref, handleRef) => (
                 <li ref={ref}>
                   <TaskItem
                     task={task}
+                    dragHandleRef={handleRef}
                     subtasks={actions.getSubtasks(task.id)}
                     onOpen={onSelectTask}
                     onToggle={actions.handleToggle}
@@ -142,6 +142,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
                     onSetDueDate={actions.handleSetDueDate}
                     onAddSubtask={actions.handleAddSubtask}
                     isInSharedCategory={!!task.categoryId && sharedCategoryIds.has(task.categoryId)}
+                    swipeHint={index === 0}
                   />
                 </li>
               )}
@@ -170,6 +171,8 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
           </ul>
         </DoneSection>
       </div>
+      {/* After the list so keyboard focus reaches the tasks first */}
+      <CategoryNav />
     </DragDropProvider>
   );
 }

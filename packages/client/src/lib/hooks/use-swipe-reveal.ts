@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 const DRAWER_WIDTH = 148;
 const OPEN_THRESHOLD = 60;
+const SNAP_MS = 200;
+const HINT_SEEN_KEY = "newtab-todo-swipe-hint-seen";
 
 // Module-level registry: when one row opens, all others close
 const closeRegistry = new Set<() => void>();
@@ -14,13 +16,16 @@ const closeRegistry = new Set<() => void>();
  * a horizontal swipe. Transform is applied directly to the DOM to avoid
  * per-pixel re-renders during drag — state only changes on snap.
  *
+ * `data-swiping` marks a row that is dragged, open or settling, so it's opaque only then.
+ * `hint` peeks the tray once per device.
+ *
  * Usage:
- *   const swipe = useSwipeReveal(disabled);
+ *   const swipe = useSwipeReveal(disabled, hint);
  *   <div ref={swipe.containerRef}>          // receives touch events + outside-tap guard
  *     <div className="absolute right-0 ..."> // action drawer
  *     <div ref={swipe.contentRef}>           // slides left via translateX
  */
-export const useSwipeReveal = (disabled = false) => {
+export const useSwipeReveal = (disabled = false, hint = false) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -32,16 +37,34 @@ export const useSwipeReveal = (disabled = false) => {
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const currentPx = useRef(0);
+  const settleTimer = useRef<number | undefined>(undefined);
+
+  const markSwiping = () => {
+    window.clearTimeout(settleTimer.current);
+    const container = containerRef.current;
+    if (container) container.dataset.swiping = "";
+  };
+
+  // After the snap back, or the row turns transparent mid-slide
+  const clearSwipingAfter = (ms: number) => {
+    window.clearTimeout(settleTimer.current);
+    settleTimer.current = window.setTimeout(() => {
+      const container = containerRef.current;
+      if (container && currentPx.current === 0 && !isDraggingRef.current)
+        delete container.dataset.swiping;
+    }, ms);
+  };
 
   const close = () => {
     const el = contentRef.current;
     if (el) {
-      el.style.transition = "transform 200ms ease-out";
+      el.style.transition = `transform ${SNAP_MS}ms ease-out`;
       el.style.transform = "translateX(0px)";
     }
     currentPx.current = 0;
     isOpenRef.current = false;
     setIsOpen(false);
+    clearSwipingAfter(SNAP_MS);
   };
 
   useEffect(() => {
@@ -71,6 +94,7 @@ export const useSwipeReveal = (disabled = false) => {
         }
         if (Math.abs(dx) > 6) {
           isDraggingRef.current = true;
+          markSwiping();
           const el = contentRef.current;
           if (el) el.style.transition = "none";
         }
@@ -104,7 +128,7 @@ export const useSwipeReveal = (disabled = false) => {
 
       const el = contentRef.current;
       if (el) {
-        el.style.transition = "transform 200ms ease-out";
+        el.style.transition = `transform ${SNAP_MS}ms ease-out`;
         el.style.transform = shouldOpen ? `translateX(${-DRAWER_WIDTH}px)` : "translateX(0px)";
       }
 
@@ -113,6 +137,7 @@ export const useSwipeReveal = (disabled = false) => {
       setIsOpen(shouldOpen);
       isDraggingRef.current = false;
       touchStartX.current = null;
+      if (!shouldOpen) clearSwipingAfter(SNAP_MS);
     };
 
     container.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -132,19 +157,47 @@ export const useSwipeReveal = (disabled = false) => {
     if (!isOpen || disabled) return;
     const onOutside = (e: TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        const el = contentRef.current;
-        if (el) {
-          el.style.transition = "transform 200ms ease-out";
-          el.style.transform = "translateX(0px)";
-        }
-        currentPx.current = 0;
-        isOpenRef.current = false;
-        setIsOpen(false);
+        close();
       }
     };
     document.addEventListener("touchstart", onOutside, { passive: true });
     return () => document.removeEventListener("touchstart", onOutside);
   }, [isOpen, disabled]);
+
+  useEffect(() => {
+    if (disabled || !hint) return;
+    if (localStorage.getItem(HINT_SEEN_KEY)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let peeking = false;
+    let returnTimer: number | undefined;
+    const startTimer = window.setTimeout(() => {
+      const el = contentRef.current;
+      if (!el || isOpenRef.current || isDraggingRef.current) return;
+      localStorage.setItem(HINT_SEEN_KEY, "1");
+      peeking = true;
+      markSwiping();
+      el.style.transition = "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)";
+      el.style.transform = `translateX(${-DRAWER_WIDTH}px)`;
+      returnTimer = window.setTimeout(() => {
+        peeking = false;
+        if (isOpenRef.current || isDraggingRef.current) return;
+        el.style.transition = "transform 320ms ease-in-out";
+        el.style.transform = "translateX(0px)";
+        clearSwipingAfter(320);
+      }, 1400);
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(startTimer);
+      window.clearTimeout(returnTimer);
+      const el = contentRef.current;
+      if (peeking && el && !isOpenRef.current && !isDraggingRef.current) {
+        el.style.transform = "translateX(0px)";
+        clearSwipingAfter(0);
+      }
+    };
+  }, [disabled, hint]);
 
   return {
     containerRef,

@@ -1,4 +1,4 @@
-import { createRootRoute } from "@tanstack/react-router";
+import { createRootRoute, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ClientOnly, Outlet } from "@tanstack/react-router";
 import { AppShell } from "~/AppBackground";
@@ -21,6 +21,8 @@ if (import.meta.env.DEV && typeof window !== "undefined") {
 }
 
 export default function RootComponent() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   useEffect(() => {
     registerServiceWorker();
   }, []);
@@ -29,6 +31,7 @@ export default function RootComponent() {
     <NavContextProvider>
       <Toast.Provider toastManager={toastManager} limit={3}>
         <AppShell
+          withSidebar={pathname === "/"}
           right={
             <ClientOnly
               fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}

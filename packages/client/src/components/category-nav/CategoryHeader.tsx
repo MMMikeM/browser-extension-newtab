@@ -9,9 +9,8 @@ import { INBOX_COLOR } from "~/lib/constants";
 import { ColorDot } from "~/components/ui/color-dot";
 
 /**
- * Touch-only list title above the task list. Anchors the screen with the name of
- * the list being read, and opens the category sheet on tap. Desktop has the
- * sidebar for both jobs, so this is CSS-hidden on fine pointers.
+ * List title. Opens the category sheet where the sidebar doesn't fit (touch, narrow
+ * windows); beside the desktop sidebar it's a plain heading.
  */
 export function CategoryHeader() {
   const activeCategoryId = useActiveCategoryId();
@@ -29,13 +28,13 @@ export function CategoryHeader() {
     0;
 
   return (
-    <div className="mb-3 hidden shrink-0 items-center justify-between gap-4 touch:flex">
+    <div className="mb-3 flex shrink-0 items-center justify-between gap-4">
       <h2 className="flex min-w-0 flex-1">
         <button
           data-testid="category-nav-trigger"
           onClick={() => setNavOpen(true)}
           aria-haspopup="dialog"
-          className="-ml-1.5 flex min-w-0 items-center gap-2.5 rounded-lg px-1.5 py-1 text-left transition-opacity active:opacity-60"
+          className="-ml-1.5 flex min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1 text-left transition-opacity active:opacity-60 desk:hidden"
         >
           <ColorDot color={active?.color ?? INBOX_COLOR} className="mt-1" />
           <span className="truncate font-display text-[1.75rem] leading-tight text-foreground">
@@ -43,6 +42,12 @@ export function CategoryHeader() {
           </span>
           <ChevronDown size={18} className="mt-1.5 shrink-0 text-hint" aria-hidden="true" />
         </button>
+        <span className="hidden min-w-0 items-center gap-2.5 py-1 desk:flex">
+          <ColorDot color={active?.color ?? INBOX_COLOR} className="mt-1" />
+          <span className="truncate font-display text-[1.75rem] leading-tight text-foreground">
+            {active?.name ?? "Inbox"}
+          </span>
+        </span>
       </h2>
       {openCount > 0 && (
         <span className="text-sm text-hint tabular-nums">
