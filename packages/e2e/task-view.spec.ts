@@ -34,11 +34,10 @@ test.describe("done section", () => {
     await createTask(page, "Task two");
     await page.waitForSelector("[data-task-id]");
 
-    // Mark both tasks done
-    const checkboxes = page.locator("[data-task-id]").locator("role=checkbox");
-    await checkboxes.first().click();
-    await page.waitForTimeout(200);
-    await checkboxes.first().click();
+    // By title: a ticked row holds in place briefly, so "first" would stay the same row
+    for (const title of ["Task one", "Task two"]) {
+      await page.locator("[data-task-id]", { hasText: title }).getByRole("checkbox").click();
+    }
 
     const doneToggle = page.getByRole("button", { name: /done \(\d+\)/i });
     await expect(doneToggle).toBeVisible({ timeout: 3000 });

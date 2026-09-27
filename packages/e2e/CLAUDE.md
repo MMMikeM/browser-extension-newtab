@@ -6,6 +6,8 @@ Playwright test suite. Two projects: `desktop` (Chrome) and `mobile` (iPhone 14 
 
 - `*.spec.ts` — Playwright test files, picked up automatically
 - `screenshot.ts` — standalone script (`pnpm screenshot`), captures viewport screenshots + axe contrast audit
+- `screenshot-mock.ts` — the same against mocked `/api` data (`pnpm --dir packages/e2e screenshot:mock`); needs only the Vite dev server
+- `ui.spec.ts` — UI behaviour and axe checks against mocked `/api` data; runs without the API server or database
 - `filmstrip.ts` — standalone script, CDP screencast during page load
 
 ## Helpers (`helpers/`)
@@ -18,6 +20,7 @@ Playwright test suite. Two projects: `desktop` (Chrome) and `mobile` (iPhone 14 
 | `app.ts`        | `waitForAppReady`, `createTask`, `createCategory`, `clearLocalStorage`, `clearIDB`                            |
 | `sync.ts`       | `createSyncTracker(page)` — tracks non-GET `/api/*` mutations, exposes `waitForSync()` + `assertNoFailures()` |
 | `screenshot.ts` | `takeScreenshot`, `forBothViewports`, `reportViolations` — used by the screenshot script                      |
+| `mock-api.ts`   | `mockApi(page, opts)` — serves `/api/*` from in-memory fixtures and signs the page in (no server needed)      |
 
 ## Fixtures (`fixtures.ts`)
 
@@ -35,6 +38,7 @@ Import `test` and `expect` from here instead of `@playwright/test` to get the cu
 
 ## Non-obvious decisions
 
+- **`mockApi` answers `/api/events` with 204** — EventSource stops reconnecting on a 204, so the mocked page doesn't loop on the SSE stream. It also marks the swipe hint as seen by default, because the one-time peek slides the first row on touch.
 - **`user2Page` uses a separate `browser.newContext()`** so localStorage is not shared with `user1Page`. This is required for cross-user isolation; plain `page` instances share the same context and therefore the same origin storage.
 - **`waitForSync` polls, not `networkidle`** — the app holds a persistent SSE connection which keeps `networkidle` from ever resolving.
 - **`createCategory` has two variants** — desktop uses `placeholder="Name..."`, mobile sheet uses `placeholder="Category name..."`. Pass `"sidebar"` or `"sheet"` accordingly.
