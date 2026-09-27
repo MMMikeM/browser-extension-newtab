@@ -208,7 +208,7 @@ export function CategorySidebar({ reorderable = true }: { reorderable?: boolean 
       <nav
         aria-label="Lists"
         data-testid="category-sidebar"
-        className="fixed top-0 left-(--panel-left) z-10 hidden h-screen w-(--sidebar-w) flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
+        className="fixed top-(--sheet-inset) left-(--panel-left) z-10 hidden h-[calc(100dvh-2*var(--sheet-inset))] w-(--sidebar-w) flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
       >
         {showInbox && (
           <button
