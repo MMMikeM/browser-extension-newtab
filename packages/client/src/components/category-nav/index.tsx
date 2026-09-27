@@ -5,7 +5,7 @@ import { CategorySidebar } from "./CategorySidebar";
 
 export { CATEGORY_DROP_PREFIX } from "./CategorySidebar";
 
-// Dynamic import — CategoryMobileSheet is only needed where the sidebar doesn't fit
+// Only needed where the sidebar doesn't fit, so desktop never loads it
 const CategoryMobileSheet = lazy(() => import("./CategoryMobileSheet"));
 
 export function CategoryNav() {

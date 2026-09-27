@@ -19,7 +19,7 @@ export const Toasts = () => {
         data-toast-undo=""
         className={cn(
           "group/toast",
-          // Stacking layout — Base UI sets --toast-index, --toast-height, etc.
+          // Base UI sets --toast-index, --toast-height, etc.
           "[--gap:0.75rem] [--peek:0.625rem]",
           "[--scale:calc(max(0,1-(var(--toast-index)*0.075)))]",
           "[--shrink:calc(1-var(--scale))]",
@@ -29,16 +29,12 @@ export const Toasts = () => {
           "[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)-(var(--toast-index)*var(--peek))-(var(--shrink)*var(--height))))_scale(var(--scale))]",
           // Hover-gap bridge so pointer can reach lower toasts
           "after:absolute after:top-full after:left-0 after:h-[calc(var(--gap)+1px)] after:w-full after:content-['']",
-          // Card styling
           "overflow-hidden rounded-lg border border-border bg-card shadow-lg",
           "h-[var(--height)]",
-          // Enter
           "data-[starting-style]:[transform:translateY(150%)]",
-          // Exit: slide down + fade (non-swipe)
           "data-[ending-style]:opacity-0",
           "data-[limited]:opacity-0",
           "[&[data-ending-style]:not([data-limited]):not([data-swipe-direction])]:[transform:translateY(150%)]",
-          // Swipe exits
           "data-[ending-style]:data-[swipe-direction=right]:[transform:translateX(calc(var(--toast-swipe-movement-x)+150%))_translateY(0)]",
           "data-[ending-style]:data-[swipe-direction=left]:[transform:translateX(calc(var(--toast-swipe-movement-x)-150%))_translateY(0)]",
           "data-[ending-style]:data-[swipe-direction=up]:[transform:translateY(calc(var(--toast-swipe-movement-y)-150%))]",

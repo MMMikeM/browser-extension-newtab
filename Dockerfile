@@ -4,7 +4,6 @@ RUN corepack enable && corepack install -g pnpm@12.6.0
 
 ENV CI=true
 
-# Shared workspace manifests — inherited by both build and prod stages
 FROM base AS manifests
 WORKDIR /app
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./

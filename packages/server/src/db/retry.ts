@@ -4,7 +4,7 @@
  * first query fails in transit and an identical retry, on a fresh session, succeeds. 401 is not
  * a transport failure: a rejected token fails the same way twice.
  *
- * Adapted from Kalimera's src/server/db/retry.ts, keyed on the SQL rather than the method:
+ * Keyed on the SQL rather than the method:
  * drizzle runs INSERT/UPDATE/DELETE ... RETURNING through the same all()/get() as reads, and a
  * write that failed in transit may still have been applied, so only SELECTs are replayed.
  */

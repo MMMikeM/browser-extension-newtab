@@ -4,10 +4,7 @@ import type { Category } from "~/lib/types";
 
 const listNames = new Intl.ListFormat(undefined, { type: "conjunction" });
 
-/**
- * A face always means whose list it is: someone else's list shows its owner. Your own list
- * shows a people glyph once others can see it, never a collaborator's face.
- */
+/** A face always means whose list it is, so your own shared list never shows a collaborator's. */
 export function CollabBadge({
   category,
   currentUserId,

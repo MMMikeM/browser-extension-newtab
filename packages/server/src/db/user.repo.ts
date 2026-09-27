@@ -4,7 +4,7 @@ import { db } from "./client";
 import { users } from "./schema";
 import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
 
-/** Public user shape — id, name, username, avatarUrl. Excludes sensitive fields. */
+/** What other users may see of someone: never the password hash. */
 export const userPublicSchema = createSelectSchema(users).pick({
   id: true,
   name: true,

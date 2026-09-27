@@ -1,23 +1,16 @@
 import type { Page } from "@playwright/test";
 
-/** Navigates to "/" and waits until the task input is interactive. */
 export const waitForAppReady = async (page: Page): Promise<void> => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#add-task-input", { timeout: 10000 });
 };
 
-/** Types text into the task input and submits. */
 export const createTask = async (page: Page, text: string): Promise<void> => {
   await page.fill("#add-task-input", text);
   await page.keyboard.press("Enter");
 };
 
-/**
- * Creates a category via the add-category form.
- * - "sidebar" context: used on desktop (pointer:fine)
- * - "sheet" context: used on mobile (pointer:coarse) — the bottom sheet must
- *   already be open before calling this
- */
+/** `"sidebar"` is the desktop form; `"sheet"` is the touch one, which must already be open. */
 export const createCategory = async (
   page: Page,
   name: string,
@@ -33,12 +26,11 @@ export const createCategory = async (
   await page.keyboard.press("Enter");
 };
 
-/** Clears localStorage — useful in afterEach to reset auth state. */
 export const clearLocalStorage = async (page: Page): Promise<void> => {
   await page.evaluate(() => localStorage.clear());
 };
 
-/** Deletes all IndexedDB databases — use to wipe OPFS/TanStack DB between tests. */
+/** Clears the offline outbox, which lives in IndexedDB. Collections persist in OPFS and survive this. */
 export const clearIDB = async (page: Page): Promise<void> => {
   await page.evaluate(async () => {
     const dbs = (await indexedDB.databases?.()) ?? [];

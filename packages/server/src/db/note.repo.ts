@@ -24,7 +24,7 @@ export const noteUpdateSchema = createUpdateSchema(notes, { updatedAt: isoDateti
 const list = async (userId: string) =>
   db.query.notes.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
 
-// LWW insert: if same id arrives again (retry), return the existing row unchanged.
+// A retried insert gets the stored row back unchanged: the no-op update lets RETURNING yield it
 const insert = async (data: NoteInsert) => {
   const [row] = await db
     .insert(notes)

@@ -2,10 +2,7 @@ const BASE_URL = process.env.BASE_URL ?? "http://localhost:5173";
 
 type Task = { id: string; categoryId: string | null; [key: string]: unknown };
 
-/**
- * Raw API helper — hits the server directly, bypassing the browser.
- * Use for test setup/teardown where going through the UI would be slow.
- */
+/** For test setup and teardown, where going through the UI would be slow. */
 export const apiRequest = async <T>(
   method: string,
   path: string,
@@ -27,12 +24,7 @@ export const apiRequest = async <T>(
   return res.json() as Promise<T>;
 };
 
-/**
- * Ensures user1 and user2 are mutual contacts by having user1 create an
- * invite and user2 accept it. Safe to call repeatedly — the accept endpoint
- * will 410 on a reused token, and contacts already exist anyway, so we
- * catch and ignore that error.
- */
+/** Safe to call repeatedly. */
 export const ensureMutualContacts = async (token1: string, token2: string): Promise<void> => {
   let inviteToken: string;
   try {
@@ -49,10 +41,7 @@ export const ensureMutualContacts = async (token1: string, token2: string): Prom
   }
 };
 
-/**
- * Deletes all tasks belonging to a category via the API.
- * Faster than clicking through the UI and leaves no trace in the outbox.
- */
+/** Faster than the UI, and leaves nothing in the client's outbox. */
 export const deleteAllTasksInCategory = async (
   token: string,
   categoryId: string,

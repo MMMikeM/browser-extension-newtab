@@ -68,7 +68,7 @@ export function CategoryCollabSheet({
     try {
       await removeCollaborator(categoryId, userId);
     } catch {
-      // ignore — collection will stay consistent
+      // Nothing changed locally, so there is nothing to roll back
     }
   };
 

@@ -5,12 +5,10 @@ const OPEN_THRESHOLD = 60;
 const SNAP_MS = 200;
 const HINT_SEEN_KEY = "newtab-todo-swipe-hint-seen";
 
-// Module-level registry: when one row opens, all others close
+// Module-level so opening one row can close all the others
 const closeRegistry = new Set<() => void>();
 
 /**
- * Swipe-to-reveal hook for mobile list rows.
- *
  * Attaches non-passive touchmove (required for preventDefault) via useEffect
  * rather than React synthetic events so we can actually stop scroll during
  * a horizontal swipe. Transform is applied directly to the DOM to avoid
@@ -87,7 +85,7 @@ export const useSwipeReveal = (disabled = false, hint = false) => {
       const dy = e.touches[0].clientY - touchStartY.current;
 
       if (!isDraggingRef.current) {
-        // Primarily vertical — yield to scroll, abort swipe
+        // Yield vertical gestures to the list's scroll
         if (Math.abs(dy) > Math.abs(dx)) {
           touchStartX.current = null;
           return;
@@ -152,7 +150,6 @@ export const useSwipeReveal = (disabled = false, hint = false) => {
     };
   }, [disabled]);
 
-  // Close when user taps outside the container
   useEffect(() => {
     if (!isOpen || disabled) return;
     const onOutside = (e: TouchEvent) => {

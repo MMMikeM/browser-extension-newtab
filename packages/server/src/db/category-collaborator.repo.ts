@@ -27,8 +27,6 @@ const remove = async (categoryId: string, userId: string) => {
   return row;
 };
 
-// Removes all collaborator rows between two users in both directions —
-// called when a contact relationship is broken so shared category access is revoked.
 const removeAllBetweenUsers = async (userAId: string, userBId: string) => {
   const aCategoryIds = db
     .select({ id: categories.id })

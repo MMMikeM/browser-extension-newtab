@@ -22,7 +22,6 @@ const sharedWithUserSchema = createSelectSchema(users).pick({
   username: true,
 });
 
-/** Response schema for task list — includes subtasks, shares, assignee, and owner user. */
 export const taskListItemSchema = taskResponseSchema.extend({
   user: z.object({ id: z.string(), name: z.string() }).nullable(),
   subtasks: z.array(taskResponseSchema),
@@ -46,11 +45,10 @@ const list = async (userId: string) =>
   db.query.tasks.findMany({
     where: {
       OR: [
-        // Top-level tasks the user owns, is shared on, or collaborates in
         { userId },
         { shares: { sharedWithUserId: userId } },
         { category: { collaborators: { userId } } },
-        // Subtasks whose parent is accessible via the same conditions
+        // Subtasks carry no shares or categoryId, so they're reached through their parent
         { parent: { userId } },
         { parent: { shares: { sharedWithUserId: userId } } },
         { parent: { category: { collaborators: { userId } } } },
@@ -75,9 +73,6 @@ const findById = async (id: string) => {
   return row;
 };
 
-// Fetches task with all category collaborator userIds.
-// Used for both access checks (isCollab = collabUserIds.includes(callerId)) and
-// broadcast recipient lists — one query serves both purposes.
 const findByIdWithAccess = async (id: string, _userId: string) => {
   const row = await db.query.tasks.findFirst({
     where: { id },
@@ -102,7 +97,7 @@ const findByIdWithAccess = async (id: string, _userId: string) => {
   return row;
 };
 
-// LWW insert: if same id arrives again (retry), return the existing row unchanged.
+// A retried insert gets the stored row back unchanged: the no-op update lets RETURNING yield it
 const insert = async (data: TaskInsert) => {
   const [row] = await db
     .insert(tasks)
@@ -130,8 +125,6 @@ const remove = async (id: string) => {
 };
 
 export type TaskWithRelations = Awaited<ReturnType<typeof list>>[number];
-
-// --- Shares ---
 
 const insertShare = async (data: TaskShareInsert) => {
   const [row] = await db.insert(taskShares).values(data).returning();
@@ -167,7 +160,6 @@ const listInCategory = async (categoryId: string) =>
     with: { shares: { columns: { sharedWithUserId: true } } },
   });
 
-/** Returns userIds of everyone a task is shared with. */
 const listShareUserIds = async (taskId: string) => {
   const rows = await db.query.taskShares.findMany({
     where: { taskId },
@@ -176,7 +168,6 @@ const listShareUserIds = async (taskId: string) => {
   return rows.map((r) => r.sharedWithUserId);
 };
 
-/** Returns overdue tasks (dueDate < today, not done) with minimal columns. */
 const findOverdue = async (beforeDate: string) =>
   db.query.tasks.findMany({
     where: {

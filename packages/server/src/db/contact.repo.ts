@@ -37,8 +37,7 @@ const exists = async (userId: string, contactUserId: string): Promise<boolean> =
   return !!row;
 };
 
-// Deletes both direction rows in a transaction — partial deletion would leave
-// an asymmetric state where one user still sees the other as a contact.
+// One transaction: deleting only one direction would leave one user still seeing the other
 const remove = async (id: string, userId: string) => {
   const contact = await db.query.contacts.findFirst({ where: { id, userId } });
   if (!contact) throw new NotFoundError("contact", id);

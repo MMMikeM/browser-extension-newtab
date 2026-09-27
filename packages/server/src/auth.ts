@@ -2,9 +2,8 @@ import { HTTPException } from "hono/http-exception";
 import sessionRepo from "./db/session.repo";
 
 /**
- * Extract auth token from cookie or Authorization header.
- * Cookie takes priority (httpOnly, set by login/signup server functions).
- * Falls back to Bearer token (extension context).
+ * The httpOnly cookie set at login/signup wins. The extension sends a Bearer header instead,
+ * and EventSource, which can't set headers, passes the token as a query param.
  */
 export const extractToken = (request: Request, url?: URL): string | null => {
   const cookie = request.headers.get("cookie");
@@ -21,9 +20,6 @@ export const extractToken = (request: Request, url?: URL): string | null => {
   return null;
 };
 
-/**
- * Validate a session token. Returns the userId if valid, throws otherwise.
- */
 export const validateSession = async (token: string): Promise<string> => {
   const session = await sessionRepo.findValid(token);
   if (!session) throw new HTTPException(401, { message: "Unauthorized" });

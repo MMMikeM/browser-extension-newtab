@@ -37,7 +37,7 @@ export const eventsRoute = new Hono().get("/", async (c) => {
       unregisterClient(userId, writer);
     });
 
-    // Keep stream open indefinitely
+    // Hono closes the stream once this callback returns
     await new Promise(() => {});
   });
 });

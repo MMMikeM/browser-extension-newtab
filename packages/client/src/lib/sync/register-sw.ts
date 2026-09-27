@@ -1,4 +1,4 @@
-const UPDATE_POLL_INTERVAL = 60 * 60 * 1000; // 1 hour
+const UPDATE_POLL_MS = 60 * 60 * 1000;
 
 export const registerServiceWorker = () => {
   console.log("[sw] guards:", {
@@ -12,8 +12,7 @@ export const registerServiceWorker = () => {
     return console.log("[sw] skipped: extension context");
   if (!("serviceWorker" in navigator)) return console.log("[sw] skipped: no serviceWorker API");
 
-  // Visibility-aware reload: if backgrounded, reload silently.
-  // If visible, defer until user switches away.
+  // Pick up the new worker, but never reload the page while the user is looking at it
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (document.visibilityState === "hidden") {
       window.location.reload();
@@ -33,12 +32,11 @@ export const registerServiceWorker = () => {
     .then((reg) => {
       console.log("[sw] registered:", reg.scope, reg);
 
-      // Poll for SW updates hourly as fallback (push is the primary mechanism)
+      // Fallback: deploy pushes are the primary update signal
       setInterval(() => {
         reg.update().catch((err) => console.warn("[sw] update check failed:", err));
-      }, UPDATE_POLL_INTERVAL);
+      }, UPDATE_POLL_MS);
 
-      // Check for updates when tab becomes visible (user re-opens the app)
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
           reg.update().catch((err) => console.warn("[sw] update check failed:", err));

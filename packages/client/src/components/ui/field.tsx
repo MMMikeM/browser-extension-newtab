@@ -5,10 +5,6 @@ import { cn } from "~/lib/utils";
 import { Input as InputPrimitive } from "~/components/ui/input";
 import { Textarea as TextareaPrimitive } from "~/components/ui/textarea";
 
-// ---------------------------------------------------------------------------
-// Field wrappers — Base UI Field primitives
-// ---------------------------------------------------------------------------
-
 const Field = ({ className, ...props }: FieldPrimitive.Root.Props) => (
   <FieldPrimitive.Root
     data-slot="field"
@@ -44,14 +40,6 @@ const FieldError = ({ className, ...props }: FieldPrimitive.Error.Props) => (
   />
 );
 
-// ---------------------------------------------------------------------------
-// Input — app-styled single-line input (underline, no box)
-//
-// Composed on top of the raw shadcn Input primitive (ui/input.tsx).
-// Overrides the box style with the app's underline language:
-//   transparent bg, bottom border only, ghost/40 → hint on focus, no ring.
-// ---------------------------------------------------------------------------
-
 const Input = ({ className, ...props }: ComponentProps<"input">) => (
   <InputPrimitive
     className={cn(
@@ -66,12 +54,6 @@ const Input = ({ className, ...props }: ComponentProps<"input">) => (
     {...props}
   />
 );
-
-// ---------------------------------------------------------------------------
-// Textarea — app-styled multi-line input (underline, no box)
-//
-// Composed on top of the raw shadcn Textarea primitive (ui/textarea.tsx).
-// ---------------------------------------------------------------------------
 
 const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
   <TextareaPrimitive
@@ -89,13 +71,9 @@ const Textarea = ({ className, ...props }: ComponentProps<"textarea">) => (
   />
 );
 
-// ---------------------------------------------------------------------------
-// TanStack Form integration
-// ---------------------------------------------------------------------------
-
 // TanStack Form types ValidationError as `unknown` — Zod surfaces errors as
 // ZodIssue objects ({ message: string }) or plain strings depending on how
-// the validator is wired. This handles both.
+// the validator is wired.
 const extractZodError = (error: unknown): string | undefined => {
   if (error == null) return undefined;
   if (typeof error === "string") return error || undefined;
@@ -130,7 +108,6 @@ interface FormFieldProps {
   children: ReactNode;
 }
 
-// Wraps Field + FieldLabel + FieldError, wired to a TanStack form field.
 // Label ↔ control association and aria-invalid/aria-describedby are handled
 // automatically by the Field context — no id/htmlFor/aria-* needed on the
 // input.

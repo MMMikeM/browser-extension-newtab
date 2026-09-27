@@ -1,6 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
 
-// Budget in milliseconds — fail the build if we regress past this
 const DCL_BUDGET_MS = 1000;
 
 const measure = async (page: Page, url: string): Promise<number> => {

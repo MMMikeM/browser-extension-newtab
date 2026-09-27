@@ -1,6 +1,6 @@
 import { useCategories } from "~/lib/db/hooks";
 
-/** Returns a Set of category IDs where the given user is a collaborator (not owner). */
+/** Excludes categories the user owns. */
 export const useCollaboratedCategoryIds = (userId: string | null) => {
   const { data: rawCategories } = useCategories();
   return new Set(

@@ -1,12 +1,4 @@
-/**
- * Extension assembler — runs after the main build (pnpm build).
- *
- * Compiles background.ts, copies PWA assets, applies extension-specific
- * transforms (inline script extraction, manifest generation), and removes
- * PWA-only files.
- *
- * Usage: node build-extension.ts
- */
+// Assembles the extension from the PWA build in dist/, so it must run after `pnpm build`.
 import { build, loadEnv } from "vite";
 import { readFileSync, writeFileSync, cpSync, rmSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -31,7 +23,7 @@ const patchHtml = () => {
   let html = readFileSync(join(EXT_OUT, "index.html"), "utf-8");
   let scriptCount = 0;
 
-  // Extract inline <script> blocks — MV2 CSP blocks inline scripts.
+  // MV2 CSP blocks inline scripts
   html = html.replace(
     /<script([^>]*)>([\s\S]+?)<\/script>/g,
     (match, attrs: string, content: string) => {
@@ -46,9 +38,8 @@ const patchHtml = () => {
     },
   );
 
-  // Convert async CSS preloads to plain stylesheets — MV2 CSP blocks the
-  // inline onload="this.rel='stylesheet'" event handler (script-src-attr),
-  // and all assets are local in the extension anyway so blocking load is fine.
+  // MV2 CSP blocks the async preload's inline onload handler (script-src-attr), and every
+  // asset is local in the extension, so a blocking stylesheet costs nothing
   html = html.replace(
     /<link rel="preload" href="([^"]+)" as="style" onload="[^"]*"><noscript>.*?<\/noscript>/g,
     (_, href) => `<link rel="stylesheet" href="${href}">`,
@@ -81,18 +72,16 @@ const env = loadEnv("production", ROOT, "");
 const serverUrl = env.SERVER_URL || "http://localhost:3000";
 console.log(`[build:ext] SERVER_URL: ${serverUrl}`);
 
-// 1. Clean output and copy PWA assets
 rmSync(EXT_OUT, { recursive: true, force: true });
 cpSync(CLIENT_DIST, EXT_OUT, { recursive: true });
 console.log(`  Copied dist/ → dist-extension/`);
 
-// 2. Strip PWA-only files
+// The extension ships neither a service worker nor a web manifest
 rmSync(join(EXT_OUT, "sw.js"), { force: true });
 rmSync(join(EXT_OUT, "manifest.webmanifest"), { force: true });
 
-// 3. Compile background.ts directly into dist-extension/
-//    emptyOutDir: false so the PWA assets we just copied are preserved.
-//    publicDir: false so Vite doesn't re-copy public/ (e.g. manifest.webmanifest).
+// emptyOutDir: false keeps the PWA assets just copied; publicDir: false stops Vite re-copying
+// public/, which would bring back manifest.webmanifest
 await build({
   configFile: false,
   publicDir: false,
@@ -116,13 +105,10 @@ await build({
 });
 console.log(`  Built background.ts → background.js`);
 
-// 4. Patch index.html for MV2 CSP compliance
 patchHtml();
 
-// 5. Inline WASM in the OPFS worker
 inlineWasm();
 
-// 6. Write extension manifest
 const manifest = buildManifest(serverUrl);
 writeFileSync(join(EXT_OUT, "manifest.json"), JSON.stringify(manifest, null, 2));
 console.log(`  CSP: ${manifest.content_security_policy}`);

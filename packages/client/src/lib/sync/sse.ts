@@ -14,10 +14,6 @@ export type SyncState = "disconnected" | "connecting" | "connected";
 const syncStateStore = createExternalStore<SyncState>("disconnected");
 export const useSyncState = syncStateStore.useStore;
 
-// ─── Pending mutations ────────────────────────────────────────────────────────
-// Polls the offline executor for unreconciled optimistic writes.
-// Lazy: interval only runs while at least one component is subscribed.
-
 let pendingSnapshot = 0;
 const pendingListeners = new Set<() => void>();
 let pendingInterval: ReturnType<typeof setInterval> | null = null;

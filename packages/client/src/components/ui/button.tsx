@@ -31,20 +31,16 @@ const buttonVariants = tv({
     },
   },
   compoundVariants: [
-    // Destructive + ghost: transparent bg, red text, red hover bg
     {
       intent: "destructive",
       variant: "ghost",
       class: "bg-transparent text-destructive hover:bg-destructive/20 hover:text-destructive",
     },
-    // Destructive + subtle: hint text, red on hover
     { intent: "destructive", variant: "subtle", class: "text-hint hover:text-destructive" },
-    // Destructive focus ring override (all variants)
     {
       intent: "destructive",
       class: "focus-visible:border-destructive/40 focus-visible:ring-destructive/40",
     },
-    // Icon: square sizing per size tier
     { icon: true, size: "default", class: "size-9" },
     { icon: true, size: "xs", class: "size-6 [&_svg:not([class*='size-'])]:size-3" },
     { icon: true, size: "sm", class: "size-8" },

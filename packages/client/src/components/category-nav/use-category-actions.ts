@@ -40,7 +40,6 @@ export const useCategoryActions = () => {
   const inboxCount = openCounts.get(null) ?? 0;
   const showInbox = inboxCount > 0;
 
-  // Auto-select first category when inbox empties
   const autoSelectFirst = useEffectEvent(() => {
     if (activeCategoryId === null && !showInbox && categories.length > 0) {
       setActiveCategoryId(categories[0].id);

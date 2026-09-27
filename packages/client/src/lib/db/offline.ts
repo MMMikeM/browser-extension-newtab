@@ -117,7 +117,6 @@ export const offline = startOfflineExecutor({
 // Kick off storage probe + leader election + outbox replay as early as possible.
 offline.waitForInit().catch(console.error);
 
-// When the user logs in, fetch server data so the collections catch up.
 subscribeAuthToken(() => {
   if (getAuthToken()) {
     tasksCollection.utils.refetch().catch(console.error);

@@ -24,7 +24,6 @@ export const getEffectiveCategoryId = (
   return myShare.categoryId ?? null;
 };
 
-/** Open top-level task counts keyed by effective category (`null` = inbox). */
 export const countOpenTasksByCategory = (
   tasks: Task[],
   userId: string,

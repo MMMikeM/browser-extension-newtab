@@ -6,7 +6,7 @@ import { Link } from "~/components/ui/link";
 import { useTasks } from "~/lib/db/hooks";
 
 const DISMISSED_KEY = "newtab-todo-sync-hint-dismissed-until";
-const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function SyncHint() {
   const token = useAuthToken();
@@ -16,7 +16,6 @@ export function SyncHint() {
     return until !== null && Date.now() < Number(until);
   });
 
-  // Only show when: not logged in, has tasks, not dismissed
   if (token || tasks.length === 0 || dismissed) return null;
 
   return (

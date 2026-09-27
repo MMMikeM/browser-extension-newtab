@@ -9,10 +9,7 @@ import { INBOX_COLOR } from "~/lib/constants";
 import { useIsDesk } from "~/lib/hooks/use-is-desk";
 import { ColorDot } from "~/components/ui/color-dot";
 
-/**
- * List title. Opens the category sheet where the sidebar doesn't fit (touch, narrow
- * windows); beside the desktop sidebar it's a plain heading.
- */
+/** Opens the category sheet where the sidebar doesn't fit (touch, narrow windows). */
 export function CategoryHeader() {
   const activeCategoryId = useActiveCategoryId();
   const userId = useOptimisticUserId();

@@ -1,11 +1,5 @@
 import { useSyncExternalStore } from "react";
 
-/**
- * Minimal reactive store for module-level state.
- * Provides a getter, setter, listener set, and a React hook
- * via useSyncExternalStore -- avoiding the repeated boilerplate
- * in auth-token.ts, active-category.ts, and current-user.ts.
- */
 export const createExternalStore = <T>(initialValue: T) => {
   let value = initialValue;
   const listeners = new Set<() => void>();

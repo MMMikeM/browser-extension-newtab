@@ -16,12 +16,11 @@ test.describe("toast stacking", () => {
   });
 
   test("two stacked toasts are visible simultaneously", async ({ user1Page: page }) => {
-    // Inject two toasts directly via the dev helper (bypasses the undo deduplication)
+    // The dev helper bypasses the undo deduplication
     await page.evaluate(() => window.__toastAdd?.("Task deleted"));
     await page.waitForTimeout(80);
     await page.evaluate(() => window.__toastAdd?.("Category deleted"));
 
-    // Both should be in the DOM
     const toasts = page.locator("[data-toast-undo]");
     await expect(toasts).toHaveCount(2, { timeout: 3000 });
 
@@ -39,7 +38,6 @@ test.describe("toast stacking", () => {
     const toasts = page.locator("[data-toast-undo]");
     await expect(toasts).toHaveCount(3, { timeout: 3000 });
 
-    // Full-page shot
     await page.screenshot({ path: ".filmstrip/toast-three-stacked.png", fullPage: false });
 
     // Close-up clipped to the toast stack so the peek effect is visible

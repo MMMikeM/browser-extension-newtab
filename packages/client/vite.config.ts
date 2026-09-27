@@ -31,11 +31,8 @@ const WA_SQLITE_WASM =
   )[0]!;
 
 /**
- * Handles the TanStackDB OPFS worker that the library loads via
- * `new Worker("/assets/opfs-worker-*.js")`.
- *
- * - Dev: serves the file from node_modules via middleware.
- * - Build: copies the worker into dist/assets/ at closeBundle.
+ * TanStack DB loads its OPFS worker itself, with `new Worker("/assets/opfs-worker-*.js")`,
+ * so Vite never sees it: dev serves it from node_modules and the build copies it in.
  */
 const opfsWorker = (): PluginOption => ({
   name: "opfs-worker",
@@ -164,42 +161,36 @@ export default defineConfig(({ mode }) => {
         output: {
           codeSplitting: {
             groups: [
-              // 1. React Core (Priority: Highest)
               {
                 name: "react-core",
                 test: /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
                 priority: 50,
               },
 
-              // 2. Local-First Database & Storage (Priority: High)
               {
                 name: "tanstack-db",
                 test: /node_modules[\\/](@tanstack[\\/](db|db-ivm|offline-transactions|browser-db-sqlite-persistence|query-db-collection)|@journeyapps|fractional-indexing|bignumber\.js|@noble)[\\/]/,
                 priority: 40,
               },
 
-              // 3. TanStack Routing & Data Fetching
               {
                 name: "tanstack-core",
                 test: /node_modules[\\/]@tanstack[\\/](react-router|router-core|history|react-query|query-core|react-form|form-core)[\\/]/,
                 priority: 35,
               },
 
-              // 4. UI Primitives & Styling
               {
                 name: "ui-primitives",
                 test: /node_modules[\\/](@base-ui|@floating-ui|tailwind-merge|tailwind-variants)[\\/]/,
                 priority: 30,
               },
 
-              // 5. Drag and Drop Engine
               {
                 name: "dnd-kit",
                 test: /node_modules[\\/]@dnd-kit[\\/]/,
                 priority: 25,
               },
 
-              // 6. Catch-all Vendor
               {
                 name: "vendor",
                 test: /node_modules[\\/]/,

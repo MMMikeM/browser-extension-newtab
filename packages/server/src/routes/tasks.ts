@@ -31,7 +31,6 @@ const shareCategorySchema = z.object({
   categoryId: z.string().nullable(),
 });
 
-/** Returns deduplicated userIds that should receive broadcast events for this task. */
 const taskUserIds = (task: {
   userId: string;
   category?: { collaborators: { userId: string }[] } | null;
@@ -44,7 +43,7 @@ const taskUserIds = (task: {
   ...new Set([
     task.userId,
     ...(task.category?.collaborators.map((c) => c.userId) ?? []),
-    // For subtasks, include parent's owner, share recipients, and category collaborators
+    // Subtasks have no shares or category of their own; everyone with the parent sees them
     ...(task.parent ? [task.parent.userId] : []),
     ...(task.parent?.shares?.map((s) => s.sharedWithUserId) ?? []),
     ...(task.parent?.category?.collaborators.map((c) => c.userId) ?? []),
@@ -74,7 +73,7 @@ export const taskRoutes = authed()
       const data = c.req.valid("json");
       const userId = c.get("userId");
 
-      // For subtasks, resolve the parent's categoryId for collaborator broadcast
+      // Subtasks carry no categoryId; their collaborators come from the parent's category
       let effectiveCategoryId = data.categoryId;
       if (data.parentId) {
         const parent = await taskRepo.findById(data.parentId);
@@ -104,7 +103,6 @@ export const taskRoutes = authed()
       const { id, updatedAt, ...fields } = c.req.valid("json");
       const userId = c.get("userId");
 
-      // Parallel: fetch task (with all collab userIds) + contact check (if assigneeId set).
       const [task, isContact] = await Promise.all([
         taskRepo.findByIdWithAccess(id, userId),
         fields.assigneeId ? contactRepo.exists(userId, fields.assigneeId) : Promise.resolve(true),
@@ -125,7 +123,6 @@ export const taskRoutes = authed()
       const result = await taskRepo.update(id, updatedAt, fields);
       broadcast(c, "tasks", "update", result, taskUserIds(task));
 
-      // --- Notifications (fire-and-forget) ---
       const notifiableFields = ["title", "description", "status", "dueDate"] as const;
       const changedNotifiable = notifiableFields.filter((f) => f in fields);
       const assigneeChanged = fields.assigneeId && fields.assigneeId !== task.assigneeId;
@@ -133,14 +130,12 @@ export const taskRoutes = authed()
       if (changedNotifiable.length > 0 || assigneeChanged) {
         const actorName = await getUserName(userId);
 
-        // Collect recipients: task owner + share recipients + category collaborators, excluding actor
         const shareUserIds = await taskRepo.listShareUserIds(id).catch(() => []);
         const allRecipients = [...new Set([...taskUserIds(task), ...shareUserIds])].filter(
           (uid) => uid !== userId,
         );
 
         if (fields.status === "done" && task.status !== "done") {
-          // Task completed (only if it wasn't already done)
           for (const recipientId of allRecipients) {
             sendNotification(recipientId, {
               type: "task-completed",
@@ -150,7 +145,6 @@ export const taskRoutes = authed()
             }).catch(() => {});
           }
         } else if (assigneeChanged) {
-          // Task assigned — independent trigger, not gated on notifiable fields
           sendNotification(fields.assigneeId!, {
             type: "task-assigned",
             taskId: id,
@@ -158,7 +152,6 @@ export const taskRoutes = authed()
             fromUser: actorName,
           }).catch(() => {});
         } else if (changedNotifiable.length > 0 && allRecipients.length > 0) {
-          // General update — describe what changed
           const changeDescriptions = changedNotifiable.map((f) => {
             if (f === "status") return `status → ${result.status}`;
             if (f === "dueDate")
@@ -177,11 +170,8 @@ export const taskRoutes = authed()
         }
       }
 
-      // --- Notification queue: due date reminders ---
       if ("dueDate" in fields) {
-        // Always clear old pending reminders for this task
         await notificationQueueRepo.deleteByTask(id);
-        // If a new due date was set, queue a reminder
         if (fields.dueDate) {
           await notificationQueueRepo.insert({
             userId: task.userId,

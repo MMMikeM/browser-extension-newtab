@@ -10,7 +10,6 @@ export type PushPayload =
   | { type: "reminder-due"; taskId: string; taskTitle: string; dueDate: string }
   | { type: "overdue-digest"; tasks: Array<{ id: string; title: string; dueDate: string }> };
 
-/** Map a push payload to the notification the SW should display. Returns null for silent types. */
 export const toNotification = (
   payload: PushPayload,
 ): { title: string; body: string; url: string } | null => {

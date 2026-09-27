@@ -19,13 +19,11 @@ app.post("/process", async (c) => {
   const ts = now();
   const todayStr = today();
 
-  // 1. Process pending reminders
   const pending = await notificationQueueRepo.findPending(ts);
   const processedIds: string[] = [];
 
   for (const row of pending) {
     if (row.type === "reminder-due" && row.task) {
-      // Only send if task still exists and isn't done
       if (row.task.status !== "done") {
         await sendNotification(row.userId, {
           type: "reminder-due",
@@ -38,17 +36,15 @@ app.post("/process", async (c) => {
     processedIds.push(row.id);
   }
 
-  // Mark all processed rows as sent
   await notificationQueueRepo.markSent(processedIds, ts);
 
-  // 2. Overdue digest — one per user per day max
+  // At most one overdue digest per user per day
   const alreadySentUserIds = new Set(
     await notificationQueueRepo.findDigestUserIdsSince(todayStr + "T00:00:00.000Z"),
   );
 
   const overdueTasks = await taskRepo.findOverdue(todayStr);
 
-  // Group by userId, skip users who already got a digest today
   const byUser = new Map<string, Array<{ id: string; title: string; dueDate: string }>>();
   for (const task of overdueTasks) {
     if (!task.dueDate || alreadySentUserIds.has(task.userId)) continue;
@@ -57,11 +53,10 @@ app.post("/process", async (c) => {
     byUser.set(task.userId, list);
   }
 
-  // Send one overdue-digest push per user, record in queue for daily dedup
   let digestCount = 0;
   for (const [userId, userTasks] of byUser) {
     await sendNotification(userId, { type: "overdue-digest", tasks: userTasks });
-    // Record that this user got a digest today so subsequent cron runs skip them
+    // Recorded so later cron runs today skip this user
     await notificationQueueRepo.insertSent({
       userId,
       type: "overdue-digest",

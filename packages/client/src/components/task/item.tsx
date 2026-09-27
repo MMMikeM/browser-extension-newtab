@@ -10,7 +10,7 @@ import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { useSwipeReveal } from "~/lib/hooks/use-swipe-reveal";
 import { useOptimisticUserId } from "~/lib/auth/current-user";
 
-// Evaluated once at module init — pointer type doesn't change during a session
+// Read once: pointer type doesn't change during a session
 const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
 const swipeActionClass =
@@ -150,7 +150,6 @@ export function TaskItem({
 
   return (
     <div data-task-id={task.id}>
-      {/* Swipe container: clips the reveal drawer on touch, inert wrapper on desktop */}
       <div
         ref={containerRef}
         className={cn(
@@ -158,7 +157,6 @@ export function TaskItem({
           swipeEnabled && "group/swipe relative overflow-hidden rounded-lg",
         )}
       >
-        {/* Action drawer — revealed as row slides left */}
         {swipeEnabled && (
           // inert while closed: the tray sits under the row, so it must not be
           // focusable or announced until the row is swiped open.
@@ -204,7 +202,6 @@ export function TaskItem({
           </div>
         )}
 
-        {/* Row content — slides left on swipe */}
         <div
           ref={contentRef}
           style={{ "--actions-w": hoverActionsWidth(hoverActionCount) } as CSSProperties}

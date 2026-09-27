@@ -18,8 +18,7 @@ export const injectCriticalCss = (): PluginOption => {
       const indexPath = join(outDir, "index.html");
       const html = readFileSync(indexPath, "utf-8");
 
-      // Extract class candidates from prerendered HTML class attributes
-      const candidates = [
+      const prerenderedClasses = [
         ...new Set(
           [...html.matchAll(/\bclass="([^"]+)"/g)].flatMap((m) =>
             m[1].split(/\s+/).filter(Boolean),
@@ -35,23 +34,21 @@ export const injectCriticalCss = (): PluginOption => {
         .replace(/source\("[^"]+"\)/, "source(none)")
         .replace(/@import "@fontsource[^;]+;\n?/g, "");
 
-      // Compile with Tailwind's node API — resolves the same @import chains as the full build
+      // Tailwind's node API resolves the same @import chains as the full build
       const compiler = await compile(appCss, { base: srcDir, onDependency: () => {} });
 
-      // Use lightningcss to minify with proper CSS AST parsing (not regex)
       const { code } = transform({
         filename: "critical.css",
-        code: Buffer.from(compiler.build(candidates)),
+        code: Buffer.from(compiler.build(prerenderedClasses)),
         minify: true,
       });
       const criticalCss = code.toString();
 
-      // Find the hashed stylesheet link
       const cssLinkMatch = html.match(/<link rel="stylesheet"[^>]+href="([^"]+\.css)"[^>]*>/);
       if (!cssLinkMatch) throw new Error("inject-critical-css: <link rel=stylesheet> not found");
       const cssHref = cssLinkMatch[1];
 
-      // Convert full CSS to non-blocking preload; critical CSS covers the initial render.
+      // The full sheet can load non-blocking because the critical CSS covers the first render.
       // The <style> goes first: equal-specificity ties go to the later rule, so the full
       // sheet must follow it (an inlined .flex would otherwise beat desk:hidden).
       const updated = html.replace(

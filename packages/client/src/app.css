@@ -186,8 +186,7 @@
   }
 
   /* Noise dithering via soft-light blend — composites against the fully-rendered
-     gradient rather than stacking flat, breaking banding specifically in midtones.
-     pointer-events: none ensures it never blocks interaction. */
+     gradient rather than stacking flat, breaking banding specifically in midtones. */
   .noise::before {
     content: "";
     position: fixed;

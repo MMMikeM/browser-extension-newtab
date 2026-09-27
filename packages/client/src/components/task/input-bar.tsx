@@ -10,7 +10,7 @@ import { useNavContext } from "~/lib/state/nav-context";
 import { INBOX_COLOR } from "~/lib/constants";
 import { ColorDot } from "~/components/ui/color-dot";
 
-// Publishes the bar's height so fixed overlays (toasts) can sit above it on touch
+// Fixed overlays (toasts) read the height to sit above the bar on touch
 const useInputBarHeightVar = () => {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

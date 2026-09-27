@@ -28,9 +28,8 @@ const findValid = async (token: string) =>
 
 type InviteToken = NonNullable<Awaited<ReturnType<typeof findValid>>>;
 
-// Marks the token as used and creates both-direction contact rows atomically.
-// If contact creation fails, the token remains unused so the user can retry.
-// Caller must pass the already-validated invite (from findValid) to avoid a second lookup.
+// One transaction, so a failed contact insert leaves the token unused for a retry. The caller
+// passes an invite already validated by findValid; this doesn't check it again.
 const consume = async (invite: InviteToken, usedByUserId: string) => {
   await inTransaction(async (tx) => {
     await tx
@@ -38,8 +37,6 @@ const consume = async (invite: InviteToken, usedByUserId: string) => {
       .set({ usedAt: now(), usedByUserId })
       .where(eq(inviteTokens.id, invite.id));
 
-    // Insert both direction rows so each user can query contacts WHERE userId = me.
-    // Uses tx (not global db) so both inserts are part of the same transaction.
     await tx
       .insert(contacts)
       .values([

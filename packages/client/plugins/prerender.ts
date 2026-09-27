@@ -16,9 +16,8 @@ export const prerender = (): PluginOption => {
     async closeBundle() {
       if (this.environment?.name !== "client") return;
 
-      // Build a Node-runnable SSR bundle from entry-server.tsx.
-      // viteReact() is required for the new JSX transform (react/jsx-runtime).
-      // Babel/React Compiler is intentionally excluded — SSR only, no optimisation needed.
+      // viteReact() is required for the new JSX transform (react/jsx-runtime). Babel and the
+      // React Compiler are left out on purpose: this bundle only prerenders, once, at build time.
       await viteBuild({
         configFile: false,
         root,

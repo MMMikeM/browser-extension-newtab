@@ -13,7 +13,7 @@ process.on("unhandledRejection", (reason) => {
 const clientDist =
   process.env.CLIENT_DIST_PATH || resolve(import.meta.dirname, "../../client/dist");
 
-// Serve hashed assets with long-term immutable cache (Vite content-hashes filenames)
+// Vite content-hashes these filenames, so they can be cached forever
 app.use("/assets/*", async (c, next) => {
   await next();
   if (c.res.status === 200) {
@@ -21,10 +21,8 @@ app.use("/assets/*", async (c, next) => {
   }
 });
 
-// Serve static assets from the Vite build output
 app.use("*", serveStatic({ root: clientDist }));
 
-// SPA fallback — serve index.html for all non-API routes
 app.get("*", serveStatic({ root: clientDist, path: "index.html" }));
 
 const port = Number(process.env.PORT || 3000);
@@ -36,7 +34,6 @@ const shutdown = (signal: string) => {
   // Close SSE streams first — they hold the server open indefinitely.
   closeAllClients();
   server.close(() => process.exit(0));
-  // Force-exit if connections don't drain within 10s.
   setTimeout(() => {
     console.error("[shutdown] forced exit after timeout");
     process.exit(1);

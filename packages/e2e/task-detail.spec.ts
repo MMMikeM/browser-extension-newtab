@@ -2,11 +2,6 @@ import { test, expect } from "./fixtures";
 import { createTask } from "./helpers/app";
 import { apiRequest, ensureMutualContacts } from "./helpers/api";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Opens the task detail drawer for the first task in the list. */
 const openFirstTaskDetail = async (page: Parameters<typeof createTask>[0]) => {
   await page.locator("[data-task-id]").first().click();
   await page.waitForSelector('[data-slot="drawer-content"]', { timeout: 5000 });
@@ -14,18 +9,13 @@ const openFirstTaskDetail = async (page: Parameters<typeof createTask>[0]) => {
   await page.waitForTimeout(300);
 };
 
-/** The task detail drawer panel. */
 const drawer = (page: Parameters<typeof createTask>[0]) =>
   page.locator('[data-slot="drawer-content"]');
-
-// ---------------------------------------------------------------------------
-// Setup / teardown — wipe all tasks so each test starts clean
-// ---------------------------------------------------------------------------
 
 test.beforeEach(async ({ user1Auth }) => {
   type Task = { id: string; parentId: string | null };
   const tasks = await apiRequest<Task[]>("GET", "/api/tasks", undefined, user1Auth.token);
-  // Delete only top-level tasks — subtasks cascade-delete on the server
+  // Top-level only: the server leaves subtasks behind, but without a parent they never render
   // allSettled: parallel workers may have already deleted some tasks (404 is fine)
   await Promise.allSettled(
     tasks
@@ -33,11 +23,6 @@ test.beforeEach(async ({ user1Auth }) => {
       .map((t) => apiRequest("DELETE", "/api/tasks", { id: t.id }, user1Auth.token)),
   );
 });
-
-// ---------------------------------------------------------------------------
-// Visual language — core regression suite.
-// Prevents the "grey box" revert from going unnoticed.
-// ---------------------------------------------------------------------------
 
 test.describe("task detail — visual language", () => {
   test("description field has no box styling", async ({ user1Page: page }) => {
@@ -49,10 +34,8 @@ test.describe("task detail — visual language", () => {
     await expect(textarea).toBeVisible();
 
     const cls = (await textarea.getAttribute("class")) ?? "";
-    // Must NOT have box-style classes
     expect(cls).not.toContain("bg-input");
     expect(cls).not.toContain("rounded-md");
-    // Must have the underline-style classes from Textarea
     expect(cls).toContain("border-b");
     expect(cls).toContain("bg-transparent");
   });
@@ -66,16 +49,13 @@ test.describe("task detail — visual language", () => {
 
     const d = drawer(page);
 
-    // The hidden native input must be invisible and zero-size
     const hiddenInput = d.locator('input[type="datetime-local"]');
     await expect(hiddenInput).toBeAttached();
     const cls = (await hiddenInput.getAttribute("class")) ?? "";
     expect(cls).toContain("invisible");
     expect(cls).toContain("size-0");
 
-    // The visible trigger is a button with aria-label
     await expect(d.getByRole("button", { name: "Set due date" })).toBeVisible();
-    // "Set date…" placeholder visible when no date set
     await expect(d.getByText("Set date…")).toBeVisible();
   });
 
@@ -142,16 +122,10 @@ test.describe("task detail — visual language", () => {
     await page.waitForTimeout(1000); // contacts collection hydrate
     await openFirstTaskDetail(page);
 
-    // No raw <select> anywhere in the drawer
     await expect(drawer(page).locator("select")).toHaveCount(0);
-    // Base UI Select trigger present
     await expect(drawer(page).locator('[data-slot="select-trigger"]')).toBeVisible();
   });
 });
-
-// ---------------------------------------------------------------------------
-// Functional correctness
-// ---------------------------------------------------------------------------
 
 test.describe("task detail — functionality", () => {
   test("title edit saves on blur", async ({ user1Page: page }) => {
@@ -169,7 +143,6 @@ test.describe("task detail — functionality", () => {
     await d.locator('[data-slot="textarea"]').first().click();
     await page.waitForTimeout(400);
 
-    // Title input should have the updated value
     await expect(titleInput).toHaveValue("Updated title");
   });
 
@@ -180,7 +153,6 @@ test.describe("task detail — functionality", () => {
 
     const d = drawer(page);
 
-    // Set a date programmatically on the drawer-scoped hidden input
     await page.evaluate(() => {
       const input = document.querySelector(
         '[data-slot="drawer-content"] input[type="datetime-local"]',
@@ -213,9 +185,7 @@ test.describe("task detail — functionality", () => {
     await drawer(page).getByRole("button", { name: "Delete task" }).click();
     await page.waitForTimeout(500);
 
-    // Drawer dismissed
     await expect(page.locator('[data-slot="drawer-content"]')).not.toBeVisible();
-    // One fewer task
     await expect(page.locator("[data-task-id]")).toHaveCount(tasksBefore - 1);
   });
 
@@ -229,18 +199,16 @@ test.describe("task detail — functionality", () => {
     await desc.click();
     await desc.fill("My description");
 
-    // Explicit blur before closing
     await desc.blur();
     await page.waitForTimeout(500);
 
-    // Close drawer and wait for it to fully detach (close animation is ~400ms)
+    // The close animation runs ~400ms
     await page.keyboard.press("Escape");
     await page.waitForSelector('[data-slot="drawer-content"]', {
       state: "detached",
       timeout: 3000,
     });
 
-    // Reopen and verify persistence
     await openFirstTaskDetail(page);
     await expect(d.locator('[data-slot="textarea"]').first()).toHaveValue("My description");
   });

@@ -10,10 +10,7 @@ export type AuthResult = {
   username: string;
 };
 
-/**
- * Signs up the test user on first run; falls back to login on subsequent runs
- * (409 = username already taken).
- */
+/** A 409 from signup means the account exists from an earlier run, so it logs in instead. */
 export const getOrCreateUser = async (user: TestUser): Promise<AuthResult> => {
   const signupRes = await fetch(`${BASE_URL}/api/auth/signup`, {
     method: "POST",
@@ -42,10 +39,7 @@ export const getOrCreateUser = async (user: TestUser): Promise<AuthResult> => {
   return loginRes.json() as Promise<AuthResult>;
 };
 
-/**
- * Seeds the page's localStorage with auth state so the app treats the session
- * as authenticated. Call this before reload/navigation.
- */
+/** Takes effect on the next load: reload or navigate after calling it. */
 export const signIn = async (page: Page, auth: AuthResult): Promise<void> => {
   await page.evaluate(({ userId, token, name, username }) => {
     localStorage.setItem("newtab-todo-token", token);

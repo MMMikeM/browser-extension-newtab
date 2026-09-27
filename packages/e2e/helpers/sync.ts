@@ -7,22 +7,13 @@ export type SyncTracker = {
    */
   waitForSync: (timeout?: number) => Promise<void>;
   /**
-   * Asserts that no tracked request returned a 4xx/5xx or network error.
-   * Call this at the end of a test (or put it in afterEach via the fixture).
+   * Throws if any tracked request got a 4xx/5xx or a network error. The syncTracker
+   * fixture calls it in teardown.
    */
   assertNoFailures: () => void;
 };
 
-/**
- * Attaches request/response listeners to `page` and returns a tracker.
- * Only watches non-GET `/api/*` requests — SSE and GET reads are ignored.
- *
- * Usage:
- *   const sync = createSyncTracker(page);
- *   await createTask(page, "Buy milk");
- *   await sync.waitForSync();
- *   sync.assertNoFailures();
- */
+/** Only non-GET `/api/*` requests count, so the SSE stream never holds waitForSync open. */
 export const createSyncTracker = (page: Page): SyncTracker => {
   const inflight = new Set<Request>();
   const failures: { url: string; status: number }[] = [];

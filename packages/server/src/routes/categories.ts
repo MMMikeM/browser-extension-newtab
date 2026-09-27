@@ -138,7 +138,6 @@ export const categoryRoutes = authed()
       return c.json(category, 200);
     },
   )
-  // --- Collaborator sub-routes ---
   .openapi(
     createRoute({
       method: "get",

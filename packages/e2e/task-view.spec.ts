@@ -17,14 +17,11 @@ test.describe("done section", () => {
     await createTask(page, "Task to complete");
     await page.waitForSelector("[data-task-id]");
 
-    // Toggle the task to done via the checkbox
     await page.locator("[data-task-id]").first().getByRole("checkbox").click();
 
-    // Done section toggle button should appear — no crash
     const doneToggle = page.getByRole("button", { name: /done \(\d+\)/i });
     await expect(doneToggle).toBeVisible({ timeout: 5000 });
 
-    // No error overlay
     await expect(page.getByText("Something went wrong")).not.toBeVisible();
     await expect(page.getByText("Cannot convert object to primitive value")).not.toBeVisible();
   });
@@ -42,13 +39,10 @@ test.describe("done section", () => {
     const doneToggle = page.getByRole("button", { name: /done \(\d+\)/i });
     await expect(doneToggle).toBeVisible({ timeout: 3000 });
 
-    // Expand the section
     await doneToggle.click();
 
-    // Completed tasks should be visible inside the done section
     await expect(page.locator("[data-task-id]").first()).toBeVisible();
 
-    // Still no error overlay
     await expect(page.getByText("Something went wrong")).not.toBeVisible();
   });
 });

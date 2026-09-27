@@ -38,7 +38,7 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         // eslint-disable-next-line jsx-a11y/no-autofocus -- new tab page, primary action; suppressed on mobile
         autoFocus={!IS_TOUCH}
       />
-      {/* Submit hint — appears when there's text, teaches the Enter affordance without permanent noise */}
+      {/* Only while there's text: teaches Enter without being permanent noise */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-ghost transition-opacity duration-150 touch:hidden"

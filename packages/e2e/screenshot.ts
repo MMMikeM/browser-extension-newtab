@@ -12,7 +12,6 @@ const a11yViolations: A11yViolation[] = [];
 
 console.log("Taking screenshots...");
 
-// 1. First-run / empty state (no auth, no tasks)
 await forBothViewports(
   browser,
   OUT_DIR,
@@ -24,7 +23,6 @@ await forBothViewports(
   a11yViolations,
 );
 
-// 2. Auth page
 await forBothViewports(
   browser,
   OUT_DIR,
@@ -36,12 +34,11 @@ await forBothViewports(
   a11yViolations,
 );
 
-// Ensure Alice and Bob are mutual contacts so sharing UI shows the picker
+// So the sharing UI shows the contacts picker
 const user1Auth = await getOrCreateUser(USER_1);
 const user2Auth = await getOrCreateUser(USER_2);
 await ensureMutualContacts(user1Auth.token, user2Auth.token);
 
-// 3. Logged-in with tasks
 await forBothViewports(
   browser,
   OUT_DIR,
@@ -55,7 +52,6 @@ await forBothViewports(
   a11yViolations,
 );
 
-// 4. Task detail — sharing section with contacts picker (Bob is a contact)
 await forBothViewports(
   browser,
   OUT_DIR,
@@ -66,21 +62,18 @@ await forBothViewports(
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForSelector("#add-task-input", { timeout: 10000 });
     await page.waitForTimeout(1500); // let contacts collection hydrate
-    // Add a task if none exist
     const tasks = page.locator("[data-task-id]");
     if ((await tasks.count()) === 0) {
       await page.fill("#add-task-input", "Review quarterly goals");
       await page.keyboard.press("Enter");
       await page.waitForTimeout(500);
     }
-    // Open the first task's detail drawer
     await page.locator("[data-task-id]").first().click();
     await page.waitForTimeout(800);
   },
   a11yViolations,
 );
 
-// 5. Category collab sheet — share a category with Bob
 await forBothViewports(
   browser,
   OUT_DIR,
@@ -95,10 +88,8 @@ await forBothViewports(
     const isMobile = page.viewportSize()?.width === 390;
 
     if (isMobile) {
-      // Open the nav sheet
       await page.getByTestId("category-nav-trigger").tap();
       await page.waitForTimeout(400);
-      // Ensure there's a category with options — add one if not
       const catOptions = page.locator('[aria-label="Category options"]');
       if ((await catOptions.count()) === 0) {
         await page.getByRole("button", { name: "Add category" }).tap();

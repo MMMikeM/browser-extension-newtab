@@ -23,8 +23,6 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 
-// ── CLI args ──────────────────────────────────────────────────────────────────
-
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:5173";
 
 const positional = process.argv.slice(2).filter((a) => !a.startsWith("--"));
@@ -59,8 +57,6 @@ if (flags["network"] && flags["network"] !== "none" && !networkPreset) {
   process.exit(1);
 }
 
-// ── Output dir ────────────────────────────────────────────────────────────────
-
 const slug = [
   PAGE_PATH.replace(/\//g, "_").replace(/^_/, "") || "root",
   CPU_RATE !== 1 ? `cpu${CPU_RATE}x` : "",
@@ -71,8 +67,6 @@ const slug = [
 
 const OUT_DIR = path.join(".filmstrip", slug);
 fs.mkdirSync(OUT_DIR, { recursive: true });
-
-// ── Browser ───────────────────────────────────────────────────────────────────
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({
@@ -97,8 +91,6 @@ if (networkPreset) {
   });
 }
 
-// ── Screencast ────────────────────────────────────────────────────────────────
-
 type RawFrame = { t: number; buf: Buffer };
 const rawFrames: RawFrame[] = [];
 
@@ -106,10 +98,7 @@ let navStart = 0;
 let dclAt: number | null = null;
 let stopped = false;
 
-// Resolves once we're done capturing (DCL + 1 extra frame received).
-// Using a manual promise so we can race it against goto — the app has
-// persistent SSE connections that prevent the 'load' event from ever firing,
-// so we can't rely on waitUntil:'load' alone.
+// Resolves once DCL has fired and one more frame has arrived.
 let resolveDone!: () => void;
 const doneCapturing = new Promise<void>((r) => {
   resolveDone = r;
@@ -130,7 +119,6 @@ cdp.on("Page.screencastFrame", ({ data, sessionId }) => {
   rawFrames.push({ t: Date.now() - navStart, buf });
   cdp.send("Page.screencastFrameAck", { sessionId }).catch(() => {});
 
-  // Stop after the first frame that arrives post-DCL
   if (dclAt !== null) {
     stopScreencast();
   }
@@ -142,8 +130,6 @@ cdp.on("Page.domContentEventFired", () => {
     // Don't stop here — let one more frame arrive (see handler above)
   }
 });
-
-// ── Navigate ──────────────────────────────────────────────────────────────────
 
 const label = [
   `cpu=${CPU_RATE}x`,
@@ -161,8 +147,7 @@ await cdp.send("Page.startScreencast", {
   everyNthFrame: 1,
 });
 
-// Race: navigation vs our done-signal. We don't use waitUntil:'load' because
-// the app keeps SSE connections open indefinitely, which blocks 'load'.
+// Not waitUntil 'load': the app's SSE connection stays open, so 'load' never fires.
 await Promise.race([
   page.goto(`${BASE_URL}${PAGE_PATH}`, { waitUntil: "domcontentloaded" }),
   doneCapturing,
@@ -184,8 +169,6 @@ if (dclAt === null) {
 const totalMs = Date.now() - navStart;
 await browser.close();
 
-// ── Deduplicate consecutive identical frames ───────────────────────────────────
-
 const hash = (buf: Buffer) => crypto.createHash("md5").update(buf).digest("hex");
 
 const deduped: RawFrame[] = [];
@@ -205,9 +188,6 @@ console.log(
   `Captured ${rawFrames.length} frames (${dupCount} duplicates removed → ${deduped.length} unique)  DCL=${dclAt} ms  total=${totalMs} ms`,
 );
 
-// ── Write frames to disk ──────────────────────────────────────────────────────
-
-// Clean up old frames first
 for (const f of fs.readdirSync(OUT_DIR).filter((f) => f.endsWith(".jpg") || f.endsWith(".png"))) {
   fs.rmSync(path.join(OUT_DIR, f));
 }
@@ -220,8 +200,6 @@ for (let i = 0; i < deduped.length; i++) {
 }
 
 console.log(`Frames saved to ${OUT_DIR}/`);
-
-// ── HTML viewer ───────────────────────────────────────────────────────────────
 
 const frameItems = saved
   .map(({ t, file }, i) => {

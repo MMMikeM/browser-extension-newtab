@@ -7,10 +7,6 @@ const vapid: VapidConfig = {
   privateKey: process.env.VAPID_PRIVATE_KEY!,
 };
 
-/**
- * Send a silent sync push to all devices belonging to the affected users.
- * Expired/invalid subscriptions (410 Gone) are cleaned up automatically.
- */
 export const notifyOtherDevices = async (userIds: string[], excludeEndpoint?: string) => {
   const allSubs = await pushSubscriptionRepo.findForUsers(userIds);
   const subs = excludeEndpoint ? allSubs.filter((s) => s.endpoint !== excludeEndpoint) : allSubs;

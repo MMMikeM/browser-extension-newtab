@@ -60,7 +60,6 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Map push payload type to notification display properties
 const getNotification = (
   payload: Record<string, unknown>,
 ): { title: string; body: string; url: string } | null => {
@@ -113,18 +112,15 @@ const getNotification = (
   }
 };
 
-// Push: handle typed payloads — show visible notification or silent sync
 self.addEventListener("push", (event: PushEvent) => {
   const payload = event.data?.json();
   if (!payload?.type) return;
 
-  // Deploy push — check for new SW version in the background
   if (payload.type === "deploy") {
     event.waitUntil(self.registration.update());
     return;
   }
 
-  // Silent sync — notify open clients to invalidate cache
   if (payload.type === "sync") {
     event.waitUntil(
       self.clients.matchAll().then((clients) => {
@@ -136,7 +132,6 @@ self.addEventListener("push", (event: PushEvent) => {
     return;
   }
 
-  // Visible notification — also trigger sync in open clients
   const notification = getNotification(payload);
   if (!notification) return;
 
@@ -156,14 +151,12 @@ self.addEventListener("push", (event: PushEvent) => {
   );
 });
 
-// Click: focus existing window or open new one at the notification's target URL
 self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
   const url = (event.notification.data as { url?: string })?.url ?? "#/";
 
   event.waitUntil(
     self.clients.matchAll({ type: "window" }).then((clients) => {
-      // Try to focus an existing window
       for (const client of clients) {
         if ("focus" in client) {
           void (client as WindowClient).focus();
@@ -171,7 +164,6 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
           return;
         }
       }
-      // No existing window — open a new one
       return self.clients.openWindow(url);
     }),
   );

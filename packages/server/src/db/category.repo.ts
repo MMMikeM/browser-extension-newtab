@@ -14,8 +14,6 @@ export const categorySelectSchema = createSelectSchema(categories).pick({ id: tr
 export const categoryDeleteSchema = categorySelectSchema.extend({
   tasks: z.enum(CATEGORY_TASK_ACTIONS).optional(),
 });
-// list() includes user; insert/update/delete return the flat row without it.
-// nullish() allows the key to be absent so all routes satisfy this schema.
 const collaboratorUserSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -73,7 +71,7 @@ const findByIdWithCollaborators = async (id: string) => {
   return row;
 };
 
-// LWW insert: if same id arrives again (retry), return the existing row unchanged.
+// A retried insert gets the stored row back unchanged: the no-op update lets RETURNING yield it
 const insert = async (data: CategoryInsert) => {
   const [row] = await db
     .insert(categories)

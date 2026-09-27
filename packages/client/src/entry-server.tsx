@@ -4,8 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "~/lib/db/query-client";
 import { getRouter } from "./router";
 
-// Render the full router tree. getBuildTarget() returns "server" in Node.js,
-// so getRouter() creates a memoryHistory at "/".
+// getBuildTarget() returns "server" in Node.js, so getRouter() creates a memoryHistory at "/".
 //
 // router.load() resolves routes at "/", loading the lazy index route. Lazy route
 // components suspend inside renderToString (their Suspense boundaries render fallbacks),

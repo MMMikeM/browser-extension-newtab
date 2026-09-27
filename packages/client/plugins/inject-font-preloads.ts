@@ -2,23 +2,13 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import type { PluginOption } from "vite";
 
-/**
- * Vite plugin: injects <link rel="preload"> hints for the critical fonts.
- *
- * Font filenames are content-hashed by Vite so they can't be hardcoded in
- * index.html. This plugin runs after the bundle is written, globs the
- * dist/assets directory for the fonts we actually care about (latin subsets
- * of Figtree and DM Serif Display — the ones used on every render), and
- * injects preload hints into the built index.html.
- *
- * Only the latin (non-ext) subsets are preloaded — latin-ext, cyrillic,
- * greek etc. are only needed for non-Latin text and should load on demand.
- */
+// Vite content-hashes font filenames, so the preload hints can't be written into index.html
 export const injectFontPreloads = (): PluginOption => {
   const root = resolve(import.meta.dirname, "..");
   const outDir = join(root, "dist");
 
-  // Match only the critical Latin subsets (not latin-ext or other scripts)
+  // Figtree and DM Serif Display render on every page. latin-ext and the other scripts are
+  // only needed for non-Latin text, so they load on demand
   const isCriticalFont = (name: string) =>
     (name.startsWith("figtree-latin-wght-normal-") ||
       name.startsWith("dm-serif-display-latin-400-normal-")) &&

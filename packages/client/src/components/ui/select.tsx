@@ -6,19 +6,11 @@ import { tv } from "tailwind-variants";
 import { cn } from "~/lib/utils";
 import type { StyledProps } from "~/lib/utils";
 
-// ---------------------------------------------------------------------------
-// Root — pass-through, no styling needed
-// ---------------------------------------------------------------------------
-
 const Select = ({ ...props }: ComponentProps<typeof SelectPrimitive.Root>) => (
   <SelectPrimitive.Root data-slot="select" {...props} />
 );
 
-// ---------------------------------------------------------------------------
-// Trigger — two variants:
-//   pill (default): rounded pill with subtle border, signals "dropdown".
-//   underline: bottom-border only, matches app's underline input language.
-// ---------------------------------------------------------------------------
+// pill signals a dropdown; underline matches the app's underline inputs
 
 const selectTriggerVariants = tv({
   base: [
@@ -68,23 +60,15 @@ const SelectTrigger = ({ className, variant, children, ...props }: SelectTrigger
   </SelectPrimitive.Trigger>
 );
 
-// ---------------------------------------------------------------------------
-// Value — displays the selected item's text (or placeholder when empty)
-// ---------------------------------------------------------------------------
-
 const SelectValue = ({ ...props }: ComponentProps<typeof SelectPrimitive.Value>) => (
   <SelectPrimitive.Value data-slot="select-value" {...props} />
 );
 
-// ---------------------------------------------------------------------------
-// Content — positioner + popup with list inside.
-//
 // No Portal wrapper: Base UI Drawer is modal=true by default, which marks
 // everything outside the drawer's DOM subtree as `inert`. A portalled popup
 // would land outside the drawer and be blocked. Rendering inline keeps the
 // popup inside the drawer's accessible scope while Positioner's fixed
 // positioning still floats it visually above all content.
-// ---------------------------------------------------------------------------
 
 const SelectContent = ({
   className,
@@ -103,10 +87,8 @@ const SelectContent = ({
     <SelectPrimitive.Popup
       data-slot="select-popup"
       className={cn(
-        // Surface
         "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-popover",
         "p-1 text-popover-foreground shadow-lg outline-none",
-        // Enter/exit animation — opacity + slight upward slide
         "transition-[opacity,translate] duration-150",
         "data-[starting-style]:-translate-y-1 data-[starting-style]:opacity-0",
         "data-[ending-style]:-translate-y-1 data-[ending-style]:opacity-0",
@@ -119,11 +101,6 @@ const SelectContent = ({
   </SelectPrimitive.Positioner>
 );
 
-// ---------------------------------------------------------------------------
-// Item — individual option. Dim at rest, foreground + muted bg on highlight.
-// Selected item shows a checkmark indicator.
-// ---------------------------------------------------------------------------
-
 const SelectItem = ({
   className,
   children,
@@ -132,32 +109,22 @@ const SelectItem = ({
   <SelectPrimitive.Item
     data-slot="select-item"
     className={cn(
-      // Layout
       "flex cursor-default items-center gap-2 rounded-md px-3 py-1.5",
-      // Text
       "text-sm text-hint outline-none",
-      // Hover / highlight (keyboard navigation)
       "hover:bg-muted hover:text-foreground",
       "data-[highlighted]:bg-muted data-[highlighted]:text-foreground",
-      // Selected
       "data-[selected]:text-foreground",
-      // Transition
       "transition-colors",
       className,
     )}
     {...props}
   >
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    {/* Checkmark — only visible when this item is selected */}
     <SelectPrimitive.ItemIndicator className="ml-auto">
       <Check className="size-3" aria-hidden="true" />
     </SelectPrimitive.ItemIndicator>
   </SelectPrimitive.Item>
 );
-
-// ---------------------------------------------------------------------------
-// Group + GroupLabel — for organising options into labelled sections
-// ---------------------------------------------------------------------------
 
 const SelectGroup = ({ ...props }: ComponentProps<typeof SelectPrimitive.Group>) => (
   <SelectPrimitive.Group data-slot="select-group" {...props} />

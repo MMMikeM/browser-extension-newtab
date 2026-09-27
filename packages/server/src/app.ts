@@ -19,11 +19,9 @@ app.onError((err, c) => {
   if (err instanceof HTTPException) {
     return c.json({ error: err.message }, err.status);
   }
-  // FK constraint: referenced row doesn't exist (e.g. task with unknown categoryId).
-  // Drizzle wraps LibsqlError in DrizzleQueryError, so the SQLITE_CONSTRAINT code
-  // and "FOREIGN KEY" message live on err.cause, not err itself.
-  // 422 is non-retriable on the client (treated same as 4xx by assertOk) so the
-  // mutation is dropped rather than looping forever.
+  // Drizzle wraps the driver's error, so the SQLITE_CONSTRAINT code and "FOREIGN KEY" message
+  // live on err.cause. 422 is non-retriable on the client (assertOk treats any 4xx that way),
+  // so the mutation is dropped rather than retried forever.
   const cause = err.cause;
   if (
     cause instanceof Error &&

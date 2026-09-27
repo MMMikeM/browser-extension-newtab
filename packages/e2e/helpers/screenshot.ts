@@ -49,7 +49,6 @@ export const takeScreenshot = async (
   await ctx.close();
 };
 
-/** Convenience wrapper that captures both desktop and mobile in parallel. */
 export const forBothViewports = async (
   browser: Browser,
   outDir: string,
@@ -63,7 +62,7 @@ export const forBothViewports = async (
   ]);
 };
 
-/** Prints a11y violation details and returns the exit code (0 = clean). */
+/** Returns the process exit code: 0 when clean. */
 export const reportViolations = (violations: A11yViolation[]): number => {
   if (violations.length === 0) {
     console.log("  ✓ No contrast violations detected");

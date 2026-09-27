@@ -27,7 +27,7 @@ export const contactRoutes = authed()
       const { id } = c.req.param();
       const userId = c.get("userId");
       const contact = await contactRepo.remove(id, userId);
-      // Revoke all shared category access between the two users
+      // Sharing a category needs a contact, so the sharing ends with it
       await categoryCollaboratorRepo.removeAllBetweenUsers(userId, contact.contactUserId);
       return c.json({ id: contact.id }, 200);
     },

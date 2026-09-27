@@ -51,7 +51,6 @@ export const test = base.extend<Fixtures>({
   },
 
   user2Page: async ({ browser, user2Auth }, use) => {
-    // Separate context so USER_2's localStorage is isolated from USER_1's.
     const context = await browser.newContext();
     const page = await context.newPage();
     await page.goto("/", { waitUntil: "domcontentloaded" });

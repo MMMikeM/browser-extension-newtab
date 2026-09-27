@@ -133,7 +133,7 @@ const TaskDetailContent = ({
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))] touch:px-5">
-      {/* Title — a textarea so long titles wrap; Enter commits like a single-line field */}
+      {/* A textarea so long titles wrap; Enter commits like a single-line field */}
       <div className="flex items-start gap-3">
         <Checkbox
           checked={isDone}
@@ -173,7 +173,6 @@ const TaskDetailContent = ({
         </div>
       </div>
 
-      {/* Description */}
       <Field className="gap-2">
         <FieldLabel className="text-sm font-medium text-hint">Description</FieldLabel>
         <Textarea
@@ -191,7 +190,7 @@ const TaskDetailContent = ({
 
       <DetailSection label="Due date">
         <div className="flex items-center gap-2">
-          {/* Hidden native picker — sized to zero, browser uses it for date UI */}
+          {/* Hidden native picker: the browser supplies the date UI */}
           <input
             ref={dateRef}
             type="datetime-local"
@@ -228,14 +227,12 @@ const TaskDetailContent = ({
         </div>
       </DetailSection>
 
-      {/* Owner — only shown for tasks you don't own */}
       {task.user && task.userId !== getCurrentUserId() && (
         <DetailSection label="Created by">
           <span className="text-sm text-foreground">{task.user.name}</span>
         </DetailSection>
       )}
 
-      {/* Category — own tasks get direct category picker, shared tasks get recipient category */}
       {task.userId === getCurrentUserId() ? (
         <OwnerCategorySection task={task} categories={rawCategories} />
       ) : (
@@ -246,10 +243,8 @@ const TaskDetailContent = ({
         />
       )}
 
-      {/* Subtasks */}
       {!task.parentId && <SubtaskSection taskId={task.id} subtasks={subtasks} />}
 
-      {/* Sharing */}
       {!task.parentId &&
         (isInSharedCategory ? (
           <DetailSection label="Sharing">
@@ -259,12 +254,10 @@ const TaskDetailContent = ({
           <ShareSection taskId={task.id} taskUserId={task.userId} shares={task.shares} />
         ))}
 
-      {/* Assignee — when task involves other people (shared or in shared category) */}
       {!task.parentId && (task.shares.length > 0 || isInSharedCategory) && (
         <AssigneeSection task={task} />
       )}
 
-      {/* Notes */}
       <DetailSection label="Notes">
         {taskNotes.map((note) => (
           <NoteItem key={note.id} note={note} />
@@ -272,7 +265,6 @@ const TaskDetailContent = ({
         <AddNoteInput taskId={task.id} />
       </DetailSection>
 
-      {/* Delete */}
       <Button
         variant="subtle"
         intent="destructive"
@@ -415,7 +407,6 @@ const AssigneeSection = ({ task }: { task: Task }) => {
   const { data: rawCategories = [] } = useCategories();
   const isOwner = currentUserId === task.userId;
 
-  // Build candidate list from shares + category collaborators (deduplicated)
   const seen = new Set<string>([task.userId]);
   const others: { id: string; label: string }[] = [];
 

@@ -3,8 +3,6 @@ import { sqliteTable, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { text } from "drizzle-orm/sqlite-core";
 import { pk, string, nullableString, oneOf, fk, nullableFk, createdAt, updatedAt } from "./columns";
 
-// --- Categories ---
-
 export const categories = sqliteTable("categories", {
   id: pk(),
   userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
@@ -14,8 +12,6 @@ export const categories = sqliteTable("categories", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
-
-// --- Tasks ---
 
 export const taskStatuses = ["todo", "in_progress", "done"] as const;
 
@@ -34,8 +30,6 @@ export const tasks = sqliteTable("tasks", {
   updatedAt: updatedAt(),
 });
 
-// --- Users ---
-
 export const users = sqliteTable("users", {
   id: pk(),
   name: string("name"),
@@ -46,16 +40,12 @@ export const users = sqliteTable("users", {
   updatedAt: updatedAt(),
 });
 
-// --- Sessions ---
-
 export const sessions = sqliteTable("sessions", {
   id: pk(),
   userId: fk("user_id", () => users.id, { onDelete: "cascade" }),
   expiresAt: string("expires_at"),
   createdAt: createdAt(),
 });
-
-// --- Notes ---
 
 export const notes = sqliteTable("notes", {
   id: pk(),
@@ -66,8 +56,6 @@ export const notes = sqliteTable("notes", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
-
-// --- Task Shares ---
 
 export const sharePermissions = ["view", "edit"] as const;
 
@@ -81,8 +69,6 @@ export const taskShares = sqliteTable("task_shares", {
   updatedAt: updatedAt(),
 });
 
-// --- Push Subscriptions ---
-
 export const pushSubscriptions = sqliteTable("push_subscriptions", {
   id: pk(),
   userId: nullableFk("user_id", () => users.id, { onDelete: "set null" }),
@@ -91,8 +77,6 @@ export const pushSubscriptions = sqliteTable("push_subscriptions", {
   auth: string("auth"),
   createdAt: createdAt(),
 });
-
-// --- Contacts ---
 
 // Two rows per connection (A→B and B→A) for simple WHERE userId = me queries.
 export const contacts = sqliteTable(
@@ -106,8 +90,6 @@ export const contacts = sqliteTable(
   (t) => [uniqueIndex("contacts_user_contact_idx").on(t.userId, t.contactUserId)],
 );
 
-// --- Invite Tokens ---
-
 export const inviteTokens = sqliteTable("invite_tokens", {
   id: pk(),
   createdByUserId: fk("created_by_user_id", () => users.id, { onDelete: "cascade" }),
@@ -116,8 +98,6 @@ export const inviteTokens = sqliteTable("invite_tokens", {
   usedByUserId: nullableFk("used_by_user_id", () => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
 });
-
-// --- Category Collaborators ---
 
 export const categoryCollaborators = sqliteTable(
   "category_collaborators",
@@ -130,8 +110,6 @@ export const categoryCollaborators = sqliteTable(
   (t) => [uniqueIndex("category_collaborators_cat_user_idx").on(t.categoryId, t.userId)],
 );
 
-// --- Notification Queue ---
-
 export const notificationQueueTypes = ["reminder-due", "overdue-digest"] as const;
 
 export const notificationQueue = sqliteTable("notification_queue", {
@@ -143,8 +121,6 @@ export const notificationQueue = sqliteTable("notification_queue", {
   sentAt: nullableString("sent_at"),
   createdAt: createdAt(),
 });
-
-// --- Relations ---
 
 export const relations = defineRelations(
   {

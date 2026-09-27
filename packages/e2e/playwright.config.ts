@@ -6,7 +6,6 @@ export default defineConfig({
   outputDir: ".output",
   snapshotDir: ".snapshots",
 
-  // Fail fast on CI; run all locally
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 1 : undefined,
@@ -29,7 +28,7 @@ export default defineConfig({
       name: "mobile",
       use: {
         ...devices["iPhone 14"],
-        // Use Chromium for mobile emulation — avoids needing WebKit installed
+        // The iPhone 14 preset defaults to WebKit, which would need installing
         browserName: "chromium",
       },
     },

@@ -3,8 +3,7 @@ import { hc } from "hono/client";
 import { getAuthToken } from "~/lib/auth/token";
 import { clientId } from "~/lib/client-id";
 
-// In dev, API is on the same origin (Hono dev server plugin).
-// In prod/extension, SERVER_URL points to the deployed server.
+// Dev requests stay same-origin and go through Vite's /api proxy
 const serverUrl = import.meta.env.DEV ? "" : (import.meta.env.SERVER_URL ?? "");
 
 // During SSR prerender (Node.js), relative URLs are invalid and there's no auth.

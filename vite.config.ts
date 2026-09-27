@@ -1,7 +1,7 @@
 import { defineConfig } from "vite-plus";
 
-// Workspace-root Vite+ config: lint/fmt apply to every package (package configs
-// cannot override them). App build config lives in packages/client/vite.config.ts.
+// Lint and fmt apply to every package from here: package configs can't override them.
+// The app build config is packages/client/vite.config.ts.
 export default defineConfig({
   lint: {
     options: { typeAware: true, typeCheck: true },
@@ -50,8 +50,6 @@ export default defineConfig({
           ],
         },
       },
-      // The Drizzle db instance should only be used inside repo files (packages/server/src/db/).
-      // Routes and other server code must go through repos for all DB access.
       {
         files: ["packages/server/src/routes/**", "packages/server/src/*.ts"],
         rules: {
@@ -69,10 +67,7 @@ export default defineConfig({
           ],
         },
       },
-      // Raw input primitives are shadcn baselines — app code should use the
-      // app-styled Input/Textarea exported from ~/components/ui/field, which
-      // applies the underline language and composes with Field/FormField.
-      // Only ui/field.tsx should import these directly.
+      // `[!u]*` leaves out components/ui, where field.tsx wraps the raw primitives
       {
         files: [
           "packages/client/src/routes/**",

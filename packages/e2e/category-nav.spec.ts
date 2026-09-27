@@ -3,13 +3,11 @@ import { signIn } from "./helpers/auth";
 import { createCategory } from "./helpers/app";
 import { apiRequest } from "./helpers/api";
 
-// CategoryNav renders either CategorySidebar (desktop, pointer:fine) or
-// CategoryMobileSheet (mobile, pointer:coarse) — never both simultaneously.
-// The `touch:` Tailwind variant activates on pointer:coarse; Playwright's
-// mobile project (iPhone 14) emulates this.
+// Sidebar or sheet is chosen by pointer type (`touch:` is pointer:coarse), which the
+// mobile project (iPhone 14) emulates.
 
 test.beforeEach(async ({ page, user1Auth }) => {
-  // Clean server state: delete tasks first (categories require empty tasks), then categories
+  // Tasks first: the server won't delete a category that still has tasks
   const tasks = await apiRequest<{ id: string; parentId: string | null }[]>(
     "GET",
     "/api/tasks",
@@ -42,29 +40,22 @@ test.beforeEach(async ({ page, user1Auth }) => {
     .catch(() => {});
 });
 
-// ─── Single-component guarantee ─────────────────────────────────────────────
-
 test("desktop: sidebar in DOM, mobile trigger absent", async ({ page, isMobile }) => {
   test.skip(!!isMobile, "desktop only");
 
-  // Sidebar element exists in DOM
   await expect(page.getByTestId("category-sidebar")).toHaveCount(1);
 
-  // Mobile header trigger must not exist at all (JS-switched, not CSS-hidden)
+  // Switched in JS, not hidden with CSS
   await expect(page.getByTestId("category-nav-trigger")).toHaveCount(0);
 });
 
 test("mobile: sidebar absent from DOM, header trigger present", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile only");
 
-  // Sidebar element must not exist at all (not just hidden)
   await expect(page.getByTestId("category-sidebar")).toHaveCount(0);
 
-  // Header trigger present and visible
   await expect(page.getByTestId("category-nav-trigger")).toBeVisible();
 });
-
-// ─── Desktop sidebar ─────────────────────────────────────────────────────────
 
 test("desktop: sidebar shows added category", async ({ page, isMobile }) => {
   test.skip(!!isMobile, "desktop only");
@@ -83,13 +74,10 @@ test("desktop: clicking a sidebar category switches the active list", async ({
 
   const sidebar = page.getByTestId("category-sidebar");
 
-  // Add a second category via the inline add form
   await createCategory(page, "Work", "sidebar");
 
-  // Click Work in the sidebar
   await sidebar.getByText("Work").click();
 
-  // The sidebar pill should reflect active state
   await expect(sidebar.getByText("Work")).toBeVisible();
 });
 
@@ -101,24 +89,16 @@ test("desktop: People link visible in sidebar", async ({ page, isMobile }) => {
   ).toBeVisible();
 });
 
-// ─── Category options popover — stacking context ─────────────────────────────
-
-/**
- * Opens the options popover for a category pill.
- * The ellipsis trigger is opacity-0 until hover — use force:true to click it
- * regardless of computed opacity.
- */
 const openCategoryOptionsPopover = async (
   page: Parameters<typeof createCategory>[0],
   categoryName: string,
 ) => {
   const sidebar = page.getByTestId("category-sidebar");
-  // The category name lives inside a <button> whose direct parent is the pill div.
-  // Navigate: text node → <span> → <button> → pill <div>
+  // The name's <button> sits directly inside the pill <div>
   const categoryBtn = sidebar.locator(`button:has-text("${categoryName}")`).first();
   const pill = categoryBtn.locator("..");
   await pill.hover();
-  // force:true bypasses the opacity-0 visibility check
+  // The trigger is opacity-0 until hover; force skips the visibility check
   await pill.getByRole("button", { name: "Category options" }).click({ force: true });
 };
 
@@ -131,7 +111,6 @@ test("desktop: category options popover is visible above main content", async ({
   await createCategory(page, "StackTest", "sidebar");
   await openCategoryOptionsPopover(page, "StackTest");
 
-  // Popover must be visible
   await expect(
     page.getByRole("menuitem", { name: "Rename" }).or(page.getByText("Rename")),
   ).toBeVisible({ timeout: 3000 });
@@ -160,7 +139,6 @@ test("desktop: category options popover Rename item is not obscured by main cont
   const topElement = await page.evaluate(
     ([x, y]) => {
       const el = document.elementFromPoint(x, y);
-      // Walk up to find a meaningful ancestor for identification
       let cur: Element | null = el;
       while (cur) {
         if (cur.getAttribute("data-popup") !== null) return "popover";
@@ -194,7 +172,6 @@ test("desktop: clicking Rename in category options starts rename flow", async ({
   // floating-ui's useDismiss insideReactTree flag. Use element.click() instead.
   await renameBtn.evaluate((el) => (el as HTMLElement).click());
 
-  // Rename form should appear in the sidebar
   const sidebar = page.getByTestId("category-sidebar");
   await expect(sidebar.locator('input[type="text"]')).toBeVisible({ timeout: 3000 });
 });
@@ -218,8 +195,6 @@ test("desktop: clicking Delete in category options removes the category", async 
   });
 });
 
-// ─── Mobile bottom sheet ─────────────────────────────────────────────────────
-
 test("mobile: tapping header trigger opens sheet", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile only");
 
@@ -237,16 +212,14 @@ test("mobile: selecting a category from the sheet closes it and updates trigger"
 
   const trigger = page.getByTestId("category-nav-trigger");
 
-  // Open sheet, add a category, and select it in one session
   await trigger.tap();
   await page.getByRole("button", { name: "Add category" }).tap();
   await page.locator('input[placeholder="Category name..."]').fill("Errands");
   await page.keyboard.press("Enter");
 
-  // "Errands" row is now visible — tap it directly (no need to reopen)
+  // The sheet stays open after adding
   await page.getByRole("button", { name: "Errands" }).tap();
 
-  // Sheet closes and trigger reflects new active category
   await expect(trigger).toContainText("Errands");
   await expect(page.getByRole("button", { name: "Add category" })).toBeHidden({ timeout: 3000 });
 });
@@ -256,13 +229,10 @@ test("mobile: input chip visible with active category", async ({ page, isMobile 
 
   const chip = page.getByTestId("category-input-chip");
 
-  // Chip is always visible on mobile
   await expect(chip).toBeVisible();
 
-  // Default: shows "Inbox" when no category is active
   await expect(chip).toContainText("Inbox");
 
-  // After selecting a category the chip updates
   await page.getByTestId("category-nav-trigger").tap();
   await page.getByRole("button", { name: "Add category" }).tap();
   await page.locator('input[placeholder="Category name..."]').fill("Personal");
@@ -293,14 +263,12 @@ test("mobile: header trigger and input chip stay visible while scrolling", async
     await page.keyboard.press("Enter");
   }
 
-  // Scroll down in the content area
   await page.evaluate(() => {
     const content = document.querySelector(".touch\\:order-1") as HTMLElement | null;
     if (content) content.scrollTop = 400;
     else window.scrollBy(0, 400);
   });
 
-  // Both nav affordances must remain visible after scrolling
   await expect(page.getByTestId("category-nav-trigger")).toBeVisible();
   await expect(page.getByTestId("category-input-chip")).toBeVisible();
 });
