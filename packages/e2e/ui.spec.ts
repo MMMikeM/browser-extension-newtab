@@ -4,6 +4,9 @@ import { mockApi } from "./helpers/mock-api";
 
 // UI behaviour against the dev server with /api mocked — no API server or database needed.
 
+// A production build registers sw.js, which would answer /api before the mocks see it
+test.use({ serviceWorkers: "block" });
+
 const openList = async (page: Page) => {
   await mockApi(page);
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -89,6 +92,26 @@ test.describe("task rows", () => {
 });
 
 test.describe("navigation", () => {
+  test("the list title renders once", async ({ page }, testInfo) => {
+    await openList(page);
+    await expect(page.getByRole("heading", { level: 2, name: "Inbox" })).toHaveCount(1);
+    const trigger = page.getByTestId("category-nav-trigger");
+    if (testInfo.project.name === "desktop") await expect(trigger).toHaveCount(0);
+    else await expect(trigger).toBeVisible();
+  });
+
+  test("the column stays put between the list and People", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "the sidebar panel is desktop-only");
+    await openList(page);
+    const column = page.locator("main").locator("..");
+    const listX = (await column.boundingBox())!.x;
+
+    await page.getByTestId("category-sidebar").getByRole("link", { name: "People" }).click();
+    await expect(page.getByRole("heading", { name: "People" })).toBeVisible();
+    await expect(page.getByTestId("category-sidebar")).toBeVisible();
+    expect((await column.boundingBox())!.x).toBe(listX);
+  });
+
   test("the sidebar shows open-task counts", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "the sidebar is desktop-only");
     await openList(page);

@@ -7,8 +7,8 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant touch (@media (pointer: coarse));
-/* Room for the sidebar + column panel */
-@custom-variant desk (@media (pointer: fine) and (width >= 40rem));
+/* Room for the sidebar + column panel with a margin; matches lib/hooks/use-is-desk.ts */
+@custom-variant desk (@media (pointer: fine) and (width >= 44rem));
 
 @theme inline {
   --font-display: "DM Serif Display", serif;
@@ -125,6 +125,11 @@
   --destructive-subtle: oklch(0.94 0.03 22);
   --backdrop: oklch(0.08 0.005 50 / 30%);
   --shell: oklch(0.2 0.01 50 / 75%);
+  /* Desktop panel: the sidebar and the column centre as one */
+  --sidebar-w: 13rem;
+  --column-w: 28rem;
+  --column-shift: calc(var(--sidebar-w) / 2);
+  --panel-left: calc(50vw - (var(--sidebar-w) + var(--column-w)) / 2);
 }
 
 .dark {

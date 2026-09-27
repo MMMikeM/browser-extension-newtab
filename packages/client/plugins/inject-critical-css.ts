@@ -51,15 +51,15 @@ export const injectCriticalCss = (): PluginOption => {
       if (!cssLinkMatch) throw new Error("inject-critical-css: <link rel=stylesheet> not found");
       const cssHref = cssLinkMatch[1];
 
-      const updated = html
-        // Convert full CSS to non-blocking preload; critical CSS covers the initial render
-        .replace(
-          cssLinkMatch[0],
+      // Convert full CSS to non-blocking preload; critical CSS covers the initial render.
+      // The <style> goes first: equal-specificity ties go to the later rule, so the full
+      // sheet must follow it (an inlined .flex would otherwise beat desk:hidden).
+      const updated = html.replace(
+        cssLinkMatch[0],
+        `<style>${criticalCss}</style>` +
           `<link rel="preload" href="${cssHref}" as="style" onload="this.rel='stylesheet'">` +
-            `<noscript><link rel="stylesheet" href="${cssHref}"></noscript>`,
-        )
-        // Inject critical CSS before </head>
-        .replace("</head>", `<style>${criticalCss}</style>\n</head>`);
+          `<noscript><link rel="stylesheet" href="${cssHref}"></noscript>`,
+      );
 
       writeFileSync(indexPath, updated);
       console.log(`  Injected critical CSS (${Math.round(criticalCss.length / 1024)}KB)`);

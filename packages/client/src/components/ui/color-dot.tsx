@@ -20,7 +20,7 @@ type ColorDotProps = Omit<ComponentProps<"span">, "children"> &
 
 export const ColorDot = ({ size, color, className, style, ...props }: ColorDotProps) => (
   <span
-    className={cn(colorDotVariants({ size }), className)}
+    className={cn(colorDotVariants({ size }), !color && "bg-ghost", className)}
     style={color ? { backgroundColor: color, ...style } : style}
     {...props}
   />
