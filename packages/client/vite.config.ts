@@ -161,6 +161,10 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       minify: false, // TEMP: non-minified deploy to verify hydration fix
       rolldownOptions: {
+        input: {
+          main: resolve(import.meta.dirname, "index.html"),
+          probe: resolve(import.meta.dirname, "probe.html"),
+        },
         output: {
           codeSplitting: {
             groups: [

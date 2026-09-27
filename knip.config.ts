@@ -12,6 +12,8 @@ export default {
       entry: [
         "src/main.tsx",
         "src/background.ts",
+        "src/background-mv3.ts",
+        "src/probe/page.ts",
         "src/entry-server.tsx",
         "src/sw.ts",
         "src/routes/**/*.tsx",

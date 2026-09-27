@@ -19,7 +19,7 @@ const vapid: VapidConfig = {
  */
 export const sendNotification = async (userId: string, payload: PushPayload) => {
   const subs = await pushSubscriptionRepo.findForUsers([userId]);
-  if (subs.length === 0) return;
+  if (subs.length === 0) return { sent: 0, total: 0 };
 
   // The library JSON.stringifies whatever payload it receives; the SW parses our typed union.
   // Cast to the library's PushPayload type to satisfy TypeScript.
@@ -39,6 +39,7 @@ export const sendNotification = async (userId: string, payload: PushPayload) => 
 
   const sent = results.filter((r) => r.status === "fulfilled" && r.value).length;
   console.log(`Notification [${payload.type}] to ${userId}: ${sent}/${results.length} delivered`);
+  return { sent, total: results.length };
 };
 
 /**

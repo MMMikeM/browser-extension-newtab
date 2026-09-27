@@ -7,6 +7,7 @@ import {
   MSG_BG_STATUS,
   MODEL_NAMES,
 } from "~/lib/constants";
+import { RUN_PROBE, runProbe } from "~/probe/probe";
 
 declare const __SERVER_URL__: string;
 
@@ -60,8 +61,25 @@ const connect = async () => {
   };
 };
 
+const storedToken = async () =>
+  ((await browser.storage.local.get(TOKEN_KEY))[TOKEN_KEY] as string | undefined) ?? null;
+
+const runBackgroundProbe = async (trigger: string, token?: string | null) =>
+  runProbe({
+    label: "ext-bg (mv2)",
+    trigger,
+    apiBase: __SERVER_URL__,
+    token: token ?? (await storedToken()),
+  });
+
 browser.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
   const type = (message as { type?: string })?.type;
+  if (type === RUN_PROBE) {
+    runBackgroundProbe("message", (message as { token?: string }).token).then(sendResponse, (err) =>
+      sendResponse({ error: String(err) }),
+    );
+    return true;
+  }
   if (type === MSG_TOKEN_CHANGED) {
     console.log("[bg-sse] token changed, reconnecting");
     connect().catch((err) => console.error("[bg-sse] reconnect error:", err));
@@ -71,5 +89,6 @@ browser.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) 
 });
 
 connect().catch((err) => console.error("[bg-sse] initial connect error:", err));
+void runBackgroundProbe("load");
 
 console.log("[bg-sse] persistent background page loaded");

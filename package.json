@@ -6,6 +6,7 @@
     "dev": "vp run -r --parallel dev",
     "build": "vp run -r build",
     "build:ext": "vp run -r build && vp run --filter @newtab-todo/client build:ext",
+    "build:ext:mv3": "vp run -r build && vp run --filter @newtab-todo/client build:ext:mv3",
     "start": "pnpm --filter @newtab-todo/server start",
     "db:push": "pnpm --filter @newtab-todo/server db:push",
     "lint": "vp lint",

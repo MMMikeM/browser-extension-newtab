@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ajot probe</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #151a22;
+        color: #e8e4dc;
+        font: 15px/1.45 system-ui, sans-serif;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 24px 0 8px;
+      }
+      #env {
+        color: #a9a39a;
+        margin: 0 0 16px;
+      }
+      #actions,
+      #signin {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      button,
+      input {
+        font: inherit;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #3a4150;
+        background: #222936;
+        color: inherit;
+      }
+      button:active {
+        background: #2d3544;
+      }
+      .card {
+        border: 1px solid #2d3544;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 10px 0;
+      }
+      .card h3 {
+        font-size: 14px;
+        margin: 0 0 6px;
+      }
+      .meta {
+        color: #a9a39a;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .check {
+        font-size: 13px;
+        margin: 2px 0;
+        overflow-wrap: anywhere;
+      }
+      .ok {
+        color: #9ccf6b;
+      }
+      .fail {
+        color: #f08a7a;
+      }
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 12px;
+        color: #a9a39a;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Background sync probe</h1>
+    <p id="env"></p>
+    <form id="signin" hidden>
+      <input name="username" placeholder="Username" autocomplete="username" required />
+      <input name="password" type="password" placeholder="Password" autocomplete="current-password" required />
+      <button type="submit">Sign in</button>
+    </form>
+    <div id="actions"></div>
+    <h2>Results by context</h2>
+    <section id="reports"></section>
+    <h2>Log</h2>
+    <pre id="log"></pre>
+    <script type="module" src="/src/probe/page.ts"></script>
+  </body>
+</html>

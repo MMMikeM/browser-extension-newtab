@@ -1,5 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import pushSubscriptionRepo from "../db/push-subscription.repo";
+import { sendNotification } from "../notify";
 import { authed } from "../middleware";
 import { okSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent, withAuth } from "./crud";
@@ -34,4 +35,14 @@ export const pushRoutes = authed()
       await pushSubscriptionRepo.remove(c.req.valid("json").endpoint);
       return c.json({ ok: true as const }, 200);
     },
+  )
+  .openapi(
+    createRoute({
+      method: "post",
+      path: "/probe",
+      responses: withAuth({
+        200: jsonContent(z.object({ sent: z.number(), total: z.number() })),
+      }),
+    }),
+    async (c) => c.json(await sendNotification(c.get("userId"), { type: "probe" }), 200),
   );

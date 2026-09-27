@@ -4,6 +4,7 @@ import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
 import { NetworkFirst, CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
+import { PROBE_DONE, RUN_PROBE, runProbe, summarise } from "./probe/probe";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -113,10 +114,38 @@ const getNotification = (
   }
 };
 
+const runServiceWorkerProbe = async (trigger: string) => {
+  const report = await runProbe({ label: "pwa-sw", trigger, apiBase: "" });
+  for (const client of await self.clients.matchAll()) {
+    client.postMessage({ type: PROBE_DONE, report });
+  }
+  return report;
+};
+
+self.addEventListener("message", (event: ExtendableMessageEvent) => {
+  if (event.data?.type !== RUN_PROBE) return;
+  event.waitUntil(runServiceWorkerProbe("message"));
+});
+
 // Push: handle typed payloads — show visible notification or silent sync
 self.addEventListener("push", (event: PushEvent) => {
   const payload = event.data?.json();
   if (!payload?.type) return;
+
+  // Shows a notification because web push subscriptions are userVisibleOnly: Safari revokes
+  // ones that stay silent, and Chrome shows its own generic notice instead
+  if (payload.type === "probe") {
+    event.waitUntil(
+      runServiceWorkerProbe("push").then((report) =>
+        self.registration.showNotification("Ajot probe ran", {
+          body: summarise(report),
+          icon: "/icons/icon-192.png",
+          data: { url: "/probe.html" },
+        }),
+      ),
+    );
+    return;
+  }
 
   // Deploy push — check for new SW version in the background
   if (payload.type === "deploy") {

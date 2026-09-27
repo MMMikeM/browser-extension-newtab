@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-extension/
+dist-extension-mv3/
 .ssr-tmp/
 .vinxi/
 .output/
