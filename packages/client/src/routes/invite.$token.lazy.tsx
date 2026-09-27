@@ -9,7 +9,7 @@ export const Route = createLazyFileRoute("/invite/$token")({
   component: InviteAcceptPage,
 });
 
-// The sign-in page's primary action: solid primary can't carry text at 4.5:1
+// Not the solid primary fill: its text falls under 4.5:1
 const primaryPill =
   "w-full bg-primary-subtle text-primary hover:bg-primary-selected hover:text-primary touch:h-11";
 
@@ -43,7 +43,6 @@ export function InviteAcceptPage() {
 
   if (!authToken) return null;
 
-  // Same frame as the sign-in page: serif headline over a single primary action
   return (
     <div className="flex flex-col items-center justify-start pt-[20vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
       <div className="flex w-full max-w-xs flex-col gap-8">

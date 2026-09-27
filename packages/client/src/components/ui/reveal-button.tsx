@@ -34,9 +34,7 @@ export const RevealButton = ({ intent, className, variant, size, ...props }: Rev
   />
 );
 
-// Holds a ListRow's RevealButtons. Desktop: floats over the row's end on ListRow's hover
-// colour, fading in from the left, so hidden actions don't reserve a gutter at rest.
-// Touch: stays in flow, like the always-visible buttons it holds.
+// Desktop: floats over the row's end instead of reserving space. Touch: in flow.
 export const RevealGroup = ({ className, ...props }: ComponentProps<"div">) => (
   <div
     className={cn(

@@ -87,8 +87,7 @@ export function TaskDetail({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      {/* Pointer: the sheet takes the main column's width and offset (AppShell max-w-sm,
-          desk:left-22), so its content edges line up with the list it rose from */}
+      {/* Matches AppShell's column: max-w-sm, offset by desk:left-22 */}
       <DrawerContent className="max-h-[88dvh] max-w-sm border-x desk:translate-x-22 touch:max-w-none touch:border-x-0">
         <DrawerHeader className="sr-only">
           <DrawerTitle>{task.title}</DrawerTitle>
@@ -202,7 +201,6 @@ const TaskDetailContent = ({
             onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
             className="invisible absolute size-0"
           />
-          {/* Styled as the underline select so it reads as a field like its siblings */}
           <button
             type="button"
             onClick={() => dateRef.current?.showPicker()}

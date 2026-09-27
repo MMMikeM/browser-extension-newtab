@@ -1,8 +1,8 @@
 import { Check, LogOut, Pencil, Trash2, UserPlus } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { tv } from "tailwind-variants";
+import { MenuItem } from "~/components/ui/menu-item";
 import { PopoverClose } from "~/components/ui/popover";
 import { CATEGORY_COLORS } from "~/lib/constants";
-import { cn } from "~/lib/utils";
 import type { Category } from "~/lib/types";
 
 interface CategoryOptionsContentProps {
@@ -15,7 +15,12 @@ interface CategoryOptionsContentProps {
   onLeave: (id: string) => void;
 }
 
-const itemClass = "w-full justify-start gap-2.5 rounded-md touch:h-11";
+const swatch = tv({
+  base: "relative flex size-6 items-center justify-center rounded-full ring-1 ring-foreground/10 transition-transform after:absolute after:-inset-1 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none touch:size-9",
+  variants: {
+    selected: { true: "ring-2 ring-foreground/80 ring-offset-2 ring-offset-popover" },
+  },
+});
 
 export function CategoryOptionsContent({
   cat,
@@ -28,30 +33,19 @@ export function CategoryOptionsContent({
 }: CategoryOptionsContentProps) {
   if (!isOwned) {
     return (
-      <Button
-        variant="ghost"
-        intent="destructive"
-        size="sm"
-        className={itemClass}
-        onClick={() => onLeave(cat.id)}
-      >
+      <MenuItem intent="destructive" onClick={() => onLeave(cat.id)}>
         <LogOut />
         Leave
-      </Button>
+      </MenuItem>
     );
   }
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={itemClass}
-        onClick={() => onRenameStart(cat.id, cat.name)}
-      >
-        <Pencil className="text-hint" />
+      <MenuItem onClick={() => onRenameStart(cat.id, cat.name)}>
+        <Pencil />
         Rename
-      </Button>
+      </MenuItem>
       <fieldset className="px-3 pt-1.5 pb-2">
         <legend className="float-left text-xs text-hint">Colour</legend>
         <div className="clear-left grid grid-cols-4 gap-1.5 pt-1.5 touch:gap-2">
@@ -64,12 +58,7 @@ export function CategoryOptionsContent({
                 aria-label={`Colour ${c.name}`}
                 aria-pressed={selected}
                 title={c.name}
-                className={cn(
-                  // after: widens the touch target to 44px without crowding the grid
-                  "relative flex size-6 items-center justify-center rounded-full ring-1 ring-foreground/10 transition-transform after:absolute after:-inset-1 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none touch:size-9",
-                  // A ring and a tick, so the chosen colour doesn't rely on hue alone
-                  selected && "ring-2 ring-foreground/80 ring-offset-2 ring-offset-popover",
-                )}
+                className={swatch({ selected })}
                 style={{ backgroundColor: c.value }}
               >
                 {selected && (
@@ -84,29 +73,16 @@ export function CategoryOptionsContent({
       {/* Close explicitly: unlike Rename/Delete, sharing leaves the row mounted,
           so the popover would otherwise stay open behind the share sheet */}
       <PopoverClose
-        render={
-          <Button
-            data-testid="category-share-btn"
-            variant="ghost"
-            size="sm"
-            className={itemClass}
-          />
-        }
+        render={<MenuItem data-testid="category-share-btn" />}
         onClick={() => onShare(cat.id)}
       >
-        <UserPlus className="text-hint" />
+        <UserPlus />
         Share
       </PopoverClose>
-      <Button
-        variant="ghost"
-        intent="destructive"
-        size="sm"
-        className={itemClass}
-        onClick={() => onDelete(cat.id)}
-      >
+      <MenuItem intent="destructive" onClick={() => onDelete(cat.id)}>
         <Trash2 />
         Delete
-      </Button>
+      </MenuItem>
     </>
   );
 }

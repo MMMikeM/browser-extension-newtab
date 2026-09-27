@@ -48,7 +48,7 @@ export const Toasts = () => {
       >
         <Toast.Content className="py-2.5 pr-2.5 pl-4">
           <div className="flex items-center gap-2 text-sm">
-            {/* select-text: the invite fallback asks the reader to copy the link from here */}
+            {/* select-text: the invite fallback toast holds a link to copy */}
             <Toast.Title className="min-w-0 flex-1 text-hint select-text [overflow-wrap:anywhere]" />
             {toast.data?.onUndo && (
               <Toast.Action
@@ -72,8 +72,7 @@ export const Toasts = () => {
               <X className="size-3.5" />
             </Toast.Close>
           </div>
-          {/* Tracks the toast's own timeout, and holds while Base UI pauses it (hover or
-              focus sets data-expanded). Persistent toasts (timeout 0) get no bar. */}
+          {/* Pauses with the toast (data-expanded); persistent toasts get no bar */}
           {duration > 0 && (
             <div
               className="absolute bottom-0 left-0 h-0.5 w-full origin-left animate-[toast-progress_var(--toast-duration)_linear_forwards] bg-primary/40 group-data-[expanded]/toast:[animation-play-state:paused] motion-reduce:hidden"

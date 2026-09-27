@@ -7,7 +7,7 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant touch (@media (pointer: coarse));
-/* Desktop with room for the sidebar + column panel; narrower pointer windows keep the lone column */
+/* Room for the sidebar + column panel */
 @custom-variant desk (@media (pointer: fine) and (width >= 40rem));
 
 @theme inline {
@@ -66,7 +66,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Fades a task title's tail under the row's hover actions; --actions-w is set per row */
+/* --actions-w is set per row */
 @utility fade-under-actions {
   mask-image: linear-gradient(
     to left,
@@ -229,10 +229,7 @@
   }
 }
 
-/* Touch list: soft edges only where rows have scrolled past the title or sit under the
-   input bar. Driven by scroll position, so an edge with nothing beyond it stays sharp, and
-   browsers without scroll timelines get no mask at all. Touch-only: on desktop the list
-   isn't a scroller and a mask would clip the gutter grip. */
+/* Touch list: fade an edge only when rows have scrolled past it */
 @property --scroll-fade-top {
   syntax: "<length>";
   inherits: false;

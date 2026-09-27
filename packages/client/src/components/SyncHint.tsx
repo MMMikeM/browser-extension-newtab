@@ -20,7 +20,6 @@ export function SyncHint() {
   if (token || tasks.length === 0 || dismissed) return null;
 
   return (
-    // A status line across the column, so it reads as where the data lives rather than a stray aside
     <div className="mt-1.5 flex items-center gap-2 border-b border-border pb-2 text-xs text-hint">
       <CloudOff className="size-3.5 shrink-0" aria-hidden="true" />
       <p className="min-w-0 flex-1">

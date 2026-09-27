@@ -43,8 +43,7 @@ export function TaskInputBar() {
   const handleAdd = (title: string) => addTask(title, activeCategoryId ?? null);
 
   return (
-    // focus-within: while typing, the keyboard covers the home indicator, so its inset
-    // would only open a gap between the input and the keyboard
+    // The keyboard covers the home indicator while typing
     <div
       ref={barRef}
       className="touch:order-2 touch:-mx-(--gutter) touch:shrink-0 touch:border-t touch:border-ghost touch:px-(--gutter) touch:pt-2 touch:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] touch:focus-within:pb-3"

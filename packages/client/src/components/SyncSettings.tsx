@@ -14,6 +14,7 @@ import { TOKEN_KEY, MSG_TOKEN_CHANGED } from "~/lib/constants";
 import { useSyncState, usePendingMutations } from "~/lib/sync/sse";
 import { useInstallPrompt } from "~/lib/hooks/use-install-prompt";
 import { Button } from "~/components/ui/button";
+import { MenuItem } from "~/components/ui/menu-item";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
 
@@ -80,8 +81,6 @@ export const SyncSettings = () => {
     );
   }
 
-  const menuItem = "h-8 justify-start text-sm touch:h-10";
-
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger
@@ -90,7 +89,7 @@ export const SyncSettings = () => {
             variant="ghost"
             size="xs"
             className={cn(
-              // after: stretches the 36px touch button to a 44px target without growing the header
+              // after: 44px touch target without growing the header
               "relative gap-1.5 touch:h-9 touch:px-3 touch:after:absolute touch:after:inset-x-0 touch:after:-inset-y-1",
               syncState === "disconnected"
                 ? "text-foreground"
@@ -133,12 +132,10 @@ export const SyncSettings = () => {
           </div>
           <div className="mb-1 h-px bg-border" />
           {getBuildTarget() === "browser" && canInstall && (
-            <Button variant="subtle" size="xs" className={menuItem} onClick={install}>
-              Add to Home Screen
-            </Button>
+            <MenuItem onClick={install}>Add to Home Screen</MenuItem>
           )}
           {getBuildTarget() === "browser" && (
-            <Button variant="subtle" size="xs" className={menuItem} onClick={handleTogglePush}>
+            <MenuItem onClick={handleTogglePush}>
               {pushEnabled ? (
                 <>
                   Background sync on
@@ -147,28 +144,19 @@ export const SyncSettings = () => {
               ) : (
                 "Enable background sync"
               )}
-            </Button>
+            </MenuItem>
           )}
-          <Button
-            variant="subtle"
-            size="xs"
-            className={menuItem}
+          <MenuItem
             onClick={() => {
               void router.navigate({ to: "/people" });
               setOpen(false);
             }}
           >
             People
-          </Button>
-          <Button
-            variant="ghost"
-            intent="destructive"
-            size="xs"
-            className={menuItem}
-            onClick={handleLogout}
-          >
+          </MenuItem>
+          <MenuItem intent="destructive" onClick={handleLogout}>
             Sign out
-          </Button>
+          </MenuItem>
           <div className="my-1 h-px bg-border" />
           <span className="px-2.5 pb-0.5 text-[10px] text-hint">{__BUILD_VERSION__}</span>
         </PopoverContent>

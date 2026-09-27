@@ -57,7 +57,7 @@ export function AddTaskInput({ onAdd }: { onAdd: (title: string) => void }) {
         onMouseDown={(e) => e.preventDefault()}
         className={cn(
           // inset-y-0 + my-auto rather than a translate: Button nudges translate-y on :active
-          // after: 44px hit area around the 32px button
+          // after: 44px touch target
           "absolute inset-y-0 right-0 my-auto hidden rounded-full bg-primary-subtle text-primary transition-[opacity,scale] duration-150 after:absolute after:-inset-1.5 active:bg-primary-selected touch:inline-flex",
           !hasText && "pointer-events-none scale-75 opacity-0",
         )}

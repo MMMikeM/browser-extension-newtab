@@ -16,10 +16,8 @@ const closeRegistry = new Set<() => void>();
  * a horizontal swipe. Transform is applied directly to the DOM to avoid
  * per-pixel re-renders during drag — state only changes on snap.
  *
- * While a row is dragged, open, or animating back, the container carries `data-swiping`,
- * so the row can stay transparent at rest and only turn opaque over the tray when it moves.
- *
- * `hint` slides the row partly open and back once per device, so the tray is discoverable.
+ * `data-swiping` marks a row that is dragged, open or settling, so it's opaque only then.
+ * `hint` peeks the tray once per device.
  *
  * Usage:
  *   const swipe = useSwipeReveal(disabled, hint);
@@ -47,7 +45,7 @@ export const useSwipeReveal = (disabled = false, hint = false) => {
     if (container) container.dataset.swiping = "";
   };
 
-  // Cleared only once the snap back has finished, or the row turns transparent mid-slide
+  // After the snap back, or the row turns transparent mid-slide
   const clearSwipingAfter = (ms: number) => {
     window.clearTimeout(settleTimer.current);
     settleTimer.current = window.setTimeout(() => {

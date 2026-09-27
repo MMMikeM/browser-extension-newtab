@@ -75,7 +75,6 @@ export function CategoryCollabSheet({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      {/* Desktop: column width and offset, like the task detail sheet */}
       <DrawerContent className="max-w-sm border-x desk:translate-x-22 touch:max-w-none touch:border-x-0">
         <DrawerHeader className="gap-1 px-6 pt-4 pb-2 touch:px-5">
           <DrawerTitle className="font-display text-2xl leading-tight font-normal">

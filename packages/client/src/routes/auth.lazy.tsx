@@ -140,8 +140,7 @@ const AuthView = () => {
             </div>
           )}
           <div className="mt-1 flex flex-col gap-2">
-            {/* The olive primary-subtle pill (as the touch add button): the solid primary fill
-                can't carry text at 4.5:1 */}
+            {/* Not the solid primary fill: its text falls under 4.5:1 */}
             <Button
               type="submit"
               variant="ghost"

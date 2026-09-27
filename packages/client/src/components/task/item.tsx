@@ -16,10 +16,10 @@ const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: c
 const swipeActionClass =
   "flex flex-1 flex-col items-center justify-center gap-1 text-hint transition-colors active:bg-secondary active:text-foreground";
 
-// Long enough to see the tick land and catch a mis-click before the row moves to Done
+// Long enough to see the tick and to undo a mis-click
 const COMPLETE_LINGER_MS = 450;
 
-// Must match the hover actions markup: size-6 buttons, gap-0.5 between them, plus clearance from the meta
+// Must match the hover actions: size-6 buttons, gap-0.5, plus clearance from the meta
 const hoverActionsWidth = (count: number) => `${count * 1.5 + (count - 1) * 0.125 + 0.5}rem`;
 
 const formatDueDate = (dateStr: string) => {
@@ -133,11 +133,9 @@ export function TaskItem({
     isSubtask && "text-sm",
   );
 
-  // The hover actions float over the row's end rather than reserving a gutter, so the
-  // title's tail fades out beneath them and the meta slides clear
   const titleColumnClass = cn(
     "flex min-w-0 flex-1 flex-col text-left group-hover/task:fade-under-actions group-has-[:focus-visible]/task:fade-under-actions",
-    // Stretch the hit area over the row's vertical padding so a tap anywhere beside the title opens it
+    // Hit area spans the row's vertical padding
     isSubtask ? "-my-1.5 py-1.5" : "-my-2.5 py-2.5",
   );
 
@@ -214,22 +212,18 @@ export function TaskItem({
             "group/task relative flex items-start gap-2 rounded-lg px-2 py-2.5 transition-[background-color,opacity] duration-300 hover:bg-muted/50 touch:gap-2.5",
             completing && "opacity-60",
             isSubtask && "py-1.5",
-            // Opaque only while swiping, to cover the tray it slides over; at rest the row sits
-            // flat on the column like its desktop counterpart. rounded-none: the clipping
-            // container owns the corners, so the tray can't fringe.
+            // Opaque only while swiping, to cover the tray. rounded-none: the container owns the corners.
             swipeEnabled && "rounded-none group-data-[swiping]/swipe:bg-card",
           )}
         >
           {!isSubtask && (
-            // Desktop: hangs in the column gutter so checkboxes line up with the capture input.
-            // Touch: a fixed 44px box centred on the first title line, a full-height grab target.
-            // The drag handle when dragHandleRef is set; dnd-kit gives it the button role and tab stop
+            // Desktop: hangs in the gutter. Touch: a 44px grab target on the first title line.
             <span
               ref={dragHandleRef}
               aria-label={dragHandleRef ? "Drag to reorder" : undefined}
               className={cn(
                 "absolute top-2.5 -left-3.5 flex h-6 w-3.5 cursor-grab items-center justify-center rounded-sm text-transparent transition-colors group-hover/task:text-ghost focus-visible:text-hint active:cursor-grabbing touch:static touch:-my-2.5 touch:-ml-1 touch:h-11 touch:w-6 touch:text-hint",
-                // Done rows aren't sortable; the box stays so their checkboxes keep the column
+                // Done rows aren't sortable; the box stays for alignment
                 isDone && "invisible",
               )}
               onTouchStart={(e) => e.stopPropagation()}
@@ -344,7 +338,6 @@ export function TaskItem({
       </div>
 
       {!isSubtask && subtasks.length > 0 && (
-        // The thread drops from the parent checkbox's centre; subtask checkboxes align with its title
         <div className="mt-1 ml-2 border-l border-ghost pl-[15px] touch:ml-[38px] touch:pl-[19px]">
           {subtasks.map((sub) => (
             <TaskItem

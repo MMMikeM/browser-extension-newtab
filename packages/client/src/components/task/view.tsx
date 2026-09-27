@@ -171,8 +171,7 @@ export function TaskView({ onSelectTask }: { onSelectTask: (taskId: string) => v
           </ul>
         </DoneSection>
       </div>
-      {/* After the list in the DOM so keyboard focus reaches the tasks first; the sidebar is
-          fixed-position and the touch sheet is a portal, so neither moves visually */}
+      {/* After the list so keyboard focus reaches the tasks first */}
       <CategoryNav />
     </DragDropProvider>
   );

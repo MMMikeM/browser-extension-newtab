@@ -142,7 +142,6 @@ export function CategorySidebar() {
                     />
                   )}
                   <ColorDot size="sm" color={cat.color ?? undefined} />
-                  {/* A shared list's owner is shown by the CollabBadge beside it (full name on hover) */}
                   <span className="flex-1 truncate">{cat.name}</span>
                   <OpenCount count={openCounts.get(cat.id) ?? 0} />
                 </button>
@@ -152,8 +151,6 @@ export function CategorySidebar() {
                 <Popover>
                   <PopoverTrigger
                     render={
-                      // Zero-width until the pill is hovered or focused, so names aren't cut
-                      // short by a control nobody can see
                       <button
                         className="flex h-5 w-0 shrink-0 items-center justify-center overflow-hidden rounded text-hint opacity-0 transition-opacity group-hover/pill:mr-1 group-hover/pill:w-5 group-hover/pill:opacity-100 hover:text-foreground focus-visible:mr-1 focus-visible:w-5 focus-visible:opacity-100 data-[popup-open]:mr-1 data-[popup-open]:w-5 data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
                         aria-label="Category options"
@@ -184,9 +181,7 @@ export function CategorySidebar() {
 
   return (
     <>
-      {/* Sits on the surface AppShell draws to the column's left: w-44 against the max-w-sm
-          column, which AppShell shifts right by desk:left-22 so the pair centres as one panel.
-          Below desk there is no room for it; the list title opens the category sheet instead. */}
+      {/* On AppShell's sidebar surface; left tracks AppShell's desk:left-22 offset */}
       <nav
         aria-label="Lists"
         data-testid="category-sidebar"
@@ -244,7 +239,6 @@ export function CategorySidebar() {
             className="h-auto justify-start gap-2 px-3 py-1.5"
             aria-label="Add category"
           >
-            {/* Centred on the colour-dot column so "Add" lines up with the category names */}
             <span className="flex w-1.5 justify-center">
               <Plus className="size-2.5" />
             </span>

@@ -18,7 +18,6 @@ type InitialsAvatarProps = VariantProps<typeof initialsAvatarVariants> & {
   className?: string;
 };
 
-// First and last initials, so "Sam Okafor" and "Sarah Murray" don't both read "SA"
 const initialsOf = (name: string) => {
   const words = name.trim().split(/\s+/);
   return words.length > 1

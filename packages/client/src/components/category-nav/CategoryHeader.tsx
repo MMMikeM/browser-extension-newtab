@@ -9,9 +9,8 @@ import { INBOX_COLOR } from "~/lib/constants";
 import { ColorDot } from "~/components/ui/color-dot";
 
 /**
- * List title above the task list. Anchors the screen with the name of the list
- * being read. Where the sidebar doesn't fit (touch, narrow windows) it also opens
- * the category sheet; beside the desktop sidebar it is a plain heading.
+ * List title. Opens the category sheet where the sidebar doesn't fit (touch, narrow
+ * windows); beside the desktop sidebar it's a plain heading.
  */
 export function CategoryHeader() {
   const activeCategoryId = useActiveCategoryId();
