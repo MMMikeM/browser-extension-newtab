@@ -210,9 +210,10 @@ export const taskRoutes = authed()
       const isOwner = task.userId === userId || task.parent?.userId === userId;
       if (!isOwner) throw new HTTPException(403, { message: "Not authorized" });
 
-      const result = await taskRepo.remove(id);
-      broadcast(c, "tasks", "delete", { id: result.id }, taskUserIds(task));
-      return c.json(result, 200);
+      const { task: removed, subtaskIds } = await taskRepo.remove(id);
+      for (const removedId of [removed.id, ...subtaskIds])
+        broadcast(c, "tasks", "delete", { id: removedId }, taskUserIds(task));
+      return c.json(removed, 200);
     },
   )
   .openapi(

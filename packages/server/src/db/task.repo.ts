@@ -1,4 +1,4 @@
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, eq, lt, or, sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { z } from "@hono/zod-openapi";
 import { db } from "./client";
@@ -123,10 +123,15 @@ const update = async (id: string, updatedAt: string, fields: Partial<TaskInsert>
   return row;
 };
 
+// parent_id has no foreign key to cascade from, so subtasks are deleted here with their parent
 const remove = async (id: string) => {
-  const [row] = await db.delete(tasks).where(eq(tasks.id, id)).returning();
-  if (!row) throw new NotFoundError("task", id);
-  return row;
+  const rows = await db
+    .delete(tasks)
+    .where(or(eq(tasks.id, id), eq(tasks.parentId, id)))
+    .returning();
+  const task = rows.find((row) => row.id === id);
+  if (!task) throw new NotFoundError("task", id);
+  return { task, subtaskIds: rows.filter((row) => row.id !== id).map((row) => row.id) };
 };
 
 export type TaskWithRelations = Awaited<ReturnType<typeof list>>[number];
