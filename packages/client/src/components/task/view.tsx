@@ -27,7 +27,7 @@ const DoneSection = ({ count, children }: { count: number; children: React.React
         size="xs"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="-ml-2.5 font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground aria-expanded:bg-transparent touch:h-10"
+        className="-ml-2.5 font-medium tracking-wide text-muted-foreground uppercase hover:text-foreground aria-expanded:bg-transparent touch:h-11"
       >
         <ChevronRight
           size={14}
@@ -55,7 +55,7 @@ const EmptySection = ({ activeTasks, doneTasks }: { activeTasks: Task[]; doneTas
   if (doneTasks.length === 0)
     return (
       <div className="flex flex-1 animate-in flex-col items-center justify-center pb-8 duration-300 fade-in slide-in-from-bottom-1 touch:pb-0">
-        <p className="text-base text-hint">{getEmptyPhrase()}</p>
+        <p className="font-display text-2xl text-muted-foreground">{getEmptyPhrase()}</p>
         <p className="mt-1 text-sm text-hint">
           type something <span className="touch:hidden">above</span>
           <span className="hidden touch:inline">below</span> to begin

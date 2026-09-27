@@ -229,6 +229,54 @@
   }
 }
 
+/* Touch list: soft edges only where rows have scrolled past the title or sit under the
+   input bar. Driven by scroll position, so an edge with nothing beyond it stays sharp, and
+   browsers without scroll timelines get no mask at all. Touch-only: on desktop the list
+   isn't a scroller and a mask would clip the gutter grip. */
+@property --scroll-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --scroll-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@keyframes scroll-fade-top {
+  to {
+    --scroll-fade-top: 1.25rem;
+  }
+}
+@keyframes scroll-fade-bottom {
+  from {
+    --scroll-fade-bottom: 1.5rem;
+  }
+  to {
+    --scroll-fade-bottom: 0px;
+  }
+}
+@media (pointer: coarse) {
+  @supports (animation-timeline: scroll()) {
+    .scroll-edge-fade {
+      mask-image: linear-gradient(
+        to bottom,
+        transparent,
+        black var(--scroll-fade-top),
+        black calc(100% - var(--scroll-fade-bottom)),
+        transparent
+      );
+      animation:
+        scroll-fade-top linear both,
+        scroll-fade-bottom linear both;
+      animation-timeline: scroll(self), scroll(self);
+      animation-range:
+        0 1.25rem,
+        calc(100% - 1.5rem) 100%;
+    }
+  }
+}
+
 ::view-transition-group(undo-morph) {
   animation-duration: 500ms;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);

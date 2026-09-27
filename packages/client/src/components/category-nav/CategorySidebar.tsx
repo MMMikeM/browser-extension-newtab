@@ -19,6 +19,14 @@ import { CategoryOptionsContent } from "./CategoryOptionsContent";
 
 export const CATEGORY_DROP_PREFIX = "category-drop-";
 
+const OpenCount = ({ count }: { count: number }) =>
+  count > 0 ? (
+    <span className="text-xs text-hint tabular-nums">
+      {count}
+      <span className="sr-only"> open</span>
+    </span>
+  ) : null;
+
 // ─── DnD wrappers ──────────────────────────────────────────────────────────
 
 function SortablePill({
@@ -61,6 +69,8 @@ export function CategorySidebar() {
     activeCategoryId,
     currentUserId,
     showInbox,
+    inboxCount,
+    openCounts,
     handleAdd,
     handleRename,
     handleSetColor,
@@ -132,14 +142,9 @@ export function CategorySidebar() {
                     />
                   )}
                   <ColorDot size="sm" color={cat.color ?? undefined} />
-                  <span className="flex-1 truncate">
-                    {cat.name}
-                    {!isOwned && cat.user?.name && (
-                      <span className="ml-1 text-xs font-normal text-hint">
-                        · {cat.user.name.split(" ")[0]}
-                      </span>
-                    )}
-                  </span>
+                  {/* A shared list's owner is shown by the CollabBadge beside it (full name on hover) */}
+                  <span className="flex-1 truncate">{cat.name}</span>
+                  <OpenCount count={openCounts.get(cat.id) ?? 0} />
                 </button>
 
                 <CollabBadge category={cat} currentUserId={currentUserId} />
@@ -150,7 +155,7 @@ export function CategorySidebar() {
                       // Zero-width until the pill is hovered or focused, so names aren't cut
                       // short by a control nobody can see
                       <button
-                        className="mr-1 flex h-5 w-0 shrink-0 items-center justify-center overflow-hidden rounded text-hint opacity-0 transition-opacity group-hover/pill:w-5 group-hover/pill:opacity-100 hover:text-foreground focus-visible:w-5 focus-visible:opacity-100 data-[popup-open]:w-5 data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
+                        className="flex h-5 w-0 shrink-0 items-center justify-center overflow-hidden rounded text-hint opacity-0 transition-opacity group-hover/pill:mr-1 group-hover/pill:w-5 group-hover/pill:opacity-100 hover:text-foreground focus-visible:mr-1 focus-visible:w-5 focus-visible:opacity-100 data-[popup-open]:mr-1 data-[popup-open]:w-5 data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
                         aria-label="Category options"
                       />
                     }
@@ -180,11 +185,12 @@ export function CategorySidebar() {
   return (
     <>
       {/* Sits on the surface AppShell draws to the column's left: w-44 against the max-w-sm
-          column, which AppShell shifts right by desk:left-22 so the pair centres as one panel */}
+          column, which AppShell shifts right by desk:left-22 so the pair centres as one panel.
+          Below desk there is no room for it; the list title opens the category sheet instead. */}
       <nav
         aria-label="Lists"
         data-testid="category-sidebar"
-        className="fixed top-0 left-[calc(50vw-23rem)] z-10 flex h-screen w-44 flex-col overflow-y-auto py-8 pr-1 pl-3 desk:left-[calc(50vw-17.5rem)] touch:hidden"
+        className="fixed top-0 left-[calc(50vw-17.5rem)] z-10 hidden h-screen w-44 flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
       >
         {showInbox && (
           <button
@@ -198,7 +204,8 @@ export function CategorySidebar() {
               <span className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
             )}
             <ColorDot size="sm" color={INBOX_COLOR} />
-            Inbox
+            <span className="flex-1 text-left">Inbox</span>
+            <OpenCount count={inboxCount} />
           </button>
         )}
 

@@ -10,8 +10,8 @@ import { ColorDot } from "~/components/ui/color-dot";
 
 /**
  * List title above the task list. Anchors the screen with the name of the list
- * being read. On touch it also opens the category sheet on tap; on desktop the
- * sidebar switches lists, so there it is a plain heading.
+ * being read. Where the sidebar doesn't fit (touch, narrow windows) it also opens
+ * the category sheet; beside the desktop sidebar it is a plain heading.
  */
 export function CategoryHeader() {
   const activeCategoryId = useActiveCategoryId();
@@ -35,7 +35,7 @@ export function CategoryHeader() {
           data-testid="category-nav-trigger"
           onClick={() => setNavOpen(true)}
           aria-haspopup="dialog"
-          className="-ml-1.5 hidden min-w-0 items-center gap-2.5 rounded-lg px-1.5 py-1 text-left transition-opacity active:opacity-60 touch:flex"
+          className="-ml-1.5 flex min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1 text-left transition-opacity active:opacity-60 desk:hidden"
         >
           <ColorDot color={active?.color ?? INBOX_COLOR} className="mt-1" />
           <span className="truncate font-display text-[1.75rem] leading-tight text-foreground">
@@ -43,7 +43,7 @@ export function CategoryHeader() {
           </span>
           <ChevronDown size={18} className="mt-1.5 shrink-0 text-hint" aria-hidden="true" />
         </button>
-        <span className="flex min-w-0 items-center gap-2.5 py-1 touch:hidden">
+        <span className="hidden min-w-0 items-center gap-2.5 py-1 desk:flex">
           <ColorDot color={active?.color ?? INBOX_COLOR} className="mt-1" />
           <span className="truncate font-display text-[1.75rem] leading-tight text-foreground">
             {active?.name ?? "Inbox"}

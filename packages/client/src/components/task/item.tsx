@@ -1,5 +1,5 @@
 import { Temporal } from "temporal-polyfill";
-import { useRef, useState, type CSSProperties, type RefCallback } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type RefCallback } from "react";
 import type { Task } from "~/lib/types";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -15,6 +15,9 @@ const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: c
 
 const swipeActionClass =
   "flex flex-1 flex-col items-center justify-center gap-1 text-hint transition-colors active:bg-secondary active:text-foreground";
+
+// Long enough to see the tick land and catch a mis-click before the row moves to Done
+const COMPLETE_LINGER_MS = 450;
 
 // Must match the hover actions markup: size-6 buttons, gap-0.5 between them, plus clearance from the meta
 const hoverActionsWidth = (count: number) => `${count * 1.5 + (count - 1) * 0.125 + 0.5}rem`;
@@ -95,6 +98,10 @@ export function TaskItem({
   const canAddSubtask = !isSubtask && !isDone;
   const hoverActionCount = 1 + Number(canSetDate) + Number(canAddSubtask);
   const dateRef = useRef<HTMLInputElement>(null);
+  const [completing, setCompleting] = useState(false);
+  const completeTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(completeTimer.current), []);
+  const looksDone = isDone || completing;
   const [addingSubtask, setAddingSubtask] = useState(false);
   const [subtaskTitle, setSubtaskTitle] = useState("");
 
@@ -108,10 +115,21 @@ export function TaskItem({
 
   const openPicker = () => dateRef.current?.showPicker();
 
+  const handleCheck = () => {
+    if (isDone) return onToggle(task);
+    if (completing) {
+      window.clearTimeout(completeTimer.current);
+      setCompleting(false);
+      return;
+    }
+    setCompleting(true);
+    completeTimer.current = window.setTimeout(() => onToggle(task), COMPLETE_LINGER_MS);
+  };
+
   const titleClass = cn(
     // Wrap rather than truncate: the column is narrow on both targets
     "line-clamp-2 font-medium break-words",
-    isDone && "text-muted-foreground line-through",
+    looksDone && "text-muted-foreground line-through",
     isSubtask && "text-sm",
   );
 
@@ -193,7 +211,8 @@ export function TaskItem({
           ref={contentRef}
           style={{ "--actions-w": hoverActionsWidth(hoverActionCount) } as CSSProperties}
           className={cn(
-            "group/task relative flex items-start gap-2 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/50 touch:gap-2.5",
+            "group/task relative flex items-start gap-2 rounded-lg px-2 py-2.5 transition-[background-color,opacity] duration-300 hover:bg-muted/50 touch:gap-2.5",
+            completing && "opacity-60",
             isSubtask && "py-1.5",
             // Opaque only while swiping, to cover the tray it slides over; at rest the row sits
             // flat on the column like its desktop counterpart. rounded-none: the clipping
@@ -219,8 +238,8 @@ export function TaskItem({
             </span>
           )}
           <Checkbox
-            checked={isDone}
-            onCheckedChange={() => onToggle(task)}
+            checked={looksDone}
+            onCheckedChange={handleCheck}
             aria-label={task.title}
             // Pinned to the first line of the title, which can wrap
             className={cn(

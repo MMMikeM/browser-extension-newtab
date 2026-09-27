@@ -25,7 +25,7 @@ function TaskListView() {
        */}
       <CategoryHeader />
       <TaskInputBar />
-      <div className="touch:order-1 touch:flex touch:min-h-0 touch:flex-1 touch:flex-col touch:overflow-x-hidden touch:overflow-y-auto">
+      <div className="scroll-edge-fade touch:order-1 touch:flex touch:min-h-0 touch:flex-1 touch:flex-col touch:overflow-x-hidden touch:overflow-y-auto">
         <Suspense fallback={null}>
           <SyncHint />
         </Suspense>

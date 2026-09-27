@@ -90,6 +90,7 @@ export function CategoryMobileSheet() {
           <Input
             ref={renameRef}
             type="text"
+            aria-label="Category name"
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
             onBlur={submitRename}
@@ -198,6 +199,7 @@ export function CategoryMobileSheet() {
               <Input
                 ref={addRef}
                 type="text"
+                aria-label="New category name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Category name..."

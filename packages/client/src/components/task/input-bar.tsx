@@ -43,15 +43,17 @@ export function TaskInputBar() {
   const handleAdd = (title: string) => addTask(title, activeCategoryId ?? null);
 
   return (
+    // focus-within: while typing, the keyboard covers the home indicator, so its inset
+    // would only open a gap between the input and the keyboard
     <div
       ref={barRef}
-      className="touch:order-2 touch:-mx-(--gutter) touch:shrink-0 touch:border-t touch:border-ghost touch:px-(--gutter) touch:pt-2 touch:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]"
+      className="touch:order-2 touch:-mx-(--gutter) touch:shrink-0 touch:border-t touch:border-ghost touch:px-(--gutter) touch:pt-2 touch:pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] touch:focus-within:pb-3"
     >
       <button
         data-testid="category-input-chip"
         onClick={() => setNavOpen(true)}
         aria-label={`Adding to ${activeCategory?.name ?? "Inbox"}. Change list`}
-        className="-ml-2 hidden h-9 items-center gap-2 rounded-full px-2 transition-colors active:bg-muted touch:flex"
+        className="relative -ml-2 hidden h-9 items-center gap-2 rounded-full px-2 transition-colors after:absolute after:inset-x-0 after:-inset-y-1 active:bg-muted touch:flex"
       >
         <ColorDot color={activeCategory?.color ?? INBOX_COLOR} />
         <span className="text-sm font-medium text-foreground">
