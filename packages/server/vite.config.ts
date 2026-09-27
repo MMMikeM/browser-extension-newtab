@@ -2,7 +2,7 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   pack: {
-    entry: ["src/index.ts"],
+    entry: { index: "src/index.ts", "reset-password": "src/reset-password.ts" },
     format: ["esm"],
     platform: "node",
     target: "node24",
@@ -14,7 +14,7 @@ export default defineConfig({
       // Workspace package exports .ts sources directly with no build step — force-bundle it
       alwaysBundle: [/^@newtab-todo\/shared(\/|$)/],
       // Native addons and WASM cannot be bundled — must stay in node_modules
-      neverBundle: ["@node-rs/argon2", "@libsql/client"],
+      neverBundle: ["@node-rs/argon2"],
     },
   },
 });

@@ -18,7 +18,7 @@
     "cls": "pnpm --dir packages/e2e install --ignore-workspace && pnpm --dir packages/e2e run cls",
     "test:e2e": "pnpm --filter @newtab-todo/e2e test",
     "test:e2e:ui": "pnpm --filter @newtab-todo/e2e test:ui",
-    "reset-password": "node --env-file=.env --import=./packages/server/node_modules/tsx/dist/esm/index.cjs packages/server/reset-password.ts"
+    "reset-password": "pnpm --filter @newtab-todo/server exec tsx --env-file=../../.env src/reset-password.ts"
   },
   "dependencies": {
     "temporal-polyfill": "^1.0.5"
@@ -28,5 +28,5 @@
     "knip": "^6.38.0",
     "vite-plus": "catalog:"
   },
-  "packageManager": "pnpm@12.6.0"
+  "packageManager": "pnpm@12.6.0+sha512.3ef68f951cb111ac204b4a5a16f0b2ddf0da56a96e0413e81d855d9f0b55ef926714709028e1cd00c405c2c5fb7b9e8ec4dc46777c805d0373c2f2ff00fd20ec"
 }

@@ -5,6 +5,7 @@ import sessionRepo from "../db/session.repo";
 import { extractToken, validateSession } from "../auth";
 import { errorSchema, okSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent } from "./crud";
+import { MIN_PASSWORD_LENGTH } from "../password";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -13,7 +14,9 @@ const loginSchema = z.object({
 
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`),
   name: z.string().min(1, "Name is required"),
 });
 
