@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { Toast } from "@base-ui/react/toast";
 import {
   useTasks,
@@ -6,14 +6,15 @@ import {
   addCategory,
   updateCategory,
   deleteCategory,
-  updateTask,
 } from "~/lib/db/hooks";
-import { tasksCollection, categoriesCollection } from "~/lib/db/collections";
 import { useActiveCategoryId, setActiveCategoryId } from "~/lib/state/active-category";
 import { useCurrentUserId, useOptimisticUserId } from "~/lib/auth/current-user";
 import { useCollaboratedCategoryIds } from "~/lib/hooks/use-collaborated-categories";
 import { leaveCategory } from "~/lib/actions";
 import { countOpenTasksByCategory } from "~/lib/effective-category";
+import type { CategoryTaskAction } from "~/lib/constants";
+import type { Category } from "~/lib/types";
+import type { PendingCategoryDelete } from "./DeleteCategoryDialog";
 
 export const useCategoryActions = () => {
   const { data: rawCategories } = useCategories();
@@ -22,7 +23,8 @@ export const useCategoryActions = () => {
   const authUserId = useCurrentUserId();
   const currentUserId = useOptimisticUserId();
   const toastManager = Toast.useToastManager();
-  const undoIdRef = useRef<string | undefined>(undefined);
+  const [pendingDelete, setPendingDelete] = useState<PendingCategoryDelete | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const categories = rawCategories
     ? [...rawCategories].sort((a, b) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? ""))
@@ -49,10 +51,6 @@ export const useCategoryActions = () => {
     autoSelectFirst();
   }, [showInbox]);
 
-  const pushUndo = (message: string, onUndo: () => void) => {
-    undoIdRef.current = toastManager.add({ title: message, timeout: 5000, data: { onUndo } });
-  };
-
   const handleAdd = (name: string) => {
     const cat = addCategory({
       name,
@@ -68,28 +66,37 @@ export const useCategoryActions = () => {
 
   const handleSetColor = (id: string, color: string | null) => updateCategory(id, { color });
 
+  const deleteAndMoveOn = (cat: Category, tasks: CategoryTaskAction) => {
+    deleteCategory(cat.id, tasks).isPersisted.promise.catch(() => {
+      toastManager.add({ title: `Couldn't delete “${cat.name}”` });
+    });
+    const remaining = categories.filter((c) => c.id !== cat.id);
+    setActiveCategoryId(remaining.length > 0 ? remaining[0].id : null);
+  };
+
   const handleDelete = (id: string) => {
     const cat = categories.find((c) => c.id === id);
-    const affectedTaskIds = [...(tasksCollection.state?.values() ?? [])]
-      .filter((t) => t.categoryId === id)
-      .map((t) => t.id);
+    if (!cat) return;
 
-    for (const tid of affectedTaskIds) {
-      updateTask(tid, { categoryId: null });
+    const categoryTasks = (allTasks ?? []).filter((t) => t.categoryId === id);
+    if (categoryTasks.length > 0) {
+      setPendingDelete({ category: cat, tasks: categoryTasks });
+      setConfirmingDelete(true);
+      return;
     }
-    deleteCategory(id);
-    const remaining = categories.filter((c) => c.id !== id);
-    setActiveCategoryId(remaining.length > 0 ? remaining[0].id : null);
 
-    if (cat) {
-      pushUndo("Category deleted", () => {
-        categoriesCollection.insert(cat);
-        for (const tid of affectedTaskIds) {
-          updateTask(tid, { categoryId: id });
-        }
-        setActiveCategoryId(id);
-      });
-    }
+    deleteAndMoveOn(cat, "uncategorise");
+    toastManager.add({ title: "Category deleted" });
+  };
+
+  const confirmDelete = (tasks: CategoryTaskAction) => {
+    setConfirmingDelete(false);
+    if (!pendingDelete) return;
+    deleteAndMoveOn(pendingDelete.category, tasks);
+    toastManager.add({
+      title:
+        tasks === "delete" ? "Category and tasks deleted" : "Category deleted, tasks moved to Inbox",
+    });
   };
 
   const handleLeave = async (categoryId: string) => {
@@ -111,5 +118,12 @@ export const useCategoryActions = () => {
     handleSetColor,
     handleDelete,
     handleLeave,
+    deleteDialog: {
+      request: pendingDelete,
+      open: confirmingDelete,
+      onOpenChange: setConfirmingDelete,
+      onConfirm: confirmDelete,
+      currentUserId,
+    },
   };
 };

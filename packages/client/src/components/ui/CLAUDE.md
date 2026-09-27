@@ -14,6 +14,7 @@ These are unmodified shadcn output. Do not add app opinions here.
 | `checkbox.tsx` | `Checkbox`                   | —                                 |
 | `select.tsx`   | `Select`, `SelectTrigger`, … | —                                 |
 | `drawer.tsx`   | `Drawer`, `DrawerContent`, … | —                                 |
+| `alert-dialog.tsx` | `AlertDialog`, `AlertDialogContent`, … | Added by hand: `shadcn add` would overwrite `button.tsx`. Only the parts in use are exported (knip); backdrop uses `bg-backdrop` like the drawer |
 
 Regenerate any of these with: `npx shadcn@latest add <name> --overwrite`
 

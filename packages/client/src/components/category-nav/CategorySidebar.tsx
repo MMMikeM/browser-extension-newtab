@@ -16,6 +16,7 @@ import type { Category } from "~/lib/types";
 import { useCategoryNavState } from "./use-category-nav-state";
 import { useCategoryActions } from "./use-category-actions";
 import { CategoryOptionsContent } from "./CategoryOptionsContent";
+import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
 
 export const CATEGORY_DROP_PREFIX = "category-drop-";
 
@@ -85,6 +86,7 @@ export function CategorySidebar({ reorderable = true }: { reorderable?: boolean 
     handleSetColor,
     handleDelete,
     handleLeave,
+    deleteDialog,
   } = useCategoryActions();
   const {
     renamingId,
@@ -296,6 +298,7 @@ export function CategorySidebar({ reorderable = true }: { reorderable?: boolean 
           onClose={() => setSharingCategoryId(null)}
         />
       )}
+      <DeleteCategoryDialog {...deleteDialog} />
     </>
   );
 }

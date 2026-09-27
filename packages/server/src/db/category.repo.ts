@@ -1,15 +1,19 @@
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 import { z } from "@hono/zod-openapi";
-import { db } from "./client";
-import { categories } from "./schema";
+import { db, inTransaction } from "./client";
+import { categories, tasks } from "./schema";
 import { InsertFailedError, NotFoundError, StaleUpdateError } from "./errors";
-import { isoDatetime } from "@newtab-todo/shared/iso";
+import { isoDatetime, now } from "@newtab-todo/shared/iso";
+import { CATEGORY_TASK_ACTIONS, type CategoryTaskAction } from "@newtab-todo/shared/constants";
 
 export type CategoryInsert = typeof categories.$inferInsert;
 export type CategorySelect = typeof categories.$inferSelect;
 
 export const categorySelectSchema = createSelectSchema(categories).pick({ id: true });
+export const categoryDeleteSchema = categorySelectSchema.extend({
+  tasks: z.enum(CATEGORY_TASK_ACTIONS).optional(),
+});
 // list() includes user; insert/update/delete return the flat row without it.
 // nullish() allows the key to be absent so all routes satisfy this schema.
 const collaboratorUserSchema = z.object({
@@ -90,10 +94,22 @@ const update = async (id: string, updatedAt: string, fields: Partial<CategoryIns
   return row;
 };
 
-const remove = async (id: string) => {
-  const [row] = await db.delete(categories).where(eq(categories.id, id)).returning();
-  if (!row) throw new NotFoundError("category", id);
-  return row;
-};
+// One transaction, so a failed category delete can't leave its tasks already moved or deleted
+const removeWithTasks = async (id: string, taskIds: string[], action: CategoryTaskAction) =>
+  inTransaction(async (tx) => {
+    let updatedTasks: (typeof tasks.$inferSelect)[] = [];
+    if (taskIds.length > 0) {
+      if (action === "delete") await tx.delete(tasks).where(inArray(tasks.id, taskIds));
+      else
+        updatedTasks = await tx
+          .update(tasks)
+          .set({ categoryId: null, updatedAt: now() })
+          .where(inArray(tasks.id, taskIds))
+          .returning();
+    }
+    const [row] = await tx.delete(categories).where(eq(categories.id, id)).returning();
+    if (!row) throw new NotFoundError("category", id);
+    return { category: row, updatedTasks };
+  });
 
-export default { list, findById, findByIdWithCollaborators, insert, update, remove };
+export default { list, findById, findByIdWithCollaborators, insert, update, removeWithTasks };

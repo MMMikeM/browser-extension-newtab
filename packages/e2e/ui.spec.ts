@@ -133,6 +133,79 @@ test.describe("navigation", () => {
   });
 });
 
+test.describe("deleting a category", () => {
+  const openOptions = async (page: Page, name: string, isDesktop: boolean) => {
+    if (!isDesktop) await page.getByTestId("category-nav-trigger").click();
+    // The innermost element holding both the category's button and its options trigger
+    const categoryRow = page
+      .locator("div")
+      .filter({ has: page.getByRole("button", { name: new RegExp(`^${name}`) }) })
+      .filter({ has: page.getByRole("button", { name: "Category options" }) })
+      .last();
+    if (isDesktop) await categoryRow.hover();
+    await categoryRow.getByRole("button", { name: "Category options" }).click();
+  };
+
+  const deleteRequest = (page: Page) =>
+    page.waitForRequest((r) => r.method() === "DELETE" && r.url().endsWith("/api/categories"));
+
+  test("a category with tasks asks first, and Cancel keeps it", async ({ page }, testInfo) => {
+    const isDesktop = testInfo.project.name === "desktop";
+    await openList(page);
+    await openOptions(page, "Work", isDesktop);
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+    const dialog = page.getByRole("alertdialog");
+    await expect(dialog).toContainText("Delete “Work”?");
+    await expect(dialog).toContainText("It has 2 tasks.");
+    await expectNoAxeViolations(page);
+
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Work/ }).first()).toBeVisible();
+  });
+
+  for (const [choice, tasks] of [
+    ["Move to Inbox", "uncategorise"],
+    ["Delete tasks", "delete"],
+  ] as const) {
+    test(`${choice} sends that choice with the delete`, async ({ page }, testInfo) => {
+      await openList(page);
+      await openOptions(page, "Work", testInfo.project.name === "desktop");
+      await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+      const request = deleteRequest(page);
+      await page.getByRole("alertdialog").getByRole("button", { name: choice }).click();
+      expect((await request).postDataJSON()).toEqual({ id: "c-work", tasks });
+    });
+  }
+
+  test("an empty category deletes without asking", async ({ page }, testInfo) => {
+    await openList(page);
+    await openOptions(page, "Home", testInfo.project.name === "desktop");
+
+    const request = deleteRequest(page);
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    expect((await request).postDataJSON()).toEqual({ id: "c-home", tasks: "uncategorise" });
+    await expect(page.getByRole("alertdialog")).toHaveCount(0);
+    await expect(page.getByText("Category deleted")).toBeVisible();
+  });
+
+  test("a refused delete says so and brings the category back", async ({ page }, testInfo) => {
+    await openList(page);
+    await page.route("**/api/categories", (route) =>
+      route.request().method() === "DELETE"
+        ? route.fulfill({ status: 400, contentType: "application/json", body: '{"error":"no"}' })
+        : route.fallback(),
+    );
+    await openOptions(page, "Home", testInfo.project.name === "desktop");
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+
+    await expect(page.getByText("Couldn't delete “Home”")).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Home/ }).first()).toBeVisible();
+  });
+});
+
 test.describe("accessibility", () => {
   test("task list", async ({ page }) => {
     await openList(page);

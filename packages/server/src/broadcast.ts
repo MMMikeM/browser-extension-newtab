@@ -20,13 +20,17 @@ export const unregisterClient = (userId: string, writer: SSEWriter) => {
   if (set.size === 0) sseClients.delete(userId);
 };
 
-export const notifyMutation = (event: MutationEvent, userIds: string[]) => {
-  const payload = JSON.stringify(event);
+const writeEvents = (events: MutationEvent[], userIds: string[]) => {
+  const payloads = events.map((event) => JSON.stringify(event));
   for (const uid of userIds) {
     for (const client of sseClients.get(uid) ?? []) {
-      client.write("data-changed", payload);
+      for (const payload of payloads) client.write("data-changed", payload);
     }
   }
+};
+
+export const notifyMutation = (event: MutationEvent, userIds: string[]) => {
+  writeEvents([event], userIds);
   notifyOtherDevices(userIds).catch(() => {});
 };
 
@@ -47,4 +51,18 @@ export const broadcast = (
   userIds: string[],
 ) => {
   notifyMutation({ model, action, data, sourceClientId: c.req.header("x-client-id") }, userIds);
+};
+
+/** Broadcast several mutation events with one push per device, rather than one per event. */
+export const broadcastAll = (
+  c: Context,
+  events: Omit<MutationEvent, "sourceClientId">[],
+  userIds: string[],
+) => {
+  const sourceClientId = c.req.header("x-client-id");
+  writeEvents(
+    events.map((event) => ({ ...event, sourceClientId })),
+    userIds,
+  );
+  notifyOtherDevices(userIds).catch(() => {});
 };

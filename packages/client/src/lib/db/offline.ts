@@ -8,6 +8,7 @@ import {
 import { client } from "~/lib/api";
 import { getAuthToken, subscribeAuthToken } from "~/lib/auth/token";
 import { getCurrentUserId } from "~/lib/auth/current-user";
+import type { CategoryTaskAction } from "~/lib/constants";
 import type { Collection } from "@tanstack/db";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- transaction mutation payloads are untyped
@@ -82,6 +83,24 @@ const createSyncFn =
     }
   };
 
+export type CategoryDeleteMetadata = { categoryId: string; tasks: CategoryTaskAction };
+
+// One request for the category and its tasks: the server moves or deletes collaborators'
+// tasks too, which this user can't change one by one
+const deleteCategoryWithTasks = async ({
+  transaction,
+}: {
+  transaction: { metadata: Record<string, unknown> };
+}) => {
+  if (!getAuthToken()) throw new Error("Not authenticated");
+  const { categoryId, tasks } = transaction.metadata as CategoryDeleteMetadata;
+  console.log(`[sync:categories] DELETE → id=${categoryId} tasks=${tasks}`);
+  await assertOk(await client.api.categories.$delete({ json: { id: categoryId, tasks } }));
+  // Refetch rather than write each row: SSE may already have applied some, and writing a
+  // delete for a row the synced store no longer holds throws
+  await Promise.all([categoriesCollection.utils.refetch(), tasksCollection.utils.refetch()]);
+};
+
 export const offline = startOfflineExecutor({
   collections: { tasks: tasksCollection, categories: categoriesCollection, notes: notesCollection },
   mutationFns: {
@@ -91,6 +110,7 @@ export const offline = startOfflineExecutor({
       "collaborators",
     ]),
     syncNotes: createSyncFn("notes", client.api.notes, notesCollection),
+    deleteCategory: deleteCategoryWithTasks,
   },
 });
 

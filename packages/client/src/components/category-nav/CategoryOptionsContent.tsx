@@ -70,8 +70,9 @@ export function CategoryOptionsContent({
         </div>
       </fieldset>
       <div className="my-1 h-px bg-border" />
-      {/* Close explicitly: unlike Rename/Delete, sharing leaves the row mounted,
-          so the popover would otherwise stay open behind the share sheet */}
+      {/* Close explicitly: unlike Rename, sharing leaves the row mounted, and so does
+          deleting a category that still has tasks, which asks first. The popover would
+          otherwise stay open behind the share sheet or the prompt */}
       <PopoverClose
         render={<MenuItem data-testid="category-share-btn" />}
         onClick={() => onShare(cat.id)}
@@ -79,10 +80,10 @@ export function CategoryOptionsContent({
         <UserPlus />
         Share
       </PopoverClose>
-      <MenuItem intent="destructive" onClick={() => onDelete(cat.id)}>
+      <PopoverClose render={<MenuItem intent="destructive" />} onClick={() => onDelete(cat.id)}>
         <Trash2 />
         Delete
-      </MenuItem>
+      </PopoverClose>
     </>
   );
 }

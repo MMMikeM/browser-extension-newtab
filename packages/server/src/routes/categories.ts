@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import categoryRepo, {
   categoryInsertSchema,
   categoryUpdateSchema,
-  categorySelectSchema,
+  categoryDeleteSchema,
   categoryResponseSchema,
 } from "../db/category.repo";
 import categoryCollaboratorRepo from "../db/category-collaborator.repo";
@@ -11,7 +11,7 @@ import taskRepo from "../db/task.repo";
 import userRepo, { userPublicSchema } from "../db/user.repo";
 import contactRepo from "../db/contact.repo";
 import { authed } from "../middleware";
-import { broadcast } from "../broadcast";
+import { broadcast, broadcastAll } from "../broadcast";
 import { sendNotification, getUserName } from "../notify";
 import { errorSchema } from "./openapi-schemas";
 import { jsonBody, jsonContent, withAuth } from "./crud";
@@ -72,7 +72,7 @@ export const categoryRoutes = authed()
     createRoute({
       method: "delete",
       path: "/",
-      request: jsonBody(categorySelectSchema),
+      request: jsonBody(categoryDeleteSchema),
       responses: withAuth({
         200: jsonContent(categoryResponseSchema),
         400: jsonContent(errorSchema, "Bad request"),
@@ -80,27 +80,62 @@ export const categoryRoutes = authed()
       }),
     }),
     async (c) => {
-      const { id } = c.req.valid("json");
+      const { id, tasks: taskAction } = c.req.valid("json");
       const userId = c.get("userId");
 
       // findByIdWithCollaborators used (not findById) so we have userIds for broadcast
       // before the row is deleted — after deletion we can't look up collaborators.
-      const cat = await categoryRepo.findByIdWithCollaborators(id);
+      const [cat, categoryTasks] = await Promise.all([
+        categoryRepo.findByIdWithCollaborators(id),
+        taskRepo.listInCategory(id),
+      ]);
       if (cat.userId !== userId) throw new HTTPException(403, { message: "Not authorized" });
       const catUserIds = [
         cat.userId,
         ...cat.collaborators.flatMap((c) => (c.user ? [c.user.id] : [])),
       ];
 
-      const taskCount = await taskRepo.countByCategory(id);
-      if (taskCount > 0)
+      const topLevelIds = categoryTasks.filter((t) => t.categoryId === id).map((t) => t.id);
+      if (topLevelIds.length > 0 && !taskAction)
         throw new HTTPException(400, {
           message: "Move or delete all tasks before removing this category",
         });
 
-      const result = await categoryRepo.remove(id);
-      broadcast(c, "categories", "delete", { id: result.id }, catUserIds);
-      return c.json(result, 200);
+      const affectedIds = taskAction === "delete" ? categoryTasks.map((t) => t.id) : topLevelIds;
+      const { category, updatedTasks } = await categoryRepo.removeWithTasks(
+        id,
+        affectedIds,
+        taskAction ?? "uncategorise",
+      );
+
+      const taskEvents =
+        taskAction === "delete"
+          ? affectedIds.map((taskId) => ({
+              model: "tasks" as const,
+              action: "delete" as const,
+              data: { id: taskId },
+            }))
+          : updatedTasks.map((task) => ({
+              model: "tasks" as const,
+              action: "update" as const,
+              data: task,
+            }));
+      broadcastAll(
+        c,
+        [...taskEvents, { model: "categories", action: "delete", data: { id: category.id } }],
+        catUserIds,
+      );
+      // Task owners who have left the category, and people a task is shared with, hold the
+      // tasks but not the category
+      const outsideUserIds = [
+        ...new Set(
+          categoryTasks.flatMap((t) => [t.userId, ...t.shares.map((s) => s.sharedWithUserId)]),
+        ),
+      ].filter((uid) => !catUserIds.includes(uid));
+      if (taskEvents.length > 0 && outsideUserIds.length > 0)
+        broadcastAll(c, taskEvents, outsideUserIds);
+
+      return c.json(category, 200);
     },
   )
   // --- Collaborator sub-routes ---

@@ -5,7 +5,8 @@ import {
   notesCollection,
   contactsCollection,
 } from "~/lib/db/collections";
-import { offline } from "~/lib/db/offline";
+import { offline, type CategoryDeleteMetadata } from "~/lib/db/offline";
+import type { CategoryTaskAction } from "~/lib/constants";
 import type { Task, Category, Note } from "~/lib/types";
 import { now } from "~/lib/utils";
 export { contactsCollection };
@@ -60,11 +61,30 @@ export const updateCategory = (id: string, fields: Partial<Category>) => {
   console.log("[mutation] optimistic applied, tx queued");
 };
 
-export const deleteCategory = (id: string) => {
-  console.log(`[mutation] deleteCategory id=${id}`);
-  const tx = offline.createOfflineTransaction({ mutationFnName: "syncCategories" });
-  tx.mutate(() => categoriesCollection.delete(id));
+/** Returns the transaction, whose `isPersisted.promise` rejects if the server refuses. */
+export const deleteCategory = (id: string, tasks: CategoryTaskAction) => {
+  console.log(`[mutation] deleteCategory id=${id} tasks=${tasks}`);
+  const allTasks = [...(tasksCollection.state?.values() ?? [])];
+  const topLevelIds = new Set(allTasks.filter((t) => t.categoryId === id).map((t) => t.id));
+  const tx = offline.createOfflineTransaction({
+    mutationFnName: "deleteCategory",
+    metadata: { categoryId: id, tasks } satisfies CategoryDeleteMetadata,
+  });
+  const transaction = tx.mutate(() => {
+    for (const task of allTasks) {
+      if (tasks === "delete") {
+        if (topLevelIds.has(task.id) || (task.parentId && topLevelIds.has(task.parentId)))
+          tasksCollection.delete(task.id);
+      } else if (topLevelIds.has(task.id)) {
+        tasksCollection.update(task.id, (draft) =>
+          Object.assign(draft, { categoryId: null, updatedAt: now() }),
+        );
+      }
+    }
+    categoriesCollection.delete(id);
+  });
   console.log("[mutation] optimistic applied, tx queued");
+  return transaction;
 };
 
 export const addNote = (fields: Omit<Note, "id" | "createdAt" | "updatedAt">) => {

@@ -16,6 +16,7 @@ import type { Category } from "~/lib/types";
 import { useCategoryNavState } from "./use-category-nav-state";
 import { useCategoryActions } from "./use-category-actions";
 import { CategoryOptionsContent } from "./CategoryOptionsContent";
+import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
 
 const rowClass = (isActive: boolean) =>
   cn(
@@ -48,6 +49,7 @@ export function CategoryMobileSheet() {
     handleSetColor,
     handleDelete,
     handleLeave,
+    deleteDialog,
   } = useCategoryActions();
   const {
     renamingId,
@@ -240,6 +242,7 @@ export function CategoryMobileSheet() {
           onClose={() => setSharingCategoryId(null)}
         />
       )}
+      <DeleteCategoryDialog {...deleteDialog} />
     </>
   );
 }

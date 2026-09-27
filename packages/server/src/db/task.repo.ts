@@ -159,8 +159,13 @@ const updateShareCategory = async (
   return row;
 };
 
-const countByCategory = async (categoryId: string): Promise<number> =>
-  db.$count(tasks, eq(tasks.categoryId, categoryId));
+/** A category's tasks and their subtasks, which carry no categoryId of their own. */
+const listInCategory = async (categoryId: string) =>
+  db.query.tasks.findMany({
+    where: { OR: [{ categoryId }, { parent: { categoryId } }] },
+    columns: { id: true, userId: true, categoryId: true },
+    with: { shares: { columns: { sharedWithUserId: true } } },
+  });
 
 /** Returns userIds of everyone a task is shared with. */
 const listShareUserIds = async (taskId: string) => {
@@ -191,7 +196,7 @@ export default {
   insertShare,
   removeShare,
   updateShareCategory,
-  countByCategory,
+  listInCategory,
   listShareUserIds,
   findOverdue,
 };
