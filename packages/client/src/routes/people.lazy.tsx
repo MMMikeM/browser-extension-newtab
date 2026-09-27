@@ -67,7 +67,7 @@ export function PeoplePage() {
         >
           <ChevronLeft className="size-5" />
         </Button>
-        <h2 className="text-lg font-semibold">People</h2>
+        <h2 className="font-display text-[1.75rem] leading-tight text-foreground">People</h2>
       </div>
 
       <Button

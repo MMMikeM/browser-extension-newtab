@@ -174,7 +174,7 @@ A warm, near-monochrome palette of browns and creams with a single earthy green.
 ### Hierarchy
 
 - **Wordmark** (DM Serif Display, 1.125rem, uppercase, tracking 0.28em): "AJOT" in the header. Kept small so the list title leads.
-- **Headline** (DM Serif Display, 1.75rem, 1.25): the active category as the list title, with its colour dot and open count, on both targets.
+- **Headline** (DM Serif Display, 1.75rem, 1.25): the active category as the list title, with its colour dot and open count, on both targets. Page titles (People, sign-in) use the same style.
 - **Capture** (Figtree, 1.125rem): the "What needs doing?" input.
 - **Title** (Figtree 600, 1.125rem, 1.375): the task title in the detail sheet.
 - **Body** (Figtree 500, 1rem, 1.5): task titles in the list, wrapping to at most two lines.
@@ -184,7 +184,7 @@ A warm, near-monochrome palette of browns and creams with a single earthy green.
 ## Layout
 
 - **Desktop (fine pointer, at least 40rem wide; the `desk:` variant):** the category sidebar (11rem) and the list column (24rem, 1.5rem gutters) share one `shell` surface, split by a faint hairline, and centre on the page as a single panel. The column shifts right by half the sidebar's width (`desk:left-22`), and the desktop detail sheet follows it. AppShell draws the sidebar's surface so it is in the first paint; the sidebar's items arrive with the data. Top to bottom, the column holds the header, the list title, the capture input (autofocused) and the list. Pages without the sidebar (People, sign-in) keep a lone centred column. Narrower pointer windows fall back to the lone column.
-- **Touch (coarse pointer):** a full-height (`100dvh`) column up to 32rem wide. From top to bottom: header (wordmark and sync status), the tappable list title, the scrolling list, and the input bar pinned to the bottom edge. The gutter is `max(1.25rem, safe-area insets)`, and the input bar pads for the home indicator. Layout switches on pointer type (`touch:` variant), not viewport width.
+- **Touch (coarse pointer):** a full-height (`100dvh`) column up to 32rem wide. From top to bottom: header (wordmark and sync status), the tappable list title, the scrolling list, and the input bar pinned to the bottom edge. The gutter is `max(1.25rem, safe-area insets)`, and the input bar pads for the home indicator (less while typing, when the keyboard covers it). The list's top and bottom edges fade only when rows have scrolled past them (`scroll-edge-fade`, a scroll-driven mask; no fade where scroll timelines are unsupported). Layout switches on pointer type (`touch:` variant), not viewport width.
 - **Rhythm:** rows use 0.625rem vertical padding, with tight groups inside a row and larger gaps between sections.
 - **Open issue (partly addressed):** the shared sidebar-and-column panel and the list title anchor the desktop layout, where the sidebar used to float beside the column. Negative space outside the panel is still plain gradient.
 
@@ -205,6 +205,7 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 
 - **Shape:** pill (`1.17rem`).
 - **Variants:** primary (green fill), outline, ghost (muted well on hover), subtle (hint text that brightens on hover) and link. A destructive intent recolours ghost and subtle buttons.
+- **Primary action with a text label** (Sign in, accept invite, add collaborator): the `primary-subtle` pill with `primary` text, as the touch add button uses. Light text on the solid `primary` fill measures about 3.6:1, under the Contrast Floor.
 - **Touch:** targets grow to 36–44px through `touch:` sizing rather than separate components.
 
 ### Toggle Pills
@@ -223,17 +224,23 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 - **Grip:** on desktop it hangs in the column gutter and appears on hover; on touch it sits in flow and is always visible. Done rows keep the grip's box but hide it, since they aren't sortable.
 - **Desktop quick actions:** hover or keyboard focus reveals Set due date (only when undated), Add subtask and Delete as `hint` icon buttons floating over the row's end. Nothing reserves space for them at rest: the title's tail fades out beneath them (`fade-under-actions`, sized by the row's `--actions-w`) and the meta slides left to clear them.
 - **Touch quick actions:** swipe left to reveal a tray on `surface-muted` with Date and Subtask actions, plus Delete on `destructive-subtle`. The row is transparent at rest and turns opaque only while swiping (`data-swiping`), so rows never read as stacked cards. On a device's first visit, the top row slides open once to show the tray.
+- **Completing:** a ticked row holds its checked, struck-through, faded state for 450ms before it moves to Done, so the tick is seen and a mis-click can be undone by ticking again in that window.
 - **Subtasks:** the thread drops from the centre of the parent checkbox, and subtask checkboxes align with the parent title.
 - **List rows elsewhere** (detail sheet, People, sharing): hover-revealed actions sit in a `RevealGroup`, which floats over the row's end on the row's hover colour on desktop and stays in flow on touch.
 
 ### Navigation
 
-- **Desktop:** the sidebar lists Inbox and categories with colour dots. The active item shows a short coloured bar; items double as drop targets for dragged tasks. The per-category options button takes no width until the item is hovered or focused, and "Add" lines up with the category names.
+- **Desktop:** the sidebar lists Inbox and categories with colour dots. The active item shows a short coloured bar; items double as drop targets for dragged tasks. The per-category options button takes no width until the item is hovered or focused, and "Add" lines up with the category names. Items show open-task counts, like the touch sheet; a shared list's owner shows through its avatar (full name on hover) rather than a name suffix. Below the `desk:` breakpoint a fine-pointer window switches to the touch pattern: the sidebar hides and the list title opens the category sheet.
+- **Category options:** Rename, Colour, Share and Delete or Leave share one item style with icons. The chosen swatch shows a ring and tick, and is marked `aria-pressed`, so selection doesn't rely on colour.
 - **Touch:** the active category is the serif list title at the top (colour dot, name, open count) and a smaller "adding to" chip above the input. Both open the same bottom sheet, which lists categories with open-task counts, marks the active row with `primary-selected`, and holds the add-category, per-category options and People entries.
+
+### Empty List
+
+- A time-of-day phrase ("Morning.", "All quiet.") in DM Serif Display at 1.5rem in `muted-foreground`, with a `hint` line pointing at the capture input (above on desktop, below on touch).
 
 ### Toasts
 
-- Surface card, bottom centre, with a primary-subtle countdown bar animated with `scaleX`. On touch they sit above the input bar (`--input-bar-h`).
+- Surface card, bottom centre, with a countdown bar (`primary` at 40%, so it reads against the card) animated with `scaleX`. The bar follows the toast's own timeout, pauses while the stack is hovered or focused, and is absent for toasts without a timeout and under reduced motion. Dismiss is an icon button. On touch they sit above the input bar (`--input-bar-h`).
 
 ### Sync Status
 

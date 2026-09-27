@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthToken, setAuthToken } from "~/lib/auth/token";
 import { useCurrentUser, clearCurrentUser } from "~/lib/auth/current-user";
@@ -71,7 +72,7 @@ export const SyncSettings = () => {
       <Button
         variant="ghost"
         size="xs"
-        className="touch:h-9 touch:px-3 touch:text-sm"
+        className="relative touch:h-9 touch:px-3 touch:text-sm touch:after:absolute touch:after:inset-x-0 touch:after:-inset-y-1"
         onClick={() => router.navigate({ to: "/auth" })}
       >
         Sign in
@@ -79,7 +80,7 @@ export const SyncSettings = () => {
     );
   }
 
-  const menuItem = "justify-start touch:h-10 touch:text-sm";
+  const menuItem = "h-8 justify-start text-sm touch:h-10";
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
@@ -89,7 +90,8 @@ export const SyncSettings = () => {
             variant="ghost"
             size="xs"
             className={cn(
-              "gap-1.5 touch:h-9 touch:px-3",
+              // after: stretches the 36px touch button to a 44px target without growing the header
+              "relative gap-1.5 touch:h-9 touch:px-3 touch:after:absolute touch:after:inset-x-0 touch:after:-inset-y-1",
               syncState === "disconnected"
                 ? "text-foreground"
                 : "text-hint hover:text-muted-foreground",
@@ -122,6 +124,7 @@ export const SyncSettings = () => {
           align="end"
           sideOffset={8}
           backdrop
+          aria-label="Account"
           className="flex min-w-[200px] flex-col p-2"
         >
           <div className="flex flex-col gap-0.5 px-2.5 pt-1 pb-2">
@@ -136,7 +139,14 @@ export const SyncSettings = () => {
           )}
           {getBuildTarget() === "browser" && (
             <Button variant="subtle" size="xs" className={menuItem} onClick={handleTogglePush}>
-              {pushEnabled ? "✓ Background sync on" : "Enable background sync"}
+              {pushEnabled ? (
+                <>
+                  Background sync on
+                  <Check data-icon="inline-end" className="ml-auto text-primary" />
+                </>
+              ) : (
+                "Enable background sync"
+              )}
             </Button>
           )}
           <Button

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { acceptInvite } from "~/lib/actions";
 import { useAuthToken } from "~/lib/auth/token";
@@ -7,6 +8,10 @@ import { Button } from "~/components/ui/button";
 export const Route = createLazyFileRoute("/invite/$token")({
   component: InviteAcceptPage,
 });
+
+// The sign-in page's primary action: solid primary can't carry text at 4.5:1
+const primaryPill =
+  "w-full bg-primary-subtle text-primary hover:bg-primary-selected hover:text-primary touch:h-11";
 
 export function InviteAcceptPage() {
   const { token } = Route.useParams();
@@ -38,27 +43,44 @@ export function InviteAcceptPage() {
 
   if (!authToken) return null;
 
+  // Same frame as the sign-in page: serif headline over a single primary action
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center px-6">
-      <div className="flex max-w-xs flex-col items-center gap-4 text-center">
+    <div className="flex flex-col items-center justify-start pt-[20vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
+      <div className="flex w-full max-w-xs flex-col gap-8">
+        <h2 className="font-display text-[1.75rem] leading-tight text-balance text-foreground">
+          {isSuccess ? "You're now connected!" : "You've been invited to connect."}
+        </h2>
         {isSuccess ? (
-          <>
-            <p className="text-lg font-semibold">You're now connected!</p>
-            <Button variant="link" onClick={() => router.navigate({ to: "/people" })}>
-              Go to People →
-            </Button>
-          </>
+          <Button
+            variant="ghost"
+            className={primaryPill}
+            onClick={() => router.navigate({ to: "/people" })}
+          >
+            Go to People
+            <ArrowRight data-icon="inline-end" />
+          </Button>
         ) : (
-          <>
-            <p className="text-sm text-hint">You've been invited to connect.</p>
-            {errorMsg && <p className="text-sm text-destructive">{errorMsg}</p>}
-            <Button variant="outline" onClick={accept} disabled={isPending}>
+          <div className="flex flex-col gap-2">
+            {errorMsg && (
+              <div
+                role="alert"
+                className="mb-1 rounded-md border border-destructive bg-destructive-subtle px-3 py-2 text-sm text-destructive"
+              >
+                {errorMsg}
+              </div>
+            )}
+            <Button variant="ghost" className={primaryPill} onClick={accept} disabled={isPending}>
               {isPending ? "Accepting…" : "Accept invite"}
             </Button>
-            <Button variant="subtle" size="xs" onClick={() => router.navigate({ to: "/" })}>
+            <Button
+              variant="subtle"
+              size="xs"
+              className="self-center touch:h-10 touch:text-sm"
+              onClick={() => router.navigate({ to: "/" })}
+            >
               Go to app
             </Button>
-          </>
+          </div>
         )}
       </div>
     </div>

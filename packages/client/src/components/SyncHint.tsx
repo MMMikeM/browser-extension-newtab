@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { CloudOff, X } from "lucide-react";
 import { useAuthToken } from "~/lib/auth/token";
 import { Button } from "~/components/ui/button";
 import { Link } from "~/components/ui/link";
@@ -20,8 +20,12 @@ export function SyncHint() {
   if (token || tasks.length === 0 || dismissed) return null;
 
   return (
-    <p className="mt-1.5 text-xs text-hint">
-      Saved on this device. <Link to="/auth">Sign in to sync across devices</Link>{" "}
+    // A status line across the column, so it reads as where the data lives rather than a stray aside
+    <div className="mt-1.5 flex items-center gap-2 border-b border-border pb-2 text-xs text-hint">
+      <CloudOff className="size-3.5 shrink-0" aria-hidden="true" />
+      <p className="min-w-0 flex-1">
+        Saved on this device. <Link to="/auth">Sign in to sync across devices</Link>
+      </p>
       <Button
         variant="subtle"
         size="xs"
@@ -30,12 +34,12 @@ export function SyncHint() {
           localStorage.setItem(DISMISSED_KEY, String(Date.now() + DISMISS_DURATION_MS));
           setDismissed(true);
         }}
-        className="inline-flex align-middle touch:size-8"
+        className="-mr-1.5 shrink-0 touch:size-8"
         aria-label="Dismiss"
       >
         <X />
       </Button>
-    </p>
+    </div>
   );
 }
 

@@ -73,9 +73,9 @@ const AuthView = () => {
   return (
     <div className="flex flex-col items-center justify-start pt-[20vh] pb-16 touch:flex-1 touch:overflow-y-auto touch:pt-[12vh] touch:pb-10">
       <div className="w-full max-w-xs">
-        <p className="mb-6 text-center text-sm text-hint">
+        <h2 className="mb-8 font-display text-[1.75rem] leading-tight text-balance text-foreground">
           {mode === "signup" ? "Create your account" : "Sign in to sync across devices"}
-        </p>
+        </h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -140,10 +140,12 @@ const AuthView = () => {
             </div>
           )}
           <div className="mt-1 flex flex-col gap-2">
+            {/* The olive primary-subtle pill (as the touch add button): the solid primary fill
+                can't carry text at 4.5:1 */}
             <Button
               type="submit"
-              variant="outline"
-              className="w-full touch:h-11"
+              variant="ghost"
+              className="w-full bg-primary-subtle text-primary hover:bg-primary-selected hover:text-primary touch:h-11"
               disabled={form.state.isSubmitting}
             >
               {form.state.isSubmitting
