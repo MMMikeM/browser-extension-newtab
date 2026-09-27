@@ -17,11 +17,8 @@ const router = getRouter();
 // In prod, index.html has prerendered content — hydrate to preserve it.
 // In dev (vite dev), root is empty — fall back to createRoot.
 if (root.innerHTML.trim()) {
-  console.log("[hydration] router.ssr before assignment:", router.ssr);
   router.ssr = { manifest: undefined };
-  console.log("[hydration] router.ssr after assignment:", router.ssr);
   await router.load();
-  console.log("[hydration] router.ssr after load():", router.ssr);
   hydrateRoot(
     root,
     <StrictMode>
