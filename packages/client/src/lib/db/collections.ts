@@ -16,6 +16,9 @@ import { getBuildTarget } from "../build-target";
 // Lazy route components that consume these collections suspend in SSR before rendering,
 // so null exports are safe. See packages/client/src/routes/CLAUDE.md.
 
+// Signed out, each queryFn returns [] rather than throwing: a query error during the first
+// load puts the collection in an error state that rejects local inserts. Signed-out edits
+// live as pending outbox transactions (lib/db/offline.ts) until the user signs in.
 async function makeCollections() {
   if (getBuildTarget() === "server")
     return {
@@ -41,15 +44,14 @@ async function makeCollections() {
           id: "contacts",
           queryKey: ["contacts"] as const,
           queryFn: async () => {
-            if (!getAuthToken()) throw new Error("Not authenticated");
+            if (!getAuthToken()) return [];
             const res = await client.api.contacts.$get();
             if (!res.ok) throw new Error("Failed to fetch contacts");
             return res.json();
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) =>
-            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: () => !!getAuthToken(),
         }),
       }),
     ),
@@ -62,7 +64,7 @@ async function makeCollections() {
           id: "categories",
           queryKey: ["categories"] as const,
           queryFn: async () => {
-            if (!getAuthToken()) throw new Error("Not authenticated");
+            if (!getAuthToken()) return [];
             const res = await client.api.categories.$get();
             if (!res.ok) throw new Error("Failed to fetch categories");
             // Response schema marks user/collaborators nullish (shared with mutation routes),
@@ -71,8 +73,7 @@ async function makeCollections() {
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) =>
-            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: () => !!getAuthToken(),
         }),
       }),
     ),
@@ -85,15 +86,14 @@ async function makeCollections() {
           id: "tasks",
           queryKey: ["tasks"] as const,
           queryFn: async () => {
-            if (!getAuthToken()) throw new Error("Not authenticated");
+            if (!getAuthToken()) return [];
             const res = await client.api.tasks.$get();
             if (!res.ok) throw new Error("Failed to fetch tasks");
             return res.json();
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) =>
-            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: () => !!getAuthToken(),
         }),
       }),
     ),
@@ -106,15 +106,14 @@ async function makeCollections() {
           id: "notes",
           queryKey: ["notes"] as const,
           queryFn: async () => {
-            if (!getAuthToken()) throw new Error("Not authenticated");
+            if (!getAuthToken()) return [];
             const res = await client.api.notes.$get();
             if (!res.ok) throw new Error("Failed to fetch notes");
             return res.json();
           },
           queryClient,
           getKey: (item) => item.id,
-          retry: (_, error) =>
-            !!getAuthToken() && !(error instanceof Error && error.message === "Not authenticated"),
+          retry: () => !!getAuthToken(),
         }),
       }),
     ),
