@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { createSelectSchema } from "drizzle-orm/zod";
 import { createId } from "@paralleldrive/cuid2";
-import { db } from "./client";
+import { db, inTransaction } from "./client";
 import { contacts } from "./schema";
 import { NotFoundError } from "./errors";
 import { userPublicSchema } from "./user.repo";
@@ -43,7 +43,7 @@ const remove = async (id: string, userId: string) => {
   const contact = await db.query.contacts.findFirst({ where: { id, userId } });
   if (!contact) throw new NotFoundError("contact", id);
 
-  await db.transaction(async (tx) => {
+  await inTransaction(async (tx) => {
     await tx
       .delete(contacts)
       .where(and(eq(contacts.userId, userId), eq(contacts.contactUserId, contact.contactUserId)));

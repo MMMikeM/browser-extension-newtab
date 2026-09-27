@@ -106,12 +106,9 @@ export const SyncSettings = () => {
               ? "bg-destructive"
               : hasPending || syncState === "connecting"
                 ? "animate-pulse bg-pending"
-                : "bg-primary-subtle",
+                : "bg-primary",
           )}
         />
-        {/* Connected idle: ghost label — whispers affordance without competing.
-            Pending/connecting: hint level — active state deserves presence.
-            Disconnected: full foreground — error demands attention. */}
         <span className={cn(syncState === "disconnected" && "font-medium")}>
           {hasPending && syncState !== "disconnected" ? "Syncing…" : SYNC_LABELS[syncState]}
         </span>

@@ -156,7 +156,7 @@ A warm, near-monochrome palette of browns and creams with a single earthy green.
 - **Destructive** (`oklch(0.704 0.191 22.216)`) on **Destructive Subtle** (`oklch(0.22 0.04 22)`): overdue dates, delete actions and errors.
 - **Pending** (`oklch(0.7 0.1 75)`): syncing state.
 - **Collab** (`oklch(0.46 0.06 228)`): collaborator avatars.
-- **Category swatches** (Rust, Amber, Gold, Sage, Spruce, Slate, Mauve, Blush): warm-leaning, lower-chroma colours chosen to sit on the dark background. The Inbox uses a warm off-white (`oklch(0.90 0.008 80)`).
+- **Category swatches** (Rust, Amber, Gold, Sage, Spruce, Slate, Mauve, Blush): warm-leaning, lower-chroma colours chosen to sit on the dark background. The Inbox uses a warm off-white (`oklch(0.90 0.008 80)`). A list without a colour shows a `ghost` dot everywhere (sidebar, sheet, list title, adding-to chip), never the Inbox white.
 
 ### Named Rules
 
@@ -183,7 +183,7 @@ A warm, near-monochrome palette of browns and creams with a single earthy green.
 
 ## Layout
 
-- **Desktop (fine pointer, at least 40rem wide; the `desk:` variant):** the category sidebar (11rem) and the list column (24rem, 1.5rem gutters) share one `shell` surface, split by a faint hairline, and centre on the page as a single panel. The column shifts right by half the sidebar's width (`desk:left-22`), and the desktop detail sheet follows it. AppShell draws the sidebar's surface so it is in the first paint; the sidebar's items arrive with the data. Top to bottom, the column holds the header, the list title, the capture input (autofocused) and the list. Pages without the sidebar (People, sign-in) keep a lone centred column. Narrower pointer windows fall back to the lone column.
+- **Desktop (fine pointer, at least 44rem wide; the `desk:` variant and `useIsDesk`):** the category sidebar (`--sidebar-w`, 13rem) and the list column (`--column-w`, 28rem, 1.5rem gutters) share one `shell` surface, split by a faint hairline, and centre on the page as a single panel. The panel geometry lives in those tokens and the derived `--column-shift` and `--panel-left`; the column, sidebar, task detail sheet and share sheet all read from them. AppShell draws the sidebar's surface so it is in the first paint; the sidebar's items arrive with the data. Top to bottom, the column holds the header, the list title, the capture input (autofocused) and the list. People keeps the sidebar (lists can't be reordered there), so moving between it and the list doesn't shift the column; sign-in and invite pages use a lone centred column. Narrower pointer windows fall back to the lone column.
 - **Touch (coarse pointer):** a full-height (`100dvh`) column up to 32rem wide. From top to bottom: header (wordmark and sync status), the tappable list title, the scrolling list, and the input bar pinned to the bottom edge. The gutter is `max(1.25rem, safe-area insets)`, and the input bar pads for the home indicator (less while typing, when the keyboard covers it). The list's top and bottom edges fade only when rows have scrolled past them (`scroll-edge-fade`, a scroll-driven mask; no fade where scroll timelines are unsupported). Layout switches on pointer type (`touch:` variant), not viewport width.
 - **Rhythm:** rows use 0.625rem vertical padding, with tight groups inside a row and larger gaps between sections.
 - **Open issue (partly addressed):** the shared sidebar-and-column panel and the list title anchor the desktop layout, where the sidebar used to float beside the column. Negative space outside the panel is still plain gradient.
@@ -230,7 +230,7 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 
 ### Navigation
 
-- **Desktop:** the sidebar lists Inbox and categories with colour dots. The active item shows a short coloured bar; items double as drop targets for dragged tasks. The per-category options button takes no width until the item is hovered or focused, and "Add" lines up with the category names. Items show open-task counts, like the touch sheet; a shared list's owner shows through its avatar (full name on hover) rather than a name suffix. Below the `desk:` breakpoint a fine-pointer window switches to the touch pattern: the sidebar hides and the list title opens the category sheet.
+- **Desktop:** the sidebar lists Inbox and categories with colour dots. The active item shows a short coloured bar; items double as drop targets for dragged tasks. Open-task counts sit in a fixed-width right column, so they line up down the sidebar; a shared list's collaborator avatar follows its name (full name on hover) rather than a name suffix. The per-category options button fades in over the count on hover or focus, so the row never reflows. "Add" lines up with the category names. Choosing a list from People returns to the list, and the People link shows as active there. Below the `desk:` breakpoint a fine-pointer window switches to the touch pattern: the sidebar hides and the list title opens the category sheet.
 - **Category options:** Rename, Colour, Share and Delete or Leave share one item style with icons. The chosen swatch shows a ring and tick, and is marked `aria-pressed`, so selection doesn't rely on colour.
 - **Touch:** the active category is the serif list title at the top (colour dot, name, open count) and a smaller "adding to" chip above the input. Both open the same bottom sheet, which lists categories with open-task counts, marks the active row with `primary-selected`, and holds the add-category, per-category options and People entries.
 
@@ -244,7 +244,7 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 
 ### Sync Status
 
-- A dot plus a text label (Sync, Syncing…, Offline) in the header, opening the account menu.
+- A dot plus a text label (Sync, Syncing…, Offline) in the header, opening the account menu. The dot is `primary` when idle, `pending` (pulsing) while syncing and `destructive` when offline.
 
 ## Do's and Don'ts
 

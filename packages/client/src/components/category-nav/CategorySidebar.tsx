@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type RefCallback } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
 import { Ellipsis, Plus } from "lucide-react";
@@ -19,49 +19,58 @@ import { CategoryOptionsContent } from "./CategoryOptionsContent";
 
 export const CATEGORY_DROP_PREFIX = "category-drop-";
 
-const OpenCount = ({ count }: { count: number }) =>
-  count > 0 ? (
-    <span className="text-xs text-hint tabular-nums">
-      {count}
-      <span className="sr-only"> open</span>
-    </span>
-  ) : null;
+// Fixed width even when empty, so counts line up down the sidebar
+const OpenCount = ({ count, className }: { count: number; className?: string }) => (
+  <span className={cn("ml-auto w-5 shrink-0 text-right text-xs text-hint tabular-nums", className)}>
+    {count > 0 && (
+      <>
+        {count}
+        <span className="sr-only"> open</span>
+      </>
+    )}
+  </span>
+);
 
 // ─── DnD wrappers ──────────────────────────────────────────────────────────
 
 function SortablePill({
   id,
   index,
+  disabled,
   children,
 }: {
   id: string;
   index: number;
+  disabled: boolean;
   children: (ref: RefCallback<HTMLElement>) => ReactNode;
 }) {
-  const { ref } = useSortable({ id, index, type: "category" });
+  const { ref } = useSortable({ id, index, type: "category", disabled });
   return <>{children(ref)}</>;
 }
 
 function DroppablePill({
   categoryId,
   activeCategoryId,
+  disabled,
   children,
 }: {
   categoryId: string;
   activeCategoryId: string | null;
+  disabled: boolean;
   children: (ref: RefCallback<HTMLElement>, isDropTarget: boolean) => ReactNode;
 }) {
   const { ref, isDropTarget } = useDroppable({
     id: `${CATEGORY_DROP_PREFIX}${categoryId}`,
     accept: "task",
-    disabled: categoryId === activeCategoryId,
+    disabled: disabled || categoryId === activeCategoryId,
   });
   return <>{children(ref, isDropTarget)}</>;
 }
 
 // ─── CategorySidebar ────────────────────────────────────────────────────────
 
-export function CategorySidebar() {
+// Outside the task list (People), lists can't be reordered: the drop handling lives with the list
+export function CategorySidebar({ reorderable = true }: { reorderable?: boolean }) {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const {
@@ -88,12 +97,19 @@ export function CategorySidebar() {
     renameRef,
   } = useCategoryNavState(handleRename);
 
+  const navigate = useNavigate();
+  const onListPage = useRouterState({ select: (s) => s.location.pathname === "/" });
+  const openList = (categoryId: string | null) => {
+    setActiveCategoryId(categoryId);
+    if (!onListPage) void navigate({ to: "/" });
+  };
+
   const ownedCategories = categories.filter((c) => c.userId === currentUserId);
   const sharedCategories = categories.filter((c) => c.userId !== currentUserId);
 
   const renderPill = (cat: Category, index: number) => {
     const isOwned = cat.userId === currentUserId;
-    const isActive = activeCategoryId === cat.id;
+    const isActive = onListPage && activeCategoryId === cat.id;
 
     if (renamingId === cat.id) {
       return (
@@ -118,9 +134,13 @@ export function CategorySidebar() {
     }
 
     return (
-      <SortablePill key={cat.id} id={cat.id} index={index}>
+      <SortablePill key={cat.id} id={cat.id} index={index} disabled={!reorderable}>
         {(sortableRef) => (
-          <DroppablePill categoryId={cat.id} activeCategoryId={activeCategoryId}>
+          <DroppablePill
+            categoryId={cat.id}
+            activeCategoryId={activeCategoryId}
+            disabled={!reorderable}
+          >
             {(droppableRef, isDropTarget) => (
               <div className="group/pill relative flex items-center">
                 <button
@@ -128,7 +148,7 @@ export function CategorySidebar() {
                     sortableRef(el);
                     droppableRef(el);
                   }}
-                  onClick={() => setActiveCategoryId(cat.id)}
+                  onClick={() => openList(cat.id)}
                   className={cn(
                     "flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors",
                     isActive ? "text-foreground" : "text-hint hover:text-foreground",
@@ -142,17 +162,21 @@ export function CategorySidebar() {
                     />
                   )}
                   <ColorDot size="sm" color={cat.color ?? undefined} />
-                  <span className="flex-1 truncate">{cat.name}</span>
-                  <OpenCount count={openCounts.get(cat.id) ?? 0} />
+                  <span className="min-w-0 truncate">{cat.name}</span>
+                  <CollabBadge category={cat} currentUserId={currentUserId} />
+                  <OpenCount
+                    count={openCounts.get(cat.id) ?? 0}
+                    className="transition-opacity group-hover/pill:opacity-0 group-has-[[data-popup-open]]/pill:opacity-0 group-has-[[data-slot=category-options]:focus-visible]/pill:opacity-0"
+                  />
                 </button>
 
-                <CollabBadge category={cat} currentUserId={currentUserId} />
-
                 <Popover>
+                  {/* Takes the count's place on hover, so the row doesn't reflow */}
                   <PopoverTrigger
                     render={
                       <button
-                        className="flex h-5 w-0 shrink-0 items-center justify-center overflow-hidden rounded text-hint opacity-0 transition-opacity group-hover/pill:mr-1 group-hover/pill:w-5 group-hover/pill:opacity-100 hover:text-foreground focus-visible:mr-1 focus-visible:w-5 focus-visible:opacity-100 data-[popup-open]:mr-1 data-[popup-open]:w-5 data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
+                        data-slot="category-options"
+                        className="pointer-events-none absolute top-1/2 right-3 flex size-5 -translate-y-1/2 items-center justify-center rounded text-hint opacity-0 transition-opacity group-hover/pill:pointer-events-auto group-hover/pill:opacity-100 hover:text-foreground focus-visible:pointer-events-auto focus-visible:opacity-100 data-[popup-open]:pointer-events-auto data-[popup-open]:text-foreground data-[popup-open]:opacity-100"
                         aria-label="Category options"
                       />
                     }
@@ -181,25 +205,26 @@ export function CategorySidebar() {
 
   return (
     <>
-      {/* On AppShell's sidebar surface; left tracks AppShell's desk:left-22 offset */}
       <nav
         aria-label="Lists"
         data-testid="category-sidebar"
-        className="fixed top-0 left-[calc(50vw-17.5rem)] z-10 hidden h-screen w-44 flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
+        className="fixed top-0 left-(--panel-left) z-10 hidden h-screen w-(--sidebar-w) flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
       >
         {showInbox && (
           <button
-            onClick={() => setActiveCategoryId(null)}
+            onClick={() => openList(null)}
             className={cn(
               "relative flex items-center gap-2 px-3 py-1.5 text-sm transition-colors",
-              activeCategoryId === null ? "text-foreground" : "text-hint hover:text-foreground",
+              onListPage && activeCategoryId === null
+                ? "text-foreground"
+                : "text-hint hover:text-foreground",
             )}
           >
-            {activeCategoryId === null && (
+            {onListPage && activeCategoryId === null && (
               <span className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
             )}
             <ColorDot size="sm" color={INBOX_COLOR} />
-            <span className="flex-1 text-left">Inbox</span>
+            <span className="text-left">Inbox</span>
             <OpenCount count={inboxCount} />
           </button>
         )}
@@ -257,7 +282,7 @@ export function CategorySidebar() {
         <div className="mt-2 border-t border-ghost/15 pt-2">
           <Link
             to="/people"
-            className="flex items-center px-3 py-1.5 text-sm text-hint transition-colors hover:text-foreground"
+            className="flex items-center px-3 py-1.5 text-sm text-hint transition-colors hover:text-foreground data-[status=active]:text-foreground"
           >
             People
           </Link>

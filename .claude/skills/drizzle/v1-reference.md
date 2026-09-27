@@ -3,39 +3,27 @@
 ## Installation
 
 ```bash
-npm i drizzle-orm@rc @libsql/client
+npm i drizzle-orm@rc @tursodatabase/serverless
 npm i -D drizzle-kit@rc
 ```
 
 ---
 
-## Driver Setup (Turso/libSQL)
-
-### Using connection config
+## Driver Setup (Turso, serverless driver)
 
 ```typescript
-import { drizzle } from "drizzle-orm/libsql";
+import { connect } from "@tursodatabase/serverless";
+import { drizzle } from "drizzle-orm/tursodatabase-serverless";
 
-const db = drizzle({
-  connection: {
-    url: process.env.TURSO_DATABASE_URL!,
-    authToken: process.env.TURSO_AUTH_TOKEN!,
-  },
-});
-```
-
-### Using existing client
-
-```typescript
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
-
-const client = createClient({
+const client = connect({
   url: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN,
+  defaultQueryTimeout: 30_000,
 });
 const db = drizzle({ client });
 ```
+
+A connection is one Turso session: run transactions on their own connection (this project's `inTransaction()` in `db/client.ts`).
 
 ### With relations
 
@@ -60,7 +48,7 @@ export const tasks = snakeCase.table("tasks", {
 
 `camelCase.table()` / `camelCase.view()` also exist. This project doesn't use either; it passes explicit column names instead.
 
-Driver sub-imports: `/libsql`, `/libsql/node`, `/libsql/web`, `/libsql/http`, `/libsql/ws`, `/libsql/wasm`.
+drizzle-kit's `turso` dialect uses `@tursodatabase/serverless` for remote URLs when `@libsql/client` isn't installed.
 
 ---
 

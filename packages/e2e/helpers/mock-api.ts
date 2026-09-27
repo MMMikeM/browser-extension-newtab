@@ -151,10 +151,18 @@ export const mockApi = async (
     "/api/notes": data.notes,
   };
 
+  // Production builds call SERVER_URL cross-origin, so answer preflights and allow the origin
+  const cors = {
+    "access-control-allow-origin": "*",
+    "access-control-allow-headers": "authorization, content-type, x-client-id",
+    "access-control-allow-methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  };
+
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
-    if (path.startsWith("/api/events")) return route.fulfill({ status: 204, body: "" });
+    if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+    if (path.startsWith("/api/events")) return route.fulfill({ status: 204, headers: cors, body: "" });
 
     let body: unknown = {};
     if (request.method() === "GET") body = collections[path] ?? {};
@@ -165,7 +173,12 @@ export const mockApi = async (
         // Non-JSON mutation body: answer with an empty object
       }
     }
-    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: cors,
+      body: JSON.stringify(body),
+    });
   });
 
   return data;

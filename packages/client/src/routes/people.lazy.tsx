@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { DragDropProvider } from "@dnd-kit/react";
 import { Toast } from "@base-ui/react/toast";
 import { createLazyFileRoute, useRouter } from "@tanstack/react-router";
 import { ChevronLeft, UserPlus } from "lucide-react";
 import { useContacts } from "~/lib/db/hooks";
 import { createInvite, removeContact } from "~/lib/actions";
 import { getBuildTarget } from "~/lib/build-target";
+import { useIsDesk } from "~/lib/hooks/use-is-desk";
+import { CategorySidebar } from "~/components/category-nav/CategorySidebar";
 import { Button } from "~/components/ui/button";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { ListRow } from "~/components/ui/list-row";
@@ -19,6 +22,7 @@ export function PeoplePage() {
   const router = useRouter();
   const toastManager = Toast.useToastManager();
   const [inviting, setInviting] = useState(false);
+  const isDesk = useIsDesk();
 
   const { data: contacts = [], isLoading } = useContacts();
 
@@ -56,6 +60,11 @@ export function PeoplePage() {
   return (
     // AppShell already provides the column and gutters; on touch this is the scroll area
     <div className="flex flex-col gap-6 pt-1 touch:min-h-0 touch:flex-1 touch:overflow-y-auto touch:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]">
+      {isDesk && (
+        <DragDropProvider>
+          <CategorySidebar reorderable={false} />
+        </DragDropProvider>
+      )}
       <div className="flex items-center gap-1">
         <Button
           variant="subtle"

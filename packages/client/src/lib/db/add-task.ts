@@ -8,7 +8,15 @@ import type { Task } from "~/lib/types";
 
 const bySortOrder = (a: Task, b: Task) => (a.sortOrder ?? "").localeCompare(b.sortOrder ?? "");
 
-export const addTask = (title: string, categoryId?: string | null, parentId?: string | null) => {
+export const addTask = async (
+  title: string,
+  categoryId?: string | null,
+  parentId?: string | null,
+) => {
+  // An insert before the first load settles can leave the collection stuck loading (signed
+  // out, its sync never completes), and the sort order below needs the loaded siblings
+  await tasksCollection.stateWhenReady();
+
   const userId = getCurrentUserId();
 
   const allTasks = [...(tasksCollection.state?.values() ?? [])];

@@ -21,7 +21,6 @@ import {
 import { ColorDot } from "~/components/ui/color-dot";
 import { InitialsAvatar } from "~/components/ui/initials-avatar";
 import { SectionLabel } from "~/components/ui/section-label";
-import { INBOX_COLOR } from "~/lib/constants";
 import { ListRow } from "~/components/ui/list-row";
 import { RevealButton, RevealGroup } from "~/components/ui/reveal-button";
 import { TextStack } from "~/components/ui/text-stack";
@@ -75,14 +74,14 @@ export function CategoryCollabSheet({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="max-w-sm border-x desk:translate-x-22 touch:max-w-none touch:border-x-0">
+      <DrawerContent className="max-w-(--column-w) border-x desk:translate-x-(--column-shift) touch:max-w-none touch:border-x-0">
         <DrawerHeader className="gap-1 px-6 pt-4 pb-2 touch:px-5">
           <DrawerTitle className="font-display text-2xl leading-tight font-normal">
             Share category
           </DrawerTitle>
           {category && (
             <DrawerDescription className="flex items-center gap-2">
-              <ColorDot size="sm" color={category.color ?? INBOX_COLOR} />
+              <ColorDot size="sm" color={category.color ?? undefined} />
               {category.name}
             </DrawerDescription>
           )}

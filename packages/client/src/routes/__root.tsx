@@ -31,7 +31,7 @@ export default function RootComponent() {
     <NavContextProvider>
       <Toast.Provider toastManager={toastManager} limit={3}>
         <AppShell
-          withSidebar={pathname === "/"}
+          withSidebar={pathname === "/" || pathname === "/people"}
           right={
             <ClientOnly
               fallback={<span className="text-muted-foreground opacity-40">&#x2699;</span>}

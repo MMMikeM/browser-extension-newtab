@@ -14,10 +14,10 @@ export function AppShell({
     <div
       className={cn(
         // --gutter: symmetric side padding on touch that also clears landscape notches
-        "relative z-1 mx-auto min-h-screen max-w-sm bg-shell px-6 pt-8 pb-8 [--gutter:max(1.25rem,env(safe-area-inset-left,0px),env(safe-area-inset-right,0px))] touch:flex touch:h-dvh touch:min-h-0 touch:max-w-lg touch:flex-col touch:px-(--gutter) touch:pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] touch:pb-0",
-        // Sidebar surface drawn here so it's in the first paint; left-22 is half its width
+        "relative z-1 mx-auto min-h-screen max-w-(--column-w) bg-shell px-6 pt-8 pb-8 [--gutter:max(1.25rem,env(safe-area-inset-left,0px),env(safe-area-inset-right,0px))] touch:flex touch:h-dvh touch:min-h-0 touch:max-w-lg touch:flex-col touch:px-(--gutter) touch:pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] touch:pb-0",
+        // Sidebar surface drawn here so it's in the first paint
         withSidebar &&
-          "desk:left-22 desk:before:absolute desk:before:inset-y-0 desk:before:right-full desk:before:w-44 desk:before:border-r desk:before:border-ghost/40 desk:before:bg-shell",
+          "desk:left-(--column-shift) desk:before:absolute desk:before:inset-y-0 desk:before:right-full desk:before:w-(--sidebar-w) desk:before:border-r desk:before:border-ghost/40 desk:before:bg-shell",
       )}
     >
       <header className="mb-5 flex shrink-0 items-center justify-between touch:mb-4">

@@ -106,18 +106,17 @@ export function CategoryMobileSheet() {
           aria-current={isActive ? "true" : undefined}
           className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-3 text-left"
         >
-          {cat.color ? (
-            <ColorDot color={cat.color} />
-          ) : (
-            <ColorDot className={isActive ? "bg-primary" : "bg-transparent"} />
-          )}
+          <ColorDot color={cat.color ?? undefined} />
           <span className="min-w-0 flex-1 truncate">
             {cat.name}
             {!isOwned && cat.user?.name && (
               <span className="ml-1 text-xs font-normal text-hint">· {cat.user.name}</span>
             )}
           </span>
-          <CollabBadge category={cat} currentUserId={currentUserId} />
+          {/* For someone else's list the suffix already names the owner */}
+          {(isOwned || cat.collaborators?.some((c) => c.user?.id !== currentUserId)) && (
+            <CollabBadge category={cat} currentUserId={currentUserId} />
+          )}
           <OpenCount count={openCounts.get(cat.id) ?? 0} />
         </button>
 

@@ -87,8 +87,8 @@ export function TaskDetail({
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      {/* Matches AppShell's column: max-w-sm, offset by desk:left-22 */}
-      <DrawerContent className="max-h-[88dvh] max-w-sm border-x desk:translate-x-22 touch:max-w-none touch:border-x-0">
+      {/* Sits over AppShell's column */}
+      <DrawerContent className="max-h-[88dvh] max-w-(--column-w) border-x desk:translate-x-(--column-shift) touch:max-w-none touch:border-x-0">
         <DrawerHeader className="sr-only">
           <DrawerTitle>{task.title}</DrawerTitle>
           <DrawerDescription>Task details</DrawerDescription>
@@ -394,7 +394,7 @@ const SubtaskSection = ({
           e.preventDefault();
           const title = value.trim();
           if (!title) return;
-          addTask(title, null, taskId);
+          void addTask(title, null, taskId);
           setValue("");
         }}
       >
