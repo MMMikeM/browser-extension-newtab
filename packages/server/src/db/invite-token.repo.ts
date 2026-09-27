@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 import { now } from "@newtab-todo/shared/iso";
-import { db } from "./client";
+import { db, inTransaction } from "./client";
 import { contacts, inviteTokens } from "./schema";
 import { InsertFailedError } from "./errors";
 
@@ -32,7 +32,7 @@ type InviteToken = NonNullable<Awaited<ReturnType<typeof findValid>>>;
 // If contact creation fails, the token remains unused so the user can retry.
 // Caller must pass the already-validated invite (from findValid) to avoid a second lookup.
 const consume = async (invite: InviteToken, usedByUserId: string) => {
-  await db.transaction(async (tx) => {
+  await inTransaction(async (tx) => {
     await tx
       .update(inviteTokens)
       .set({ usedAt: now(), usedByUserId })

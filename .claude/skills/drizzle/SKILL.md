@@ -16,8 +16,9 @@ Before starting, read the reference docs in this skill directory:
 
 ## Project context
 
-- **Driver**: `@libsql/client` (HTTP client for Turso)
-- **ORM import**: `drizzle-orm/libsql`
+- **Driver**: `@tursodatabase/serverless` (HTTP client for Turso). `@libsql/client` is not a dependency; don't reintroduce it.
+- **ORM import**: `drizzle-orm/tursodatabase-serverless`
+- **Client**: `packages/server/src/db/client.ts` exports `db` (one shared connection, reads retried once on transport failures by `db/retry.ts`) and `inTransaction()`. Use `inTransaction(async (tx) => …)`, never `db.transaction`: a connection is one Turso session, so a transaction on the shared one would take in statements from concurrent requests.
 - **Schema column imports**: `drizzle-orm/sqlite-core`
 - **Config dialect**: `turso`
 - **Env vars**: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`
@@ -120,7 +121,7 @@ const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1
    - Query `where` uses object syntax `{ id: 1 }`, not function syntax `(t, { eq }) => eq(t.id, 1)`
    - Query `orderBy` uses object syntax `{ id: "asc" }`, not function syntax
 
-2. **Use the `drizzle()` factory** from `drizzle-orm/libsql` — pass `{ client }` or `{ connection: { url, authToken } }`
+2. **Use the `drizzle()` factory** from `drizzle-orm/tursodatabase-serverless` — pass `{ client }` from `connect()` (see `db/client.ts`)
 
 3. **Pass `relations`** to `drizzle()`, not `schema`:
 

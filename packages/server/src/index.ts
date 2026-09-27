@@ -4,8 +4,8 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import app from "./app";
 import { closeAllClients } from "./broadcast";
 
-// Prevent silent crashes from async errors (e.g. libsql background sync
-// firing on a just-restored network after Fly suspend/resume).
+// Prevent silent crashes from async errors (e.g. a dead socket surfacing on a
+// just-restored network after Fly suspend/resume).
 process.on("unhandledRejection", (reason) => {
   console.error("[unhandledRejection]", reason);
 });
