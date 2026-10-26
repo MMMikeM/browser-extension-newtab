@@ -19,6 +19,7 @@ import { useSwipeReveal } from "~/lib/hooks/use-swipe-reveal";
 import { useOptimisticUserId } from "~/lib/auth/current-user";
 import { canDeleteTask } from "~/lib/task-permissions";
 import { rowDragSensors } from "./row-drag";
+import { formatDueDate } from "~/lib/due-date";
 
 // Read once: pointer type doesn't change during a session
 const IS_TOUCH = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
@@ -37,21 +38,6 @@ const COMPLETE_LINGER_MS = 450;
 // Must match the hover actions: size-6 buttons, gap-0.5, plus clearance from the meta
 const hoverActionsWidth = (count: number) =>
   count === 0 ? "0rem" : `${count * 1.5 + (count - 1) * 0.125 + 0.5}rem`;
-
-const formatDueDate = (dateStr: string) => {
-  const date = Temporal.PlainDate.from(dateStr.slice(0, 10));
-  const today = Temporal.Now.plainDateISO();
-  const diffDays = date.since(today, { largestUnit: "day" }).days;
-
-  if (diffDays < 0) return { label: `${-diffDays}d ago`, overdue: true };
-  if (diffDays === 0) return { label: "Today", overdue: false };
-  if (diffDays === 1) return { label: "Tomorrow", overdue: false };
-  return {
-    // Device locale: "2 Oct" on en-GB, "Oct 2" on en-US
-    label: date.toLocaleString(undefined, { month: "short", day: "numeric" }),
-    overdue: false,
-  };
-};
 
 // Only a task created moments ago, here or on another device, slides in. Rows that already
 // existed appear at once, so loading, switching lists or opening Done shows them without a fade.

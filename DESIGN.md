@@ -240,6 +240,13 @@ Flat at rest. Depth comes from tonal layering (background, then surface, surface
 - **List options:** Rename, Colour, Share and Delete or Leave share one item style with icons. The first swatch is "No colour", a `ghost` fill, the same dot an uncoloured list shows. The chosen swatch shows a ring and tick, and is marked `aria-pressed`, so selection doesn't rely on colour.
 - **Touch:** the active list is the serif list title at the top (colour dot, name, open count) and a smaller "● List ⌄" chip above the input. Both open the same bottom sheet, headed "Lists", which lists them with open-task counts, marks the active row with `primary-selected`, and holds the add-list, per-list options and People (signed in only) entries. Long names wrap instead of truncating, with the colour dot on the first line. Lists shared with you sit under a "Shared with me" label, with the owner's name as a suffix.
 
+### Search
+
+- **Where:** the list screen gains nothing. Desktop: a quiet "Search" row at the top of the sidebar, with a `/` key hint; `/` opens it from anywhere except a field being typed in (the empty capture input doesn't count). Touch: a "Search all lists" field at the top of the lists sheet. Both open `/search`, where the serif list title becomes the search field and results fill the list's place.
+- **Results:** every task on the device, done ones, subtasks, descriptions and notes, matched with Ekrina. Open tasks group under their list's dot and name in the sidebar's order; done ones follow in one quieter "Done" group with their list and completion date. A match is a quiet `secondary` wash, not colour. A match in a description or note shows that line; a subtask shows the task it sits under. A typo shows "Showing results for …".
+- **Add:** when no task has exactly that title, an outline pill adds it to the list search was opened from; with nothing found it's the `primary-subtle` pill under "Nothing matches.", in the Empty List voice.
+- **Opening one** sheets it over the results, and closing lands back on them with the query kept.
+
 ### Empty List
 
 - A time-of-day phrase ("Morning.", "All clear.", "Evening.", "All quiet.") in DM Serif Display at 1.5rem in `muted-foreground`, with a `hint` line pointing at the capture input (above on desktop, below on touch).

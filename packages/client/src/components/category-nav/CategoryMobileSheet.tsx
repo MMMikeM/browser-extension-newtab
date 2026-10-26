@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Ellipsis, Plus, Users } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Ellipsis, Plus, Search, Users } from "lucide-react";
 import { INBOX_COLOR } from "~/lib/constants";
 import { Drawer, DrawerContent, DrawerTitle } from "~/components/ui/drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
@@ -20,6 +20,7 @@ import { CategoryOptionsContent } from "./CategoryOptionsContent";
 import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
 import { SharedWithMeGroup } from "./SharedWithMeGroup";
 import { keepOpenOnToastPress } from "~/components/sheet-open-change";
+import { holdKeyboard } from "~/lib/keyboard-bridge";
 
 const rowClass = (isActive: boolean) =>
   cn(
@@ -73,6 +74,13 @@ function CategoryMobileSheet() {
   const selectAndClose = (id: string | null) => {
     setActiveCategoryId(id);
     setNavOpen(false);
+  };
+
+  const navigate = useNavigate();
+  const openSearch = () => {
+    holdKeyboard();
+    setNavOpen(false);
+    void navigate({ to: "/search" });
   };
 
   const ownedCategories = categories.filter((c) => c.userId === currentUserId);
@@ -156,6 +164,15 @@ function CategoryMobileSheet() {
     <>
       <Drawer open={navOpen} onOpenChange={keepOpenOnToastPress(setNavOpen)}>
         <DrawerContent>
+          {/* Looks like the field, which is on the search page: this tap is what raises the keyboard */}
+          <button
+            type="button"
+            onClick={openSearch}
+            className="mx-5 mt-2 mb-2 flex h-12 w-[calc(100%-2.5rem)] items-center gap-3 border-b border-ghost text-left text-base text-hint transition-colors active:text-foreground"
+          >
+            <Search size={18} aria-hidden="true" />
+            Search all lists
+          </button>
           <DrawerTitle className="px-5 pt-3 pb-2 text-xs font-medium tracking-wide text-hint uppercase">
             Lists
           </DrawerTitle>

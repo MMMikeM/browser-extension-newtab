@@ -25,7 +25,12 @@ export default function RootComponent() {
     <NavContextProvider>
       <Toast.Provider toastManager={toastManager} limit={3}>
         <AppShell
-          withSidebar={isListPath(pathname) || pathname === "/people" || pathname === "/settings"}
+          withSidebar={
+            isListPath(pathname) ||
+            pathname.startsWith("/search") ||
+            pathname === "/people" ||
+            pathname === "/settings"
+          }
           right={
             <ClientOnly
               fallback={

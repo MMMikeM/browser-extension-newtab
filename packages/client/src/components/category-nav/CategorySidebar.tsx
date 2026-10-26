@@ -1,8 +1,8 @@
-import { useState, type ReactNode, type RefCallback } from "react";
+import { useEffect, useState, type ReactNode, type RefCallback } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { useDroppable } from "@dnd-kit/react";
-import { Ellipsis, Plus } from "lucide-react";
+import { Ellipsis, Plus, Search } from "lucide-react";
 import { INBOX_COLOR, CATEGORY_DROP_PREFIX } from "~/lib/constants";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { CategoryCollabSheet } from "~/components/CategoryCollabSheet";
@@ -67,6 +67,27 @@ function DroppablePill({
   return <>{children(ref, isDropTarget)}</>;
 }
 
+/**
+ * `/` opens search, unless something is being typed: the capture input is focused on every new tab,
+ * so it only counts once it holds text. Not over an open sheet, which has fields of its own.
+ */
+const useSearchShortcut = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      const field = target?.closest<HTMLInputElement>("input, textarea, [contenteditable='true']");
+      if (field && !(field.id === "add-task-input" && !field.value)) return;
+      if (document.querySelector('[data-slot="drawer-content"]')) return;
+      e.preventDefault();
+      void navigate({ to: "/search" });
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [navigate]);
+};
+
 // Outside the task list (People), lists can't be reordered: the drop handling lives with the list
 export function CategorySidebar({ reorderable = true }: { reorderable?: boolean }) {
   const [adding, setAdding] = useState(false);
@@ -96,6 +117,7 @@ export function CategorySidebar({ reorderable = true }: { reorderable?: boolean 
   } = useCategoryNavState(handleRename);
 
   const signedIn = useCurrentUserId() !== null;
+  useSearchShortcut();
 
   const navigate = useNavigate();
   const onListPage = useRouterState({ select: (s) => isListPath(s.location.pathname) });
@@ -212,6 +234,17 @@ export function CategorySidebar({ reorderable = true }: { reorderable?: boolean 
         data-testid="category-sidebar"
         className="fixed top-(--sheet-inset) left-(--panel-left) z-10 hidden h-[calc(100dvh-2*var(--sheet-inset))] w-(--sidebar-w) flex-col overflow-y-auto py-8 pr-1 pl-3 desk:flex"
       >
+        <Link
+          to="/search"
+          className="group/search mb-3 flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-hint transition-colors hover:text-foreground data-[status=active]:bg-muted data-[status=active]:text-foreground"
+        >
+          <Search className="size-3.5" aria-hidden="true" />
+          <span>Search</span>
+          <kbd className="ml-auto flex h-4.5 min-w-4.5 items-center justify-center rounded-[5px] border border-ghost px-1 font-sans text-xs text-hint group-data-[status=active]/search:hidden">
+            <span className="sr-only">Shortcut: </span>/
+          </kbd>
+        </Link>
+
         <button
           onClick={() => openList(null)}
           className={cn(

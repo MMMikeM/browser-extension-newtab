@@ -9,6 +9,7 @@ const TOUCH_SPECS = [
   "contrast.spec.ts",
   "harden-edges.spec.ts",
   "harden-trust.spec.ts",
+  "search.spec.ts",
   "ui.spec.ts",
 ];
 
